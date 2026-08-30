@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.zip
+
+# Ortam dosyalari sunucuda olusturulur; ornegi .env.example de.
+.env
+.env.*
+!.env.example
+
+.claude/settings.local.json
+.DS_Store
+*.log
