@@ -26,7 +26,13 @@
         <i v-if="auth.isClockedIn && !auth.isSuperAdmin" class="clock-live" title="Mesaide"></i>
       </div>
 
-      <nav class="portal-nav" aria-label="Yönetim menüsü">
+      <nav
+        ref="navEl"
+        class="portal-nav"
+        :class="{ 'has-more': navHasMore }"
+        aria-label="Yönetim menüsü"
+        @scroll="updateNavScroll"
+      >
         <template v-for="group in menu" :key="group.label || 'kok'">
           <span v-if="group.label" class="portal-nav-label">{{ group.label }}</span>
           <router-link
@@ -166,7 +172,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useTransactionStore } from '@/stores/transactions'
@@ -182,6 +188,8 @@ const router = useRouter()
 const route = useRoute()
 
 const drawer = ref(false)
+const navEl = ref(null)
+const navHasMore = ref(false)
 const notifMenu = ref(false)
 const userMenu = ref(false)
 const userWrap = ref(null)
@@ -339,6 +347,34 @@ async function handleLogout() {
   router.push({ name: 'Login' })
 }
 
+/** Menude asagida gorulmeyen madde kaldi mi? */
+function updateNavScroll() {
+  const el = navEl.value
+  if (!el) return
+  // Esik, alta eklenen 10px boslugu asmali: aksi halde en alta
+  // inildiginde bile "devami var" solmasi gorunuyor.
+  navHasMore.value = el.scrollHeight - el.scrollTop - el.clientHeight > 16
+}
+
+/**
+ * Acilista aktif maddeyi gorunur kil.
+ *
+ * Menu ekrana sigmadigi icin ornegin Platform Ayarlari'ndayken madde
+ * kaydirma alaninin disinda kaliyor ve kullanici nerede oldugunu
+ * goremiyordu.
+ */
+function revealActiveItem() {
+  const el = navEl.value
+  const active = el?.querySelector('a.active')
+  if (!el || !active) return
+  const a = active.getBoundingClientRect()
+  const n = el.getBoundingClientRect()
+  if (a.top < n.top || a.bottom > n.bottom) {
+    active.scrollIntoView({ block: 'nearest' })
+  }
+  updateNavScroll()
+}
+
 onMounted(() => {
   sendHeartbeat()
   heartbeatInterval = setInterval(sendHeartbeat, 60000)
@@ -350,7 +386,11 @@ onMounted(() => {
   timeInterval = setInterval(updateTime, 1000)
   document.addEventListener('click', onDocClick)
   document.addEventListener('keydown', onEsc)
+  nextTick(revealActiveItem)
 })
+
+// Sayfa degisince aktif madde yine gorunur kalsin
+watch(() => route.name, () => nextTick(revealActiveItem))
 
 onUnmounted(() => {
   if (heartbeatInterval) clearInterval(heartbeatInterval)
@@ -497,19 +537,36 @@ onUnmounted(() => {
   box-shadow: 0 0 0 4px rgba(102, 241, 189, 0.12);
 }
 
+/* Menu 16 madde tasiyor ve ekrana sigmiyor: 559px gorunur alanda 924px
+ * icerik var, yani 365px gizli kaliyor. Onceden bunu belli eden hicbir
+ * sey yoktu -- solma yok, kaydirma cubugu 4px ve Windows'ta ustune
+ * gelmeden gorunmuyor, son madde de kenara sifir boslukla yapisikti.
+ * Kullanici alttaki maddelere ulasmakta zorlaniyordu. */
 .portal-nav {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 3px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  /* Son madde kenara yapismasin */
+  padding-bottom: 10px;
   /* Kaydirma cubugu icerigi daraltmasin */
   margin-right: -6px;
   padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sp-scrollbar) transparent;
 }
-.portal-nav::-webkit-scrollbar { width: 4px; }
+.portal-nav::-webkit-scrollbar { width: 6px; }
+.portal-nav::-webkit-scrollbar-track { background: transparent; }
 .portal-nav::-webkit-scrollbar-thumb { background: var(--sp-scrollbar); }
+.portal-nav:hover::-webkit-scrollbar-thumb { background: var(--sp-scrollbar-hover); }
+
+/* Asagida devami oldugunu gosteren solma. Yalnizca kaydirilacak yer
+ * varken ciziliyor; en alta inilince kayboluyor. */
+.portal-nav-wrap { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.portal-nav.has-more { -webkit-mask-image: linear-gradient(#000 calc(100% - 26px), transparent); mask-image: linear-gradient(#000 calc(100% - 26px), transparent); }
 .portal-nav-label {
   margin: 16px 10px 7px;
   font-family: 'JetBrains Mono', monospace;
