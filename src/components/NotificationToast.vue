@@ -219,25 +219,77 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 /* ── Notification Toast ── */
 .notif-toast {
   position: fixed;
-  top: 20px;
+  /* Ust cubuk 70px; kart onun altindan baslasin ki kullanici
+     menusunu ve bildirim zilini ortmesin. */
+  top: 84px;
   right: 20px;
   z-index: 9999;
 }
+/* Kart sayfadan acikca ayrilmali. Onceden zemini #101815 idi ve sayfa
+ * zemini #070B09 -- aradaki fark o kadar kucuktu ki saydam gibi
+ * okunuyordu. Artik daha acik opak bir yuzey, tam opak kenarlik ve
+ * gercek bir yukseklik golgesi var. */
 .notif-toast-card {
   position: relative;
   width: 420px;
   max-width: calc(100vw - 32px);
-  background: var(--sp-surface-bright);
+  background: #16211C;
   border-radius: 0;
   padding: 0;
   overflow: hidden;
   animation: notif-pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.notif-toast-card--success { border: 2px solid rgba(102,241,189, 0.5); box-shadow: 0 0 40px rgba(102,241,189, 0.2), 0 12px 40px rgba(0,0,0,0.3); }
-.notif-toast-card--error { border: 2px solid rgba(255,142,130, 0.5); box-shadow: 0 0 40px rgba(255,142,130, 0.2), 0 12px 40px rgba(0,0,0,0.3); }
-.notif-toast-card--warning { border: 2px solid rgba(255,208,138, 0.5); box-shadow: 0 0 40px rgba(255,208,138, 0.2), 0 12px 40px rgba(0,0,0,0.3); }
-.notif-toast-card--info { border: 2px solid rgba(112,169,255, 0.5); box-shadow: 0 0 40px rgba(112,169,255, 0.2), 0 12px 40px rgba(0,0,0,0.3); }
-.notif-toast-card--primary { border: 2px solid rgba(var(--sp-primary-rgb), 0.5); box-shadow: 0 0 40px rgba(var(--sp-primary-rgb), 0.2), 0 12px 40px rgba(0,0,0,0.3); }
+/* Ust kenarda tur rengini tasiyan seritle hangi bildirim oldugu
+ * bir bakista okunuyor. */
+.notif-toast-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--toast-accent, var(--sp-primary));
+}
+.notif-toast-card--success {
+  --toast-accent: #66F1BD;
+  border: 1px solid rgba(102,241,189, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 18px 50px rgba(0, 0, 0, 0.65),
+    0 0 46px rgba(102,241,189, 0.16);
+}
+.notif-toast-card--error {
+  --toast-accent: #FF8E82;
+  border: 1px solid rgba(255,142,130, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 18px 50px rgba(0, 0, 0, 0.65),
+    0 0 46px rgba(255,142,130, 0.16);
+}
+.notif-toast-card--warning {
+  --toast-accent: #FFD08A;
+  border: 1px solid rgba(255,208,138, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 18px 50px rgba(0, 0, 0, 0.65),
+    0 0 46px rgba(255,208,138, 0.16);
+}
+.notif-toast-card--info {
+  --toast-accent: #70A9FF;
+  border: 1px solid rgba(112,169,255, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 18px 50px rgba(0, 0, 0, 0.65),
+    0 0 46px rgba(112,169,255, 0.16);
+}
+.notif-toast-card--primary {
+  --toast-accent: #66F1BD;
+  border: 1px solid rgba(102,241,189, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 18px 50px rgba(0, 0, 0, 0.65),
+    0 0 46px rgba(102,241,189, 0.16);
+}
 /* Header */
 .notif-toast-header {
   display: flex;
@@ -276,7 +328,7 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
 .notif-toast-label--error { background: rgba(255,142,130, 0.12); color: var(--sp-accent-error); }
 .notif-toast-label--warning { background: rgba(255,208,138, 0.12); color: var(--sp-accent-orange-bright); }
 .notif-toast-label--info { background: rgba(112,169,255, 0.12); color: var(--sp-accent-blue); }
-.notif-toast-label--primary { background: rgba(var(--sp-primary-rgb), 0.12); color: var(--sp-primary); }
+.notif-toast-label--primary { background: rgba(var(--sp-primary-rgb), 0.18); color: var(--sp-primary); }
 /* Amount */
 .notif-toast-amount {
   text-align: center;
@@ -415,48 +467,37 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   animation: notif-timer-shrink 15s linear forwards;
 }
 /* Transition */
+/* Giris opakligi Vue gecisine baglanmiyor.
+ *
+ * Sekme arka plandayken requestAnimationFrame duruyor, dolayisiyla Vue
+ * enter-from sinifini hic kaldiramiyor ve kart opaklik 0'da takili
+ * kaliyordu -- operator baska pencerede calisirken gelen bildirim
+ * gorunmez oluyordu. Kart artik dogdugu anda opak; giris hareketi
+ * karttaki CSS animasyonuna (notif-pop-in) birakildi, o calismasa bile
+ * eleman tam gorunur kaliyor. Cikis gecisi oldugu gibi duruyor. */
 .notif-slide-enter-active {
-  transition: all 0.3s ease;
+  transition: none;
 }
 .notif-slide-leave-active {
   transition: all 0.25s ease-in;
 }
 .notif-slide-enter-from {
-  opacity: 0;
-  transform: translateX(100px);
+  /* opaklik/donusum bilerek bos: bkz. .notif-slide-enter-active */
 }
 .notif-slide-leave-to {
   opacity: 0;
   transform: translateX(60px);
 }
-.notif-toast--light .notif-toast-card {
-  background: #FFFFFF !important;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18) !important;
+
+/* Bilesen ayrilirken kaybolan animasyon tanimlari. */
+/* Yalnizca hareket; opakliga dokunmuyor.
+ * Arka plandaki sekmede animasyonlar duraklatildigi icin opaklik
+ * iceren bir giris animasyonu karti gorunmez birakabiliyordu. */
+@keyframes notif-pop-in {
+  0% { transform: translateX(40px) scale(0.97); }
+  100% { transform: translateX(0) scale(1); }
 }
-.notif-toast--light .notif-toast-header {
-  border-bottom-color: #E3E5EE;
-}
-.notif-toast--light .notif-toast-amount { color: var(--sp-surface-bright); }
-.notif-toast--light .notif-toast-amount--success { color: var(--sp-accent-success) !important; }
-.notif-toast--light .notif-toast-amount--info { color: var(--sp-accent-info) !important; }
-.notif-toast--light .notif-toast-amount--warning { color: var(--sp-accent-orange) !important; }
-.notif-toast--light .notif-toast-amount--error { color: var(--sp-accent-error) !important; }
-.notif-toast--light .notif-toast-id { color: var(--sp-text-muted); }
-.notif-toast--light .notif-toast-currency { color: var(--sp-text-muted); }
-.notif-toast--light .notif-toast-label--success { background: rgba(102,241,189, 0.1); color: var(--sp-accent-success); }
-.notif-toast--light .notif-toast-label--error { background: rgba(255,142,130, 0.1); color: var(--sp-accent-error); }
-.notif-toast--light .notif-toast-label--warning { background: rgba(255,174,91, 0.1); color: var(--sp-accent-orange); }
-.notif-toast--light .notif-toast-label--info { background: rgba(3, 169, 244, 0.1); color: var(--sp-accent-info); }
-.notif-toast--light .notif-toast-detail-row { background: #F5F6FA; }
-.notif-toast--light .notif-toast-detail-label { color: var(--sp-text-muted); }
-.notif-toast--light .notif-toast-detail-value { color: var(--sp-surface-bright); }
-.notif-toast--light .notif-toast-close { background: #F0F1F5; color: var(--sp-text-muted); }
-.notif-toast--light .notif-toast-close:hover { background: #E3E5EE; color: var(--sp-surface-bright); }
-.notif-toast--light .notif-toast-btn--dismiss { background: #F0F1F5; color: var(--sp-text-muted); }
-.notif-toast--light .notif-toast-btn--dismiss:hover { background: #E3E5EE; color: var(--sp-surface-bright); }
-.notif-toast--light .notif-toast-timer { background: #E3E5EE; }
-.notif-toast--light .notif-toast-card--success { border-color: rgba(102,241,189, 0.4); box-shadow: 0 12px 40px rgba(102,241,189, 0.12), 0 8px 30px rgba(0,0,0,0.1) !important; }
-.notif-toast--light .notif-toast-card--info { border-color: rgba(112,169,255, 0.4); box-shadow: 0 12px 40px rgba(112,169,255, 0.12), 0 8px 30px rgba(0,0,0,0.1) !important; }
-.notif-toast--light .notif-toast-card--warning { border-color: rgba(255,208,138, 0.4); box-shadow: 0 12px 40px rgba(255,208,138, 0.12), 0 8px 30px rgba(0,0,0,0.1) !important; }
-.notif-toast--light .notif-toast-card--error { border-color: rgba(255,142,130, 0.4); box-shadow: 0 12px 40px rgba(255,142,130, 0.12), 0 8px 30px rgba(0,0,0,0.1) !important; }
-</style>
+@keyframes notif-timer-shrink {
+  0% { width: 100%; }
+  100% { width: 0%; }
+}</style>

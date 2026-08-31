@@ -12,7 +12,15 @@
 <style>
 /* ── Theme-aware CSS custom properties ── */
 /* Dark theme */
-.v-theme--darkComfort {
+/* Token'lar :root'ta.
+ *
+ * Onceden yalnizca .v-theme--darkComfort uzerinde tanimliydi. Bildirim
+ * karti gibi <teleport to="body"> ile body'ye tasinan icerikler o
+ * sinifin disinda kaldigi icin butun var(--sp-*) degerleri cozulmuyor,
+ * kart renksiz/saydam gorunuyordu. Panel karanlik-tek oldugu icin
+ * token'larin kokte durmasi hem dogru hem de her isinlanan icerigi
+ * kendiliginden koruyor. */
+:root {
   /* ── "Signal" paleti ──────────────────────────────────────
    * Tanitim sitesi, giris ekrani ve bayi paneliyle ayni dil:
    * neredeyse siyah zemin, tek mint sinyal rengi, 1px hatlar.
