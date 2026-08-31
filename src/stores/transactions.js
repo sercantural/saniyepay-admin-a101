@@ -301,10 +301,30 @@ export const useTransactionStore = defineStore('transactions', () => {
       if (!txn || seen.has('p:' + txn.id)) return
       seen.add('p:' + txn.id)
 
+      /*
+       * Kayit listede yoksa EKLE, ve listeyi tazele.
+       *
+       * Onceden yalnizca zaten listede olan satir guncelleniyor, tick de
+       * artirilmiyordu. Grup yoneticisinde sonuc suydu: yatirim bir
+       * operatore atanmadan once olusturuluyor, o anda TransactionCreated
+       * sadece admin.super'a gidiyor (bkz. Events\TransactionCreated) ve
+       * yonetici islemi hic gormuyor. Odeme bildirildiginde olay
+       * manager.{sg} kanalina da dusuyor -- bildirim cikiyor ama satir
+       * listede olmadigi icin tabloda hicbir sey belirmiyor; sayfa
+       * yenilenene kadar. Super admin'de sorun gorunmuyordu cunku satir
+       * onun listesinde zaten vardi.
+       *
+       * Diger iki isleyiciyle ayni davranis: ekle + tick.
+       */
       const idx = items.value.findIndex(t => t.id === txn.id)
       if (idx !== -1) {
         items.value[idx] = txn
+      } else {
+        items.value.unshift(txn)
       }
+
+      debouncedFetchPendingCounts()
+      transactionUpdateTick.value++
 
       // Same filter — payment-notified only matters to the assigned operator.
       if (!shouldNotifyOperator(txn)) return

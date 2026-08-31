@@ -36,6 +36,9 @@ const formError = ref('')
 const rejectReason = ref('')
 
 const activeWallets = ref([])
+// Cuzdan listesi cekilemedi mi? "Hic cuzdan yok" ile "liste gelmedi"
+// ayni ekrana dusuyor; hangisi oldugunu soyleyebilmek icin tutuluyor.
+const walletsError = ref(false)
 const createForm = ref({
   amount_try: null,
   coin: 'USDT',
@@ -77,6 +80,18 @@ const statusOptions = [
   { title: 'Onaylandı', value: 'approved' },
   { title: 'Reddedildi', value: 'rejected' },
 ]
+
+/*
+ * Coin ve ag secenekleri AKTIF CUZDANLARDAN turetiliyor.
+ *
+ * Onceden ikisi de sabit listeydi (8 coin x 7 ag) ve cuzdani olmayan
+ * bir cift secilebiliyordu. Operator formu doldurup gonderiyor, sunucu
+ * "aktif sirket cuzdani yok" diyordu -- panelde cuzdan aktif oldugu icin
+ * bu hata yanlis anlasiliyordu. Secilemeyen bir sey hata da veremez.
+ */
+const availableCoins = computed(() => {
+  return [...new Set(activeWallets.value.map(w => w.coin))].sort()
+})
 
 const availableNetworks = computed(() => {
   return activeWallets.value
@@ -182,8 +197,24 @@ async function loadWallets() {
   try {
     const { data } = await api.get('/portal/company-wallets/active')
     activeWallets.value = data
+    walletsError.value = false
+    // Secili cift artik gecerli degilse ilk gecerliye kaydir; boylece
+    // form hicbir zaman secilemeyen bir kombinasyonla acilmiyor.
+    syncWalletSelection()
   } catch {
     activeWallets.value = []
+    walletsError.value = true
+  }
+}
+
+// Coin/ag secimini mevcut cuzdanlarla hizalar.
+function syncWalletSelection() {
+  if (!activeWallets.value.length) return
+  if (!availableCoins.value.includes(createForm.value.coin)) {
+    createForm.value.coin = availableCoins.value[0]
+  }
+  if (!availableNetworks.value.includes(createForm.value.network)) {
+    createForm.value.network = availableNetworks.value[0]
   }
 }
 
@@ -833,10 +864,10 @@ onMounted(async () => {
             <!-- Coin / network — no section label, the labels on inputs are enough -->
             <v-row dense class="mb-2">
               <v-col cols="6">
-                <v-select v-model="createForm.coin" :items="['TRX','USDT','BTC','ETH','SOL','XRP','AVAX','DOGE']" label="Coin" variant="outlined" density="compact" hide-details />
+                <v-select v-model="createForm.coin" :items="availableCoins" :disabled="!availableCoins.length" label="Coin" variant="outlined" density="compact" hide-details />
               </v-col>
               <v-col cols="6">
-                <v-select v-model="createForm.network" :items="availableNetworks.length ? availableNetworks : ['TRC20','ERC20','BEP20','SOL','BTC','XRP','AVAX-C']" label="Ağ" variant="outlined" density="compact" hide-details />
+                <v-select v-model="createForm.network" :items="availableNetworks" :disabled="!availableNetworks.length" label="Ağ" variant="outlined" density="compact" hide-details />
               </v-col>
             </v-row>
 
@@ -866,6 +897,15 @@ onMounted(async () => {
                 </template>
               </v-tooltip>
             </div>
+            <!-- Iki farkli durum, iki farkli cozum: hic cuzdan yoksa
+                 yonetici eklemeli; cuzdan varsa ama liste gelmediyse
+                 sorun agdadir. Ikisini ayni mesajla gecmek, panelde
+                 cuzdan aktifken "cuzdan yok" demek gibi okunuyordu. -->
+            <v-alert v-else-if="!activeWallets.length" type="warning" density="compact" variant="tonal" class="mb-2">
+              {{ walletsError
+                ? 'Şirket cüzdanları yüklenemedi. Sayfayı yenileyin; sürerse yöneticinize bildirin.'
+                : 'Tanımlı aktif şirket cüzdanı yok. Yöneticiniz Şirket Cüzdanları ekranından ekleyebilir.' }}
+            </v-alert>
             <v-alert v-else type="warning" density="compact" variant="tonal" class="mb-2">
               {{ createForm.coin }}/{{ createForm.network }} için aktif şirket cüzdanı yok.
             </v-alert>
