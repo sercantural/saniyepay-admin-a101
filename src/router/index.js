@@ -1,9 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
+/**
+ * Giris yolu bilerek tahmin edilemez.
+ *
+ * /login yolu Cloudflare'in phishing tespitine takiliyordu: "taninmis
+ * markaya benzeyen alan adi + /login" kalibini otomatik isaretliyor ve
+ * edge'de 403 donuyordu -- kok adres ve panelin diger sayfalari acikken
+ * yalnizca giris ekrani engelliydi. Yolu degistirmek hem bunu asiyor
+ * hem de yonetim girisini gizledigi icin kendi basina faydali.
+ *
+ * Rotasyon icin yalnizca burayi degistirmek yeterli: yonlendirmelerin
+ * tamami isimli rotayi ({ name: 'Login' }) kullaniyor.
+ */
+export const LOGIN_PATH = '/kontrol-8f3a21'
+
 const routes = [
   {
-    path: '/login',
+    path: LOGIN_PATH,
     name: 'Login',
     component: () => import('@/views/auth/LoginView.vue'),
     meta: { guest: true },
@@ -147,7 +161,7 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
     if (!localStorage.getItem('auth_token')) {
-      return '/login'
+      return { name: 'Login' }
     }
     try {
       // Deduplicate concurrent fetchMe calls (e.g. rapid navigation)
@@ -157,7 +171,7 @@ router.beforeEach(async (to) => {
       await fetchMePromise
     } catch {
       localStorage.removeItem('auth_token')
-      return '/login'
+      return { name: 'Login' }
     }
   }
 

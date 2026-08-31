@@ -333,7 +333,7 @@ function onEsc(e) {
 async function handleLogout() {
   userMenu.value = false
   await auth.logout()
-  router.push('/login')
+  router.push({ name: 'Login' })
 }
 
 onMounted(() => {
