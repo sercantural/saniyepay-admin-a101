@@ -186,6 +186,20 @@
                 <v-text-field v-model="form.deposit_webhook_url" label="Yatırım Callback URL" placeholder="https://siteniz.com/deposit-callback" variant="outlined" density="compact" class="mb-3" />
                 <v-text-field v-model="form.withdrawal_webhook_url" label="Çekim Callback URL" placeholder="https://siteniz.com/withdrawal-callback" variant="outlined" density="compact" />
               </template>
+
+              <!-- Sandbox'in kendi adresi: test bildirimleri bayinin canli
+                   ucuna gitmemeli. Bos birakilirsa sandbox bildirimi
+                   gonderilmiyor (canli akis etkilenmiyor). -->
+              <v-text-field
+                v-model="form.sandbox_webhook_url"
+                label="Sandbox Callback URL"
+                placeholder="https://test.siteniz.com/callback"
+                variant="outlined"
+                density="compact"
+                class="mt-3"
+                hint="Test işlemlerinin bildirimleri buraya gider. Boşsa sandbox bildirimi gönderilmez."
+                persistent-hint
+              />
             </div>
 
             <!-- ── Ayarlar (sadece düzenlemede) ── -->
@@ -463,6 +477,7 @@ const keyDialogTitle = ref('API Anahtarları')
 const showOwnerPw = ref(false)
 const form = reactive({
   name: '', callback_mode: 'single', webhook_url: '', deposit_webhook_url: '', withdrawal_webhook_url: '',
+  sandbox_webhook_url: '',
   currency: 'TRY', deposit_fee_percent: 0, withdrawal_fee_percent: 0, settlement_fee_percent: 0,
   min_deposit_amount: null, max_deposit_amount: null,
   min_withdrawal_amount: null, max_withdrawal_amount: null,
@@ -558,6 +573,7 @@ function openCreate() {
   dialogTab.value = 'general'
   Object.assign(form, {
     name: '', callback_mode: 'single', webhook_url: '', deposit_webhook_url: '', withdrawal_webhook_url: '',
+  sandbox_webhook_url: '',
     currency: 'TRY', deposit_fee_percent: 0, withdrawal_fee_percent: 0, settlement_fee_percent: 0,
     min_deposit_amount: null, max_deposit_amount: null,
     min_withdrawal_amount: null, max_withdrawal_amount: null,
@@ -580,6 +596,7 @@ function editMerchant(m) {
     name: m.name, callback_mode: m.callback_mode || 'single',
     webhook_url: m.webhook_url || '', deposit_webhook_url: m.deposit_webhook_url || '',
     withdrawal_webhook_url: m.withdrawal_webhook_url || '',
+    sandbox_webhook_url: m.sandbox_webhook_url || '',
     currency: m.currency, deposit_fee_percent: m.deposit_fee_percent || 0,
     withdrawal_fee_percent: m.withdrawal_fee_percent || 0,
     settlement_fee_percent: m.settlement_fee_percent || 0,
