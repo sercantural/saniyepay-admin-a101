@@ -301,7 +301,7 @@ onMounted(async () => {
 .live-user-card {
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 10px;
+  border-radius: 0;
   min-width: 180px;
   flex: 0 0 auto;
 }

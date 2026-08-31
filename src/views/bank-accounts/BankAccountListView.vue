@@ -709,7 +709,7 @@ onMounted(async () => {
   align-items: center;
   gap: 14px;
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
   overflow: hidden;
@@ -738,7 +738,7 @@ onMounted(async () => {
 
 .stat-icon-wrap {
   width: 44px; height: 44px;
-  border-radius: 12px;
+  border-radius: 0;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   position: relative; z-index: 1;
@@ -775,7 +775,7 @@ onMounted(async () => {
 .bank-table-card {
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -790,7 +790,7 @@ onMounted(async () => {
 .bank-table-title { display: flex; align-items: center; gap: 12px; }
 .bank-table-icon {
   width: 36px; height: 36px;
-  border-radius: 10px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -812,7 +812,7 @@ onMounted(async () => {
 .account-cell { display: flex; align-items: flex-start; gap: 10px; line-height: 1.25; }
 .account-avatar {
   width: 28px; height: 28px;
-  border-radius: 8px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -864,7 +864,7 @@ onMounted(async () => {
   display: inline-flex; align-items: center;
   font-size: 11px; font-weight: 600;
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 0;
 }
 .owner-pill {
   background: rgba(255,190,91,0.12);
@@ -926,7 +926,7 @@ onMounted(async () => {
 /* ── Hero modal — same shape as DepositListView's approve/reject confirm,
      adapted as a form (brand purple palette instead of green/red). ── */
 .bank-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(102,241,189, 0.25) !important;
   box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -1006,7 +1006,7 @@ onMounted(async () => {
 .range-tag {
   display: inline-block;
   font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
-  padding: 1px 6px; border-radius: 4px;
+  padding: 1px 6px; border-radius: 0;
 }
 .tag-min { background: rgba(255,190,91,0.15); color: var(--sp-accent-amber); border: 1px solid rgba(255,190,91,0.22); }
 .tag-max { background: rgba(102,241,189,0.15); color: var(--sp-accent-success); border: 1px solid rgba(102,241,189,0.22); }
@@ -1029,7 +1029,7 @@ onMounted(async () => {
   display: inline-flex; align-items: center; justify-content: center;
   width: 16px; height: 16px;
   font-size: 9px; font-weight: 800;
-  border-radius: 4px;
+  border-radius: 0;
   flex-shrink: 0;
 }
 .act-dep .act-tag { background: rgba(102,241,189,0.18); color: var(--sp-accent-success); }
@@ -1042,7 +1042,7 @@ onMounted(async () => {
 
 .switch-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 6px 12px; border-radius: 8px;
+  padding: 6px 12px; border-radius: 0;
   background: var(--sp-surface-1, rgba(102,241,189,0.05));
   border: 1px solid var(--sp-border);
   min-height: 40px;

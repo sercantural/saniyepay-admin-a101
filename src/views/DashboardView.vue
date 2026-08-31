@@ -1015,7 +1015,7 @@ onMounted(async () => {
 /* ═══════════════════════════════════════ */
 .hero-earnings {
   padding: 28px 32px;
-  border-radius: 18px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-accent-success) 0%, var(--sp-accent-success) 100%);
   color: white;
   position: relative;
@@ -1051,7 +1051,7 @@ onMounted(async () => {
 
 .simple-card {
   padding: 18px 22px;
-  border-radius: 14px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -1065,7 +1065,7 @@ onMounted(async () => {
 .simple-card-icon {
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1099,7 +1099,7 @@ onMounted(async () => {
 /* ── Operator dashboard widgets ── */
 .op-credit-card {
   padding: 22px 26px;
-  border-radius: 16px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
   border-left: 5px solid var(--sp-accent-success-bright);
@@ -1147,13 +1147,13 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 14px;
   padding: 16px 18px;
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
 }
 .op-stat-icon {
   width: 40px; height: 40px;
-  border-radius: 11px;
+  border-radius: 0;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -1211,7 +1211,7 @@ onMounted(async () => {
 
 .simple-stat {
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-glass-border);
 }
@@ -1244,7 +1244,7 @@ onMounted(async () => {
   align-items: center;
   gap: 16px;
   padding: 20px 24px;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid var(--sp-glass-border);
 }
@@ -1264,7 +1264,7 @@ onMounted(async () => {
 .hero-icon-wrap {
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1290,7 +1290,7 @@ onMounted(async () => {
   font-size: 10px;
   font-weight: 700;
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: 0;
   background: rgba(255,190,91,0.15);
   color: var(--sp-accent-amber);
   z-index: 1;
@@ -1307,7 +1307,7 @@ onMounted(async () => {
 /* SECTION HEADERS */
 /* ═══════════════════════════════════════ */
 .section-header { display: flex; align-items: center; gap: 12px; }
-.section-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.section-icon { width: 36px; height: 36px; border-radius: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .section-title { font-size: 16px; font-weight: 700; color: var(--sp-text); }
 .section-subtitle { font-size: 11px; color: var(--sp-text-dimmer); }
 
@@ -1336,7 +1336,7 @@ onMounted(async () => {
   position: relative;
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 14px;
+  border-radius: 0;
   padding: 18px 16px;
   text-align: center;
   overflow: hidden;
@@ -1357,7 +1357,7 @@ onMounted(async () => {
   left: 0;
   right: 0;
   height: 3px;
-  border-radius: 14px 14px 0 0;
+  border-radius: 0;
 }
 
 .glass-label {
@@ -1383,7 +1383,7 @@ onMounted(async () => {
 .flow-card {
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 14px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -1410,7 +1410,7 @@ onMounted(async () => {
   padding: 12px 20px;
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 12px;
+  border-radius: 0;
   min-width: 140px;
 }
 
@@ -1447,7 +1447,7 @@ onMounted(async () => {
 .merchant-card {
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 16px;
+  border-radius: 0;
   padding: 20px;
   transition: all 0.2s ease;
 }
@@ -1468,7 +1468,7 @@ onMounted(async () => {
 .merchant-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan));
   display: flex;
   align-items: center;
@@ -1488,7 +1488,7 @@ onMounted(async () => {
   margin-bottom: 16px;
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .merchant-balance-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--sp-text-dimmer); font-weight: 600; margin-bottom: 4px; }
@@ -1505,14 +1505,14 @@ onMounted(async () => {
   text-align: center;
   padding: 8px 4px;
   background: var(--sp-glass-bg);
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 .merchant-stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.3px; color: var(--sp-text-hint); font-weight: 600; margin-bottom: 2px; }
 .merchant-stat-value { font-size: 13px; font-weight: 700; }
 
 .merchant-badges { display: flex; flex-wrap: wrap; gap: 6px; }
-.mbadge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px; display: inline-flex; align-items: center; }
+.mbadge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 0; display: inline-flex; align-items: center; }
 .mbadge-orange { background: var(--sp-accent-amber-bg); color: var(--sp-accent-amber); }
 .mbadge-red { background: var(--sp-accent-error-bg); color: var(--sp-accent-rose); }
 
@@ -1522,7 +1522,7 @@ onMounted(async () => {
 .glass-table-card {
   background: var(--sp-glass-bg) !important;
   border: 1px solid var(--sp-glass-border) !important;
-  border-radius: 16px !important;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -1562,14 +1562,14 @@ onMounted(async () => {
   color: var(--sp-primary);
   background: rgba(var(--sp-primary-rgb), 0.06);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 /* ═══════════════════════════════════════ */
 /* PERIOD TOGGLE */
 /* ═══════════════════════════════════════ */
 .period-toggle {
-  border-radius: 10px !important;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -1628,7 +1628,7 @@ onMounted(async () => {
   padding: 12px 16px;
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
-  border-radius: 12px;
+  border-radius: 0;
   text-decoration: none;
   color: inherit;
   transition: all 0.15s ease;
@@ -1653,7 +1653,7 @@ onMounted(async () => {
 .txn-type-indicator {
   width: 38px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1753,7 +1753,7 @@ onMounted(async () => {
   font-size: 10px;
   font-weight: 600;
   padding: 3px 10px;
-  border-radius: 20px;
+  border-radius: 0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -1851,7 +1851,7 @@ onMounted(async () => {
   padding: 40px 20px;
   background: var(--sp-glass-bg);
   border: 1px dashed var(--sp-glass-border);
-  border-radius: 14px;
+  border-radius: 0;
 }
 
 .txn-pagination {
@@ -1880,7 +1880,7 @@ onMounted(async () => {
 
 .txn-filter-bar :deep(.v-field) {
   background: var(--sp-glass-bg) !important;
-  border-radius: 10px !important;
+  border-radius: 0;
 }
 
 @media (max-width: 960px) {
@@ -2049,13 +2049,13 @@ onMounted(async () => {
   .hero-card {
     padding: 14px 16px;
     gap: 12px;
-    border-radius: 12px;
+    border-radius: 0;
   }
 
   .hero-icon-wrap {
     width: 42px;
     height: 42px;
-    border-radius: 10px;
+    border-radius: 0;
   }
 
   .hero-amount {
@@ -2074,7 +2074,7 @@ onMounted(async () => {
   /* Glass cards: reduced padding */
   .glass-card {
     padding: 14px 12px;
-    border-radius: 10px;
+    border-radius: 0;
   }
 
   .glass-value {
@@ -2089,7 +2089,7 @@ onMounted(async () => {
 
   .merchant-card {
     padding: 14px;
-    border-radius: 12px;
+    border-radius: 0;
   }
 
   .merchant-balance-amount {
@@ -2121,13 +2121,13 @@ onMounted(async () => {
   .txn-row {
     padding: 10px 12px;
     gap: 10px;
-    border-radius: 10px;
+    border-radius: 0;
   }
 
   .txn-type-indicator {
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+    border-radius: 0;
   }
 
   .txn-amount {
@@ -2160,7 +2160,7 @@ onMounted(async () => {
   .section-icon {
     width: 30px;
     height: 30px;
-    border-radius: 8px;
+    border-radius: 0;
   }
 
   .section-title {
@@ -2169,7 +2169,7 @@ onMounted(async () => {
 
   /* Glass table: horizontal scroll */
   .glass-table-card {
-    border-radius: 12px !important;
+    border-radius: 0;
   }
 
   .glass-table {
@@ -2190,7 +2190,7 @@ onMounted(async () => {
 
   /* Flow card */
   .flow-card {
-    border-radius: 10px;
+    border-radius: 0;
   }
 
   .flow-header {

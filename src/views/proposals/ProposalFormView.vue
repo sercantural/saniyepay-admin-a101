@@ -334,7 +334,7 @@ onMounted(async () => {
 .offer-page {
   width: 210mm; min-height: 297mm; max-width: 100%;
   background: #FFFFFF;
-  border-radius: 4px;
+  border-radius: 0;
   box-shadow: 0 2px 24px rgba(0,0,0,0.08);
   overflow: hidden;
   font-family: 'Inter', -apple-system, sans-serif;
@@ -366,7 +366,7 @@ onMounted(async () => {
 .offer-hero {
   margin: 20px 28px; padding: 24px 28px;
   background: linear-gradient(135deg, #0F172A 0%, var(--sp-surface-variant) 100%);
-  border-radius: 16px; color: #FFFFFF;
+  border-radius: 0; color: #FFFFFF;
   position: relative; overflow: hidden;
 }
 .offer-hero::before {
@@ -395,7 +395,7 @@ onMounted(async () => {
 /* Payment method */
 .offer-method {
   display: flex; align-items: center; gap: 12px;
-  margin: 0 28px; padding: 14px 18px; border-radius: 12px;
+  margin: 0 28px; padding: 14px 18px; border-radius: 0;
   background: linear-gradient(135deg, var(--sp-success-bg) 0%, var(--sp-success-bg) 100%);
   border: 1px solid var(--sp-success-bg);
 }
@@ -405,28 +405,28 @@ onMounted(async () => {
 /* Rate cards */
 .offer-rates { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 0 28px; }
 .rate-card {
-  padding: 16px; border-radius: 14px; text-align: center;
+  padding: 16px; border-radius: 0; text-align: center;
   background: #F8FAFC; border: 1px solid #E2E8F0;
 }
 .rate-badge {
   font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
-  display: inline-block; padding: 2px 10px; border-radius: 20px; margin-bottom: 8px;
+  display: inline-block; padding: 2px 10px; border-radius: 0; margin-bottom: 8px;
 }
 .rate-deposit .rate-badge { background: rgba(102,241,189,0.1); color: var(--sp-accent-success); }
 .rate-withdrawal .rate-badge { background: rgba(112,169,255,0.1); color: var(--sp-accent-info); }
 .rate-settlement .rate-badge { background: rgba(102,241,189,0.1); color: var(--sp-primary); }
 .rate-value { font-size: 32px; font-weight: 900; color: #0F172A; letter-spacing: -1.5px; line-height: 1; margin-bottom: 10px; }
-.rate-bar { height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden; }
-.rate-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; min-width: 4px; }
+.rate-bar { height: 4px; background: #E2E8F0; border-radius: 0; overflow: hidden; }
+.rate-bar-fill { height: 100%; border-radius: 0; transition: width 0.3s; min-width: 4px; }
 .rate-bar-green { background: linear-gradient(90deg, var(--sp-accent-success), var(--sp-accent-success)); }
 .rate-bar-blue { background: linear-gradient(90deg, var(--sp-accent-blue), var(--sp-accent-blue)); }
 .rate-bar-purple { background: linear-gradient(90deg, var(--sp-primary), var(--sp-accent-purple)); }
 
 /* Limits */
 .offer-limits { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 28px; }
-.limit-card { border-radius: 14px; background: #F8FAFC; border: 1px solid #E2E8F0; overflow: hidden; }
+.limit-card { border-radius: 0; background: #F8FAFC; border: 1px solid #E2E8F0; overflow: hidden; }
 .limit-card-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px 0; font-weight: 700; font-size: 13px; color: var(--sp-surface-variant); }
-.limit-card-icon { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
+.limit-card-icon { width: 26px; height: 26px; border-radius: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
 .limit-icon-green { background: rgba(102,241,189,0.12); color: var(--sp-accent-success); }
 .limit-icon-blue { background: rgba(112,169,255,0.12); color: var(--sp-accent-info); }
 .limit-card-body { padding: 10px 16px 14px; }
@@ -439,7 +439,7 @@ onMounted(async () => {
 /* Settlement chips */
 .offer-settle-row { display: flex; gap: 10px; padding: 0 28px; flex-wrap: wrap; }
 .settle-chip {
-  flex: 1; min-width: 90px; padding: 12px 16px; border-radius: 10px;
+  flex: 1; min-width: 90px; padding: 12px 16px; border-radius: 0;
   background: linear-gradient(135deg, #F8FAFC, #F1F5F9);
   border: 1px solid #E2E8F0; font-size: 15px; font-weight: 700; color: #0F172A;
 }
@@ -451,13 +451,13 @@ onMounted(async () => {
 /* Notes */
 .offer-notes {
   white-space: pre-wrap; background: var(--sp-warning-bg); border: 1px solid var(--sp-warning-bg);
-  border-radius: 10px; padding: 12px 16px; font-size: 12px; color: var(--sp-accent-amber); line-height: 1.6;
+  border-radius: 0; padding: 12px 16px; font-size: 12px; color: var(--sp-accent-amber); line-height: 1.6;
 }
 
 /* Footer */
 .offer-footer { margin-top: auto; padding: 0 28px 24px; }
 .offer-footer-gradient {
-  height: 3px; border-radius: 2px; margin-bottom: 16px;
+  height: 3px; border-radius: 0; margin-bottom: 16px;
   background: linear-gradient(90deg, var(--sp-primary), var(--sp-accent-blue), var(--sp-accent-cyan), var(--sp-accent-success));
 }
 .offer-footer-inner { display: flex; justify-content: space-between; align-items: center; }

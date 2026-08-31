@@ -565,13 +565,13 @@ onMounted(async () => {
 .trend-bar-wrap {
   height: 16px;
   background: var(--sp-glass-bg);
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 
 .trend-bar {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -607,12 +607,12 @@ onMounted(async () => {
 .legend-dot {
   width: 10px;
   height: 10px;
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 .settle-stat {
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 0;
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-accent-bg-hover);
   text-align: center;

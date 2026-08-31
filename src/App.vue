@@ -107,7 +107,7 @@
 .v-application .v-tooltip > .v-overlay__content,
 .v-application .v-alert,
 .v-application .v-table {
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 .v-application .v-avatar,
@@ -143,7 +143,7 @@
 }
 ::-webkit-scrollbar-thumb {
   background: var(--sp-scrollbar, rgba(102,241,189, 0.12));
-  border-radius: 3px;
+  border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--sp-scrollbar-hover, rgba(102,241,189, 0.2));

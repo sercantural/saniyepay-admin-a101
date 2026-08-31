@@ -649,7 +649,7 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
 .welcome-card {
   position: relative;
   padding: 40px 32px;
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
   overflow: hidden;
@@ -716,14 +716,14 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
   align-items: flex-start;
   gap: 16px;
   padding: 24px;
-  border-radius: 16px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
   height: 100%;
 }
 .info-card-icon {
   width: 52px; height: 52px;
-  border-radius: 14px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -795,7 +795,7 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
   align-items: center;
   gap: 18px;
   padding: 18px 22px;
-  border-radius: 18px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
   overflow: hidden;
@@ -848,7 +848,7 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
 }
 .hero-meta-icon {
   width: 38px; height: 38px;
-  border-radius: 10px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -975,14 +975,14 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
   align-items: flex-start;
   gap: 14px;
   padding: 18px 18px;
-  border-radius: 16px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
 }
 .widget-icon {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1043,7 +1043,7 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
   border-left-width: 4px;
@@ -1057,7 +1057,7 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
 }
 .action-card-icon {
   width: 40px; height: 40px;
-  border-radius: 10px;
+  border-radius: 0;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   color: white;
@@ -1092,7 +1092,7 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
 
 @media (max-width: 600px) {
   .widget-card { padding: 14px; gap: 10px; }
-  .widget-icon { width: 38px; height: 38px; border-radius: 10px; }
+  .widget-icon { width: 38px; height: 38px; border-radius: 0; }
   .widget-value { font-size: 17px; }
 }
 

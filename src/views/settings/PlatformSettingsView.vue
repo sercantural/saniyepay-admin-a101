@@ -126,14 +126,14 @@ onMounted(load)
 .platform-settings { max-width: 760px; }
 
 .settings-card {
-  border-radius: 14px;
+  border-radius: 0;
   background: var(--sp-glass-bg);
   border: 1px solid var(--sp-glass-border);
   overflow: hidden;
 }
 .settings-icon {
   width: 38px; height: 38px;
-  border-radius: 10px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
 }
@@ -142,7 +142,7 @@ onMounted(load)
 
 .setting-block {
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--sp-surface-1, rgba(102,241,189,0.04));
   border: 1px solid var(--sp-border);
 }

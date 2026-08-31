@@ -1223,7 +1223,7 @@ onUnmounted(() => {
   display: inline-block;
   margin-top: 3px;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   font-weight: 800;
@@ -1282,7 +1282,7 @@ onUnmounted(() => {
 .filter-advanced {
   margin-top: 10px;
   padding: 14px 12px 8px;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--sp-surface-1, rgba(102,241,189,0.04));
   border: 1px solid var(--sp-border);
 }
@@ -1310,7 +1310,7 @@ onUnmounted(() => {
 .date-pill {
   display: inline-flex; align-items: center;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -1366,7 +1366,7 @@ onUnmounted(() => {
 
 /* ── Approve modal ── */
 .approve-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(102,241,189, 0.25) !important;
   box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -1469,7 +1469,7 @@ onUnmounted(() => {
 .approve-warning {
   margin: 14px 20px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(255,190,91, 0.10);
   border-left: 3px solid var(--sp-accent-orange);
   display: flex;
@@ -1503,7 +1503,7 @@ onUnmounted(() => {
 
 /* ── Reject modal — same hero shape, red palette ── */
 .reject-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(255,142,130, 0.28) !important;
   box-shadow: 0 12px 48px rgba(255,142,130, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -1599,7 +1599,7 @@ onUnmounted(() => {
 .reject-warning {
   margin: 14px 20px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(255,142,130, 0.12);
   border-left: 3px solid var(--sp-accent-error);
   display: flex;
@@ -1633,7 +1633,7 @@ onUnmounted(() => {
 
 /* ── Amount-edit modal — same hero shape as approve/reject, purple palette ── */
 .amount-edit-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(102,241,189, 0.25) !important;
   box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;

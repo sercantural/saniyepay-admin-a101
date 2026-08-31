@@ -1735,7 +1735,7 @@ onUnmounted(() => {
   display: inline-block;
   margin-top: 3px;
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   font-weight: 800;
@@ -1831,7 +1831,7 @@ onUnmounted(() => {
 .filter-advanced {
   margin-top: 10px;
   padding: 14px 12px 8px;
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--sp-surface-1, rgba(102,241,189,0.04));
   border: 1px solid var(--sp-border);
 }
@@ -1864,7 +1864,7 @@ onUnmounted(() => {
 .date-pill {
   display: inline-flex; align-items: center;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
@@ -1902,7 +1902,7 @@ onUnmounted(() => {
 
 /* ── Withdrawal approve modal (admin review-aware) ── */
 .wd-approve-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(102,241,189, 0.25) !important;
   box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -2035,7 +2035,7 @@ onUnmounted(() => {
 
 /* ── Proof (dekont) modal — purple/admin-review hero ── */
 .proof-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(168,182,255, 0.30) !important;
   box-shadow: 0 12px 48px rgba(168,182,255, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -2175,7 +2175,7 @@ onUnmounted(() => {
   background: rgba(168,182,255, 0.08);
   border-left: 3px solid var(--sp-accent-purple);
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 0;
   line-height: 1.4;
 }
 .proof-tabs :deep(.v-tab) {
@@ -2187,7 +2187,7 @@ onUnmounted(() => {
 .proof-warning {
   margin: 8px 20px 14px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(168,182,255, 0.12);
   border-left: 3px solid var(--sp-accent-purple);
   display: flex;
@@ -2221,7 +2221,7 @@ onUnmounted(() => {
 
 /* ── Release (Geri Bırak) modal — amber/warning hero ── */
 .release-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(255,174,91, 0.32) !important;
   box-shadow: 0 12px 48px rgba(255,174,91, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -2301,7 +2301,7 @@ onUnmounted(() => {
 .release-warning-line {
   margin: 14px 20px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 0;
   background: rgba(255,174,91, 0.10);
   border-left: 3px solid var(--sp-accent-orange);
   display: flex;
@@ -2346,7 +2346,7 @@ onUnmounted(() => {
 
 /* ── Dekont preview modal (admin) ── */
 .dekont-preview-card {
-  border-radius: 16px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(168,182,255, 0.22) !important;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4) !important;
@@ -2382,7 +2382,7 @@ onUnmounted(() => {
   align-items: center;
   background: rgba(168,182,255, 0.10);
   border: 1px solid rgba(168,182,255, 0.25);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 10px 12px;
   margin-bottom: 12px;
   font-size: 13px;
@@ -2401,7 +2401,7 @@ onUnmounted(() => {
 
 .dekont-frame-wrap {
   position: relative;
-  border-radius: 10px;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid var(--sp-card-border);
   background: #FFFFFF;
@@ -2432,7 +2432,7 @@ onUnmounted(() => {
   max-width: 100%;
   max-height: 520px;
   margin: 0 auto;
-  border-radius: 10px;
+  border-radius: 0;
   border: 1px solid var(--sp-card-border);
   background: #FFFFFF;
 }

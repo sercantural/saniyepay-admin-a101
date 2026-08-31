@@ -738,7 +738,7 @@ onMounted(() => loadMerchants())
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
 }
 .limit-card {
-  padding: 14px; border-radius: 10px;
+  padding: 14px; border-radius: 0;
   background: var(--sp-surface-1, rgba(102,241,189,0.03));
   border: 1px solid var(--sp-border);
 }
@@ -754,7 +754,7 @@ onMounted(() => loadMerchants())
 .switch-group { display: flex; flex-direction: column; gap: 4px; }
 .switch-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 14px; border-radius: 10px;
+  padding: 10px 14px; border-radius: 0;
   background: var(--sp-surface-1, rgba(102,241,189,0.03));
   border: 1px solid var(--sp-border);
 }

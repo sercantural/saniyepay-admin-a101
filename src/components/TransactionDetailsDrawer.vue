@@ -286,7 +286,7 @@ Row.props = ['label', 'value', 'mono', 'small', 'muted', 'highlight', 'copyable'
   justify-content: space-between;
   gap: 12px;
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: 0;
 }
 :deep(.drawer-row:hover) { background: rgba(102,241,189, 0.05); }
 :deep(.drawer-row-label) {
@@ -325,7 +325,7 @@ Row.props = ['label', 'value', 'mono', 'small', 'muted', 'highlight', 'copyable'
   border: 0;
   color: var(--sp-accent-blue);
   width: 18px; height: 18px;
-  border-radius: 4px;
+  border-radius: 0;
   cursor: pointer;
   font-size: 11px;
   display: inline-flex;

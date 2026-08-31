@@ -775,7 +775,7 @@ onMounted(() => loadTxn())
 /* ── Status Banner ── */
 .status-banner {
   padding: 20px 24px;
-  border-radius: 14px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-modal-bg) 0%, var(--sp-surface-bright) 100%);
   border: 1px solid var(--sp-badge-bg);
 }
@@ -788,7 +788,7 @@ onMounted(() => loadTxn())
 .status-banner--cancelled { border-left: 4px solid var(--sp-text-muted); }
 
 .status-icon-wrap {
-  width: 48px; height: 48px; border-radius: 14px;
+  width: 48px; height: 48px; border-radius: 0;
   background: var(--sp-accent-border-vivid);
   display: flex; align-items: center; justify-content: center;
 }
@@ -801,7 +801,7 @@ onMounted(() => loadTxn())
   color: rgba(var(--sp-primary-rgb),0.7);
   background: rgba(var(--sp-primary-rgb),0.08);
   border: 1px solid rgba(var(--sp-primary-rgb),0.12);
-  padding: 1px 8px; border-radius: 4px;
+  padding: 1px 8px; border-radius: 0;
 }
 .status-amount { font-size: 28px; font-weight: 800; color: var(--sp-text); letter-spacing: -0.5px; }
 .status-currency { font-size: 14px; font-weight: 600; color: var(--sp-text-dimmer); }
@@ -813,19 +813,19 @@ onMounted(() => loadTxn())
 /* ── Alerts ── */
 .payment-alert {
   display: flex; align-items: center;
-  padding: 16px 20px; border-radius: 12px;
+  padding: 16px 20px; border-radius: 0;
   background: rgba(255,190,91,0.08);
   border: 1px solid rgba(255,190,91,0.15);
 }
 .reject-alert {
   display: flex; align-items: flex-start;
-  padding: 14px 18px; border-radius: 12px;
+  padding: 14px 18px; border-radius: 0;
   background: rgba(255,142,130,0.06);
   border: 1px solid rgba(255,142,130,0.12);
 }
 .balance-alert {
   display: flex; align-items: flex-start;
-  padding: 14px 18px; border-radius: 12px;
+  padding: 14px 18px; border-radius: 0;
   background: rgba(255,142,130,0.08);
   border: 1px solid rgba(255,142,130,0.2);
 }
@@ -834,7 +834,7 @@ onMounted(() => loadTxn())
 .detail-section {
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-divider);
-  border-radius: 12px;
+  border-radius: 0;
   padding: 20px;
 }
 .section-title {
@@ -867,7 +867,7 @@ onMounted(() => loadTxn())
 .detail-box {
   background: rgba(var(--sp-primary-rgb),0.03);
   border: 1px solid rgba(var(--sp-primary-rgb),0.04);
-  border-radius: 10px;
+  border-radius: 0;
   padding: 12px 14px;
 }
 .detail-value {
@@ -879,7 +879,7 @@ onMounted(() => loadTxn())
   text-align: center;
   padding: 8px;
   background: rgba(var(--sp-primary-rgb),0.03);
-  border-radius: 8px;
+  border-radius: 0;
 }
 .detail-mini-label {
   font-size: 10px; font-weight: 600;
@@ -898,7 +898,7 @@ onMounted(() => loadTxn())
   color: var(--sp-primary);
   background: rgba(var(--sp-primary-rgb),0.06);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 /* ── Process Steps ── */
@@ -946,7 +946,7 @@ onMounted(() => loadTxn())
 /* ── Webhook Entries ── */
 .wh-entry {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 0;
   cursor: pointer;
   margin-bottom: 6px;
   background: rgba(var(--sp-primary-rgb),0.03);
@@ -970,7 +970,7 @@ onMounted(() => loadTxn())
   color: var(--sp-text-muted);
   padding: 2px 6px;
   background: var(--sp-divider);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 /* ── Log Entries ── */
@@ -1000,7 +1000,7 @@ onMounted(() => loadTxn())
   background: var(--sp-bg);
   color: var(--sp-text);
   border: 1px solid var(--sp-divider);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 12px 16px;
   overflow: auto;
   white-space: pre-wrap;

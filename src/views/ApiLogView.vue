@@ -309,10 +309,10 @@ onMounted(() => { loadData(); loadStats() })
 .ov-card {
   flex: 1; min-width: 140px;
   display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; border-radius: 12px;
+  padding: 14px 16px; border-radius: 0;
   background: var(--sp-card, #fff); border: 1px solid var(--sp-border);
 }
-.ov-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ov-icon { width: 40px; height: 40px; border-radius: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .ov-val { font-size: 18px; font-weight: 800; color: var(--sp-text); letter-spacing: -0.5px; }
 .ov-unit { font-size: 11px; font-weight: 500; color: var(--sp-text-dim); margin-left: 1px; }
 .ov-lbl { font-size: 10px; font-weight: 600; color: var(--sp-text-dim); }
@@ -345,12 +345,12 @@ onMounted(() => { loadData(); loadStats() })
 .detail-code {
   font-size: 11px; font-family: 'JetBrains Mono', monospace;
   color: var(--sp-text-dim); background: var(--sp-surface-1, rgba(0,0,0,0.03));
-  padding: 8px 12px; border-radius: 6px; word-break: break-all;
+  padding: 8px 12px; border-radius: 0; word-break: break-all;
 }
 .detail-json {
   font-size: 11px; font-family: 'JetBrains Mono', monospace;
   background: var(--sp-surface-bright); color: var(--sp-text);
-  padding: 12px 16px; border-radius: 8px;
+  padding: 12px 16px; border-radius: 0;
   white-space: pre-wrap; word-break: break-all;
   max-height: 300px; overflow-y: auto;
 }

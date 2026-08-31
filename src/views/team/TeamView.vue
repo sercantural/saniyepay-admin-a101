@@ -289,7 +289,7 @@ onMounted(loadTeam)
      approve modals, brand-purple palette so it slots into the family of
      "decision" dialogs across the app. ── */
 .team-card {
-  border-radius: 18px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(102,241,189, 0.25) !important;
   box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -349,7 +349,7 @@ onMounted(loadTeam)
 }
 .team-role-icon {
   width: 44px; height: 44px;
-  border-radius: 12px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;

@@ -1256,13 +1256,13 @@ onMounted(async () => {
   gap: 14px;
   padding: 16px 20px;
   margin-bottom: 18px;
-  border-radius: 14px;
+  border-radius: 0;
   background: linear-gradient(135deg, rgba(102,241,189, 0.10) 0%, rgba(102,241,189, 0.06) 100%);
   border: 1px solid rgba(102,241,189, 0.18);
 }
 .page-header-icon {
   width: 44px; height: 44px;
-  border-radius: 12px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-accent-orange) 0%, var(--sp-accent-orange) 100%);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -1291,7 +1291,7 @@ onMounted(async () => {
 /* Hero credit card — same visual language as the dashboard */
 .op-credit-card {
   padding: 22px 26px;
-  border-radius: 16px;
+  border-radius: 0;
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-card-border);
   border-left: 5px solid var(--sp-accent-success-bright);
@@ -1329,7 +1329,7 @@ onMounted(async () => {
 
 /* Table card */
 .teslim-table-card {
-  border-radius: 14px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -1372,7 +1372,7 @@ onMounted(async () => {
   color: var(--sp-text);
   background: rgba(102,241,189, 0.10);
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 0;
   white-space: nowrap;
   cursor: help;
   letter-spacing: 0.2px;
@@ -1386,7 +1386,7 @@ onMounted(async () => {
   border: 0;
   color: var(--sp-accent-blue);
   width: 26px; height: 26px;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -1415,7 +1415,7 @@ onMounted(async () => {
 
 /* ── Yeni Teslim modal — compact hero, sized to fit on every screen ── */
 .teslim-card {
-  border-radius: 16px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(255,190,91, 0.25) !important;
   box-shadow: 0 12px 48px rgba(255,190,91, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -1477,7 +1477,7 @@ onMounted(async () => {
   gap: 6px;
   background: rgba(102,241,189, 0.06);
   border: 1px solid rgba(102,241,189, 0.22);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 4px 8px;
   margin-bottom: 8px;
   font-size: 11px;
@@ -1502,7 +1502,7 @@ onMounted(async () => {
 .teslim-qr-pop {
   background: #FFFFFF;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 12px 36px rgba(0,0,0,0.45);
   display: flex;
   flex-direction: column;
@@ -1512,7 +1512,7 @@ onMounted(async () => {
 }
 .teslim-qr-pop img {
   display: block;
-  border-radius: 6px;
+  border-radius: 0;
 }
 .teslim-qr-meta {
   font-size: 10px;
@@ -1530,7 +1530,7 @@ onMounted(async () => {
   max-width: 220px;
   background: rgba(0,0,0,0.04);
   padding: 4px 6px;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 /* Compact TRY line */
@@ -1539,7 +1539,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-radius: 8px;
+  border-radius: 0;
   border: 1px solid var(--sp-border);
   background: rgba(255,255,255,0.02);
   margin-bottom: 8px;
@@ -1554,7 +1554,7 @@ onMounted(async () => {
   font-weight: 800;
   letter-spacing: 0.5px;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(255,255,255,0.06);
   color: var(--sp-text-muted);
 }
@@ -1593,7 +1593,7 @@ onMounted(async () => {
 
 /* ── Teslim detail modal (SA) — same amber palette ── */
 .teslim-detail-card {
-  border-radius: 16px !important;
+  border-radius: 0;
   overflow: hidden;
   border: 1px solid rgba(255,190,91, 0.25) !important;
   box-shadow: 0 12px 48px rgba(255,190,91, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
@@ -1691,7 +1691,7 @@ onMounted(async () => {
   display: flex; align-items: center; gap: 6px;
   background: rgba(102,241,189, 0.06);
   border: 1px solid rgba(102,241,189, 0.22);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 6px 10px;
 }
 .detail-addr {
@@ -1719,7 +1719,7 @@ onMounted(async () => {
   color: var(--sp-text);
   background: rgba(255,255,255,0.03);
   border: 1px solid var(--sp-border);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 8px 10px;
   white-space: pre-wrap;
 }
@@ -1744,7 +1744,7 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   border: 1px solid var(--sp-border);
   font-size: 11px;
   line-height: 1.3;
@@ -1776,7 +1776,7 @@ onMounted(async () => {
 .verify-compare {
   margin-top: 8px;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: 0;
   background: rgba(0,0,0,0.18);
   border: 1px solid rgba(255,255,255,0.04);
 }
@@ -1857,7 +1857,7 @@ onMounted(async () => {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   background: rgba(255,255,255,0.06);
 }
 .hash-verify-mono {
@@ -1873,7 +1873,7 @@ onMounted(async () => {
 .hash-verify-amount-update {
   margin-top: 6px;
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: 0;
   background: rgba(102,241,189, 0.08);
   border: 1px dashed rgba(102,241,189, 0.35);
   color: var(--sp-accent-purple);

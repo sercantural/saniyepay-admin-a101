@@ -817,7 +817,7 @@ defineExpose({ open, close, visible, txn })
 .txn-panel {
   background: var(--sp-sidebar);
   border-left: 1px solid var(--sp-accent-bg-hover);
-  border-radius: 8px;
+  border-radius: 0;
   display: flex;
   flex-direction: column;
   height: calc(100vh - 40px);
@@ -850,7 +850,7 @@ defineExpose({ open, close, visible, txn })
 /* Hero Banner */
 .hero-banner {
   padding: 18px 16px;
-  border-radius: 14px;
+  border-radius: 0;
   background: linear-gradient(135deg, var(--sp-modal-bg) 0%, var(--sp-surface-bright) 100%);
   border: 1px solid var(--sp-badge-bg);
   text-align: center;
@@ -912,19 +912,19 @@ defineExpose({ open, close, visible, txn })
 /* Alerts */
 .payment-alert {
   display: flex; align-items: center;
-  padding: 14px 16px; border-radius: 12px;
+  padding: 14px 16px; border-radius: 0;
   background: rgba(255,190,91,0.1);
   border: 2px solid rgba(255,190,91,0.25);
 }
 .reject-alert {
   display: flex; align-items: flex-start;
-  padding: 14px 16px; border-radius: 12px;
+  padding: 14px 16px; border-radius: 0;
   background: rgba(255,142,130,0.06);
   border: 2px solid rgba(255,142,130,0.2);
 }
 .balance-alert {
   display: flex; align-items: flex-start;
-  padding: 14px 16px; border-radius: 12px;
+  padding: 14px 16px; border-radius: 0;
   background: rgba(255,142,130,0.1);
   border: 2px solid rgba(255,142,130,0.25);
   animation: balance-pulse 2s ease-in-out infinite;
@@ -943,7 +943,7 @@ defineExpose({ open, close, visible, txn })
 .detail-section {
   background: var(--sp-card-bg);
   border: 1px solid var(--sp-divider);
-  border-radius: 8px;
+  border-radius: 0;
   padding: 12px;
 }
 .section-title {
@@ -984,7 +984,7 @@ defineExpose({ open, close, visible, txn })
   color: var(--sp-primary);
   background: rgba(var(--sp-primary-rgb), 0.06);
   padding: 3px 6px;
-  border-radius: 4px;
+  border-radius: 0;
   word-break: break-all;
   display: inline-block;
 }
@@ -1034,7 +1034,7 @@ defineExpose({ open, close, visible, txn })
 /* Webhook */
 .wh-entry {
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: 0;
   cursor: pointer;
   margin-bottom: 3px;
   background: rgba(var(--sp-primary-rgb), 0.03);
@@ -1057,7 +1057,7 @@ defineExpose({ open, close, visible, txn })
   color: var(--sp-text-muted);
   padding: 1px 4px;
   background: var(--sp-divider);
-  border-radius: 3px;
+  border-radius: 0;
 }
 
 /* Log Entries */
@@ -1089,7 +1089,7 @@ defineExpose({ open, close, visible, txn })
   background: var(--sp-bg);
   color: var(--sp-text);
   border: 1px solid var(--sp-divider);
-  border-radius: 6px;
+  border-radius: 0;
   padding: 10px 12px;
   overflow: auto;
   white-space: pre-wrap;
