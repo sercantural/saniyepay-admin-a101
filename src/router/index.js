@@ -54,6 +54,12 @@ const routes = [
         component: () => import('@/views/transactions/WithdrawalListView.vue'),
       },
       {
+        // Alt gruplardaki kullanicilarin guncel bakiyeleri (yonetim).
+        path: 'operator-balances',
+        name: 'OperatorBalances',
+        component: () => import('@/views/OperatorBalancesView.vue'),
+      },
+      {
         // Cekim havuzu ayri bir menu: sahipsiz bekleyen cekimler burada,
         // operator kendine aldiginda kayit Cekimler ekranina gecer.
         path: 'withdrawal-pool',

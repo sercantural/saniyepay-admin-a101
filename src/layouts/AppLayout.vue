@@ -228,6 +228,10 @@ const menu = computed(() => {
           show: true, badge: () => txnStore.pendingTeslimCount },
         { name: 'CompanyWallets', title: 'Şirket Cüzdanları', sub: 'Cüzdan yönetimi', icon: 'mdi-wallet-outline',
           show: can('company_wallet.manage') },
+        // Operatorlerin guncel kredisi -- teslimle yuklenen bakiyeyi
+        // yonetim tarafinda gorebilecek bir yer yoktu.
+        { name: 'OperatorBalances', title: 'Operatör Bakiyeleri', sub: 'Güncel krediler', icon: 'mdi-scale-balance',
+          show: auth.isSuperAdmin || auth.can('teslim.review') },
       ],
     },
     {
@@ -256,7 +260,7 @@ const menu = computed(() => {
 
 const pages = {
   Home: 'Ana Sayfa', Dashboard: 'Genel Bakış', Deposits: 'Yatırımlar', Withdrawals: 'Çekimler',
-  WithdrawalPool: 'Çekim Havuzu',
+  WithdrawalPool: 'Çekim Havuzu', OperatorBalances: 'Operatör Bakiyeleri',
   TxnDetail: 'İşlem Detayı', BankAccounts: 'Banka Hesapları', Users: 'Kullanıcılar', Team: 'Ekibim',
   SubGroups: 'Alt Gruplar', Merchants: 'Bayiler', Settlements: 'Mutabakat', Teslimler: 'Teslim',
   CompanyWallets: 'Şirket Cüzdanları', ApiLogs: 'API Kayıtları', Reports: 'Raporlar',
