@@ -5,9 +5,12 @@
     <!-- ── Kenar cubugu ────────────────────────────────────── -->
     <aside class="portal-sidebar" :class="{ open: drawer }">
       <div class="portal-sidebar-head">
+        <!-- Bilerek markasiz: panel herkese acik olmayan bir adreste
+             duruyor ve bir marka tasimasi icin sebep yok. -->
         <router-link :to="{ name: 'Home' }" class="portal-brand">
-          <img src="/admin-logo.png" alt="" />
-          <span>YÖNETİM</span>
+          <i class="brand-mark" aria-hidden="true"></i>
+          <strong>YÖNETİM</strong>
+          <span>PANELİ</span>
         </router-link>
         <button class="portal-mobile-close" @click="drawer = false" aria-label="Menüyü kapat">
           <v-icon size="16">mdi-close</v-icon>
@@ -80,7 +83,7 @@
       <header class="portal-topbar">
         <div class="portal-mobile-brand">
           <button @click="drawer = true" aria-label="Menüyü aç"><v-icon size="17">mdi-menu</v-icon></button>
-          <img src="/admin-logo.png" alt="" />
+          <strong>YÖNETİM</strong>
         </div>
 
         <div class="portal-breadcrumb">
@@ -421,8 +424,21 @@ onUnmounted(() => {
   padding: 0 6px 22px;
   border-bottom: 1px solid var(--sp-divider);
 }
-.portal-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-.portal-brand img { width: 116px; height: auto; display: block; }
+.portal-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand-mark {
+  width: 4px;
+  height: 20px;
+  flex: none;
+  background: var(--mint);
+  box-shadow: 0 0 14px rgba(102, 241, 189, 0.5);
+}
+.portal-brand strong {
+  font-family: Archivo, 'Arial Narrow', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--sp-text);
+}
 .portal-brand span {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
@@ -884,7 +900,12 @@ onUnmounted(() => {
     background: var(--sp-surface);
     border: 1px solid var(--sp-card-border);
   }
-  .portal-mobile-brand img { width: 100px; }
+  .portal-mobile-brand strong {
+    font-family: Archivo, 'Arial Narrow', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
   .portal-content { width: min(100% - 32px, 780px); padding-top: 24px; }
   .portal-top-actions .portal-system-pill { display: none; }
 }
