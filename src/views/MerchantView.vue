@@ -204,6 +204,13 @@
                   <div><div class="switch-label">İstek İmzalama</div><div class="switch-desc">API isteklerinde HMAC imza doğrulamasını zorunlu kılar</div></div>
                   <v-switch v-model="form.require_request_signature" color="secondary" hide-details density="compact" />
                 </div>
+                <div class="switch-item">
+                  <div>
+                    <div class="switch-label">Doğrudan API</div>
+                    <div class="switch-desc">Banka IBAN'larını JSON olarak döndürür. Kapalıyken bayi yalnızca ödeme sayfasını (iframe) kullanabilir.</div>
+                  </div>
+                  <v-switch v-model="form.allow_direct_api" color="warning" hide-details density="compact" />
+                </div>
               </div>
 
               <!-- IP Whitelist — empty means "allow any IP" (live mode only). -->
@@ -459,7 +466,7 @@ const form = reactive({
   currency: 'TRY', deposit_fee_percent: 0, withdrawal_fee_percent: 0, settlement_fee_percent: 0,
   min_deposit_amount: null, max_deposit_amount: null,
   min_withdrawal_amount: null, max_withdrawal_amount: null,
-  api_access: 'sandbox_only', is_active: true, sandbox_mode: false, require_request_signature: false,
+  api_access: 'sandbox_only', is_active: true, sandbox_mode: false, require_request_signature: false, allow_direct_api: false,
   player_rate_limit: 5, player_rate_window: 10, max_concurrent_deposits: 50, max_concurrent_withdrawals: 50, creation_rate_limit: 200, deposit_expiry_minutes: 60, withdrawal_expiry_minutes: 1440,
   allowed_ips: [],
   owner_name: '', owner_email: '', owner_password: '',
@@ -554,7 +561,7 @@ function openCreate() {
     currency: 'TRY', deposit_fee_percent: 0, withdrawal_fee_percent: 0, settlement_fee_percent: 0,
     min_deposit_amount: null, max_deposit_amount: null,
     min_withdrawal_amount: null, max_withdrawal_amount: null,
-    api_access: 'sandbox_only', is_active: true, sandbox_mode: false, require_request_signature: false,
+    api_access: 'sandbox_only', is_active: true, sandbox_mode: false, require_request_signature: false, allow_direct_api: false,
   player_rate_limit: 5, player_rate_window: 10, max_concurrent_deposits: 50, max_concurrent_withdrawals: 50, creation_rate_limit: 200, deposit_expiry_minutes: 60, withdrawal_expiry_minutes: 1440,
     allowed_ips: [],
     owner_name: '', owner_email: '', owner_password: '',
@@ -580,7 +587,7 @@ function editMerchant(m) {
     max_deposit_amount: m.max_deposit_amount || null,
     min_withdrawal_amount: m.min_withdrawal_amount || null,
     max_withdrawal_amount: m.max_withdrawal_amount || null,
-    api_access: m.api_access, is_active: m.is_active, sandbox_mode: m.sandbox_mode, require_request_signature: m.require_request_signature || false,
+    api_access: m.api_access, is_active: m.is_active, sandbox_mode: m.sandbox_mode, require_request_signature: m.require_request_signature || false, allow_direct_api: m.allow_direct_api || false,
     player_rate_limit: m.player_rate_limit ?? 5, player_rate_window: m.player_rate_window ?? 10,
     max_concurrent_deposits: m.max_concurrent_deposits ?? 50, max_concurrent_withdrawals: m.max_concurrent_withdrawals ?? 50,
     creation_rate_limit: m.creation_rate_limit ?? 200,
