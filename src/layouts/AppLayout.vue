@@ -45,7 +45,7 @@
                 <small>{{ item.sub }}</small>
               </span>
               <em v-if="item.badge && item.badge()" class="nav-badge">{{ item.badge() }}</em>
-              <i></i>
+              <i class="nav-mark"></i>
             </a>
           </router-link>
         </template>
@@ -520,19 +520,24 @@ onUnmounted(() => {
   background: var(--sp-accent-bg);
   border-color: var(--sp-accent-border-strong);
 }
-.portal-nav a.active > i {
+/* Vuetify ikonu da <i> olarak render ediliyor; kural sinifsiz
+ * yazilinca aktif maddenin ikonunu da mutlak konumlandirip sag kenara
+ * firlatiyor ve rozetin uzerine bindiriyordu. */
+.portal-nav a.active > .nav-mark {
   position: absolute;
   right: -1px;
   width: 3px;
   height: 22px;
   background: var(--mint);
-  box-shadow: 0 0 18px rgba(102, 241, 189, 0.7);
+  box-shadow: 0 0 14px rgba(102, 241, 189, 0.55);
 }
 .portal-nav a > span { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .portal-nav a b { color: inherit; font-size: 12px; font-weight: 700; }
 .portal-nav a small { font-size: 9px; color: var(--sp-text-ghost); }
 .nav-badge {
   margin-left: auto;
+  /* Sag kenardaki aktif gostergesinden ve parlamasindan uzak dursun */
+  margin-right: 8px;
   padding: 2px 6px;
   font-style: normal;
   font-family: 'JetBrains Mono', monospace;
