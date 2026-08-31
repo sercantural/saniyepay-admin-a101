@@ -14,6 +14,8 @@ export const useTransactionStore = defineStore('transactions', () => {
   const newWithdrawalCount = ref(0)
   const pendingDepositCount = ref(0)
   const pendingWithdrawalCount = ref(0)
+  // Havuzda bekleyen (sahipsiz) cekim sayisi — menu rozeti.
+  const poolCount = ref(0)
   const pendingSettlementCount = ref(0)
   const settlementUpdateTick = ref(0)
   const pendingTeslimCount = ref(0)
@@ -45,10 +47,15 @@ export const useTransactionStore = defineStore('transactions', () => {
       wantsTeslim
         ? api.get('/portal/teslimler', { params: { status: 'pending' } }).catch(() => ({ data: { data: [] } }))
         : Promise.resolve({ data: { data: [] } }),
+      // Havuz rozeti. Uc, havuz kapaliyken de 200 doner (enabled:false,
+      // total:0) — ayri bir "acik mi" sorgusu gerekmiyor.
+      api.get('/portal/transactions/pool', { params: { per_page: 1 } })
+        .catch(() => ({ data: { total: 0 } })),
     ]
 
     try {
-      const [depRes, wdPendingRes, wdAssignedRes, stlRes, teslimRes] = await Promise.all(requests)
+      const [depRes, wdPendingRes, wdAssignedRes, stlRes, teslimRes, poolRes] = await Promise.all(requests)
+      poolCount.value = poolRes.data.total || 0
       pendingDepositCount.value = depRes.data.meta?.total || depRes.data.data?.length || 0
       const wdPending = wdPendingRes.data.meta?.total || wdPendingRes.data.data?.length || 0
       const wdAssigned = wdAssignedRes.data.meta?.total || wdAssignedRes.data.data?.length || 0
@@ -457,6 +464,7 @@ export const useTransactionStore = defineStore('transactions', () => {
     newWithdrawalCount,
     pendingDepositCount,
     pendingWithdrawalCount,
+    poolCount,
     pendingSettlementCount,
     settlementUpdateTick,
     pendingTeslimCount,

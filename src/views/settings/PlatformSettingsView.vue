@@ -51,6 +51,91 @@
             Kaydedildi · {{ lastSavedAt['withdrawal.dekont_threshold'] }}
           </div>
         </div>
+
+        <!-- Çekim Havuzu -->
+        <div class="setting-block">
+          <div class="setting-head">
+            <v-icon size="16" color="secondary" class="mr-2">mdi-tray-full</v-icon>
+            <span class="setting-name">Çekim Havuzu</span>
+          </div>
+          <div class="setting-desc">
+            Açıkken gelen çekimler bir operatöre otomatik atanmaz; havuzda bekler ve
+            operatörler kendilerine alır. Kapalıyken sistem, kasası en dolu operatörü
+            seçerek atamayı kendisi yapar.
+          </div>
+          <div class="setting-input">
+            <v-switch
+              v-model="form.poolEnabled"
+              color="primary"
+              density="compact"
+              hide-details
+              :label="form.poolEnabled ? 'Havuz açık' : 'Havuz kapalı'"
+            />
+            <v-btn
+              color="primary"
+              variant="flat"
+              :loading="saving === 'withdrawal.pool_enabled'"
+              :disabled="!isDirty('withdrawal.pool_enabled')"
+              @click="save('withdrawal.pool_enabled', form.poolEnabled)"
+              prepend-icon="mdi-content-save"
+            >
+              Kaydet
+            </v-btn>
+          </div>
+          <div v-if="lastSavedAt['withdrawal.pool_enabled']" class="setting-saved">
+            <v-icon size="12" color="success">mdi-check-circle</v-icon>
+            Kaydedildi · {{ lastSavedAt['withdrawal.pool_enabled'] }}
+          </div>
+        </div>
+
+        <!-- Havuz görünürlük aralığı -->
+        <div class="setting-block">
+          <div class="setting-head">
+            <v-icon size="16" color="secondary" class="mr-2">mdi-arrow-expand-vertical</v-icon>
+            <span class="setting-name">Havuz Tutar Aralığı</span>
+          </div>
+          <div class="setting-desc">
+            Alt gruptaki kullanıcılar havuzda yalnızca bu aralıktaki çekimleri görür ve alabilir.
+            Aralık dışında kalanları yalnızca süper yönetici görür ve elle atar.
+            Üst limit <strong>0</strong> girilirse sınır uygulanmaz.
+          </div>
+          <div class="setting-input">
+            <v-text-field
+              :model-value="formatAmountInput(form.poolMin)"
+              @update:model-value="v => form.poolMin = parseAmountInput(v)"
+              label="Alt Limit"
+              type="text" inputmode="numeric" variant="outlined" density="compact"
+              hide-details suffix="TRY" placeholder="örn: 100"
+            />
+            <v-text-field
+              :model-value="formatAmountInput(form.poolMax)"
+              @update:model-value="v => form.poolMax = parseAmountInput(v)"
+              label="Üst Limit"
+              type="text" inputmode="numeric" variant="outlined" density="compact"
+              hide-details suffix="TRY" placeholder="örn: 50.000"
+            />
+          </div>
+          <div class="setting-input mt-3">
+            <v-btn
+              color="primary" variant="flat"
+              :loading="saving === 'withdrawal.pool_min_amount'"
+              :disabled="!isDirty('withdrawal.pool_min_amount')"
+              @click="save('withdrawal.pool_min_amount', form.poolMin || 0)"
+              prepend-icon="mdi-content-save"
+            >Alt limiti kaydet</v-btn>
+            <v-btn
+              color="primary" variant="flat"
+              :loading="saving === 'withdrawal.pool_max_amount'"
+              :disabled="!isDirty('withdrawal.pool_max_amount')"
+              @click="save('withdrawal.pool_max_amount', form.poolMax || 0)"
+              prepend-icon="mdi-content-save"
+            >Üst limiti kaydet</v-btn>
+          </div>
+          <div v-if="lastSavedAt['withdrawal.pool_min_amount'] || lastSavedAt['withdrawal.pool_max_amount']" class="setting-saved">
+            <v-icon size="12" color="success">mdi-check-circle</v-icon>
+            Kaydedildi · {{ lastSavedAt['withdrawal.pool_max_amount'] || lastSavedAt['withdrawal.pool_min_amount'] }}
+          </div>
+        </div>
       </v-card-text>
     </v-card>
 
@@ -65,7 +150,19 @@ import api from '@/plugins/axios'
 const original = reactive({})
 const form = reactive({
   dekontThreshold: 5000,
+  poolEnabled: false,
+  poolMin: 0,
+  poolMax: 0,
 })
+
+// Sunucu anahtari -> formdaki alan. isDirty ve load bunun uzerinden
+// calisiyor; yeni ayar eklerken tek yeri guncellemek yetiyor.
+const FIELD_BY_KEY = {
+  'withdrawal.dekont_threshold': 'dekontThreshold',
+  'withdrawal.pool_enabled': 'poolEnabled',
+  'withdrawal.pool_min_amount': 'poolMin',
+  'withdrawal.pool_max_amount': 'poolMax',
+}
 const saving = ref(null)
 const lastSavedAt = reactive({})
 
@@ -93,9 +190,14 @@ function parseAmountInput(value) {
 }
 
 function isDirty(key) {
-  // Map server key to local form field. Currently only one key in the form.
-  const field = key === 'withdrawal.dekont_threshold' ? 'dekontThreshold' : null
+  const field = FIELD_BY_KEY[key]
   if (!field) return false
+  // Anahtar/kapali ayarlar sayiya cevrilirse false === 0 olur ve
+  // "degisti mi" karsilastirmasi dogru calisir; ayni karsilastirmayi
+  // tutar alanlari icin de kullaniyoruz.
+  if (typeof form[field] === 'boolean') {
+    return Boolean(form[field]) !== Boolean(original[key])
+  }
   return Number(form[field] || 0) !== Number(original[key] || 0)
 }
 
@@ -103,6 +205,9 @@ async function load() {
   const { data } = await api.get('/portal/settings')
   Object.assign(original, data)
   form.dekontThreshold = Number(data['withdrawal.dekont_threshold'] || 0)
+  form.poolEnabled = Boolean(data['withdrawal.pool_enabled'])
+  form.poolMin = Number(data['withdrawal.pool_min_amount'] || 0)
+  form.poolMax = Number(data['withdrawal.pool_max_amount'] || 0)
 }
 
 async function save(key, value) {

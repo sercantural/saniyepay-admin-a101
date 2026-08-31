@@ -218,6 +218,10 @@ const menu = computed(() => {
           show: can('transactions.view.deposit'), badge: () => txnStore.pendingDepositCount },
         { name: 'Withdrawals', title: 'Çekimler', sub: 'Çekim işlemleri', icon: 'mdi-minus-circle-outline',
           show: can('transactions.view.withdrawal'), badge: () => txnStore.pendingWithdrawalCount },
+        // Havuz ayri bir menu: sahipsiz bekleyen cekimler. Operator
+        // kendine aldiginda kayit Cekimler ekranina gecer.
+        { name: 'WithdrawalPool', title: 'Çekim Havuzu', sub: 'Sahipsiz çekimler', icon: 'mdi-tray-full',
+          show: can('transactions.view.withdrawal'), badge: () => txnStore.poolCount },
         { name: 'Settlements', title: 'Mutabakat', sub: 'Kripto talepleri', icon: 'mdi-bank-transfer-out',
           show: auth.isSuperAdmin || auth.can('settlement.handle'), badge: () => txnStore.pendingSettlementCount },
         { name: 'Teslimler', title: 'Teslim', sub: 'Nakit teslim', icon: 'mdi-hand-coin-outline',
@@ -252,6 +256,7 @@ const menu = computed(() => {
 
 const pages = {
   Home: 'Ana Sayfa', Dashboard: 'Genel Bakış', Deposits: 'Yatırımlar', Withdrawals: 'Çekimler',
+  WithdrawalPool: 'Çekim Havuzu',
   TxnDetail: 'İşlem Detayı', BankAccounts: 'Banka Hesapları', Users: 'Kullanıcılar', Team: 'Ekibim',
   SubGroups: 'Alt Gruplar', Merchants: 'Bayiler', Settlements: 'Mutabakat', Teslimler: 'Teslim',
   CompanyWallets: 'Şirket Cüzdanları', ApiLogs: 'API Kayıtları', Reports: 'Raporlar',

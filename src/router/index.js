@@ -54,6 +54,13 @@ const routes = [
         component: () => import('@/views/transactions/WithdrawalListView.vue'),
       },
       {
+        // Cekim havuzu ayri bir menu: sahipsiz bekleyen cekimler burada,
+        // operator kendine aldiginda kayit Cekimler ekranina gecer.
+        path: 'withdrawal-pool',
+        name: 'WithdrawalPool',
+        component: () => import('@/views/transactions/WithdrawalPoolView.vue'),
+      },
+      {
         path: 'transactions/:id',
         name: 'TxnDetail',
         component: () => import('@/views/transactions/TransactionDetailView.vue'),
