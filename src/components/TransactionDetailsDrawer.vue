@@ -96,7 +96,7 @@
         <!-- Dekont quick action -->
         <Section v-if="txn.dekont_path || txn.dekont_url" title="Dekont">
           <div class="px-3 pb-3">
-            <v-btn block size="small" variant="tonal" color="purple-darken-1" prepend-icon="mdi-file-eye" @click="$emit('preview-dekont', txn)">
+            <v-btn block size="small" variant="tonal" color="secondary" prepend-icon="mdi-file-eye" @click="$emit('preview-dekont', txn)">
               Dekontu İncele
             </v-btn>
           </div>
@@ -163,7 +163,7 @@ function customerFullName(txn) {
 
 // Status palette mirrors the table chips for visual continuity.
 function statusColor(status) {
-  const c = { pending: 'amber-darken-2', assigned: 'amber-darken-2', payment_seen: 'deep-purple', processing: 'orange-darken-2', admin_review: 'purple-darken-2', approved: 'green-darken-1', rejected: 'red-darken-1', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
+  const c = { pending: 'amber-darken-2', assigned: 'amber-darken-2', payment_seen: 'secondary', processing: 'warning', admin_review: 'purple-darken-2', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
   return c[status] || 'grey'
 }
 function statusText(status) {
@@ -224,11 +224,11 @@ Row.props = ['label', 'value', 'mono', 'small', 'muted', 'highlight', 'copyable'
 
 .drawer-header {
   padding: 16px 18px 18px;
-  background: linear-gradient(180deg, rgba(124, 143, 228, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(102,241,189, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid var(--sp-card-border);
 }
-.drawer-header--deposit { background: linear-gradient(180deg, rgba(67, 160, 71, 0.10) 0%, transparent 100%); }
-.drawer-header--withdrawal { background: linear-gradient(180deg, rgba(41, 182, 246, 0.10) 0%, transparent 100%); }
+.drawer-header--deposit { background: linear-gradient(180deg, rgba(102,241,189, 0.10) 0%, transparent 100%); }
+.drawer-header--withdrawal { background: linear-gradient(180deg, rgba(112,169,255, 0.10) 0%, transparent 100%); }
 .drawer-eyebrow {
   font-size: 11px;
   font-weight: 800;
@@ -288,7 +288,7 @@ Row.props = ['label', 'value', 'mono', 'small', 'muted', 'highlight', 'copyable'
   padding: 6px 14px;
   border-radius: 6px;
 }
-:deep(.drawer-row:hover) { background: rgba(124, 143, 228, 0.05); }
+:deep(.drawer-row:hover) { background: rgba(102,241,189, 0.05); }
 :deep(.drawer-row-label) {
   font-size: 12px;
   font-weight: 600;
@@ -321,7 +321,7 @@ Row.props = ['label', 'value', 'mono', 'small', 'muted', 'highlight', 'copyable'
 }
 
 :deep(.drawer-copy-btn) {
-  background: rgba(124, 143, 228, 0.12);
+  background: rgba(102,241,189, 0.12);
   border: 0;
   color: var(--sp-accent-blue);
   width: 18px; height: 18px;
@@ -333,9 +333,9 @@ Row.props = ['label', 'value', 'mono', 'small', 'muted', 'highlight', 'copyable'
   justify-content: center;
   transition: background 0.15s, color 0.15s;
 }
-:deep(.drawer-copy-btn:hover) { background: rgba(124, 143, 228, 0.22); }
+:deep(.drawer-copy-btn:hover) { background: rgba(102,241,189, 0.22); }
 :deep(.drawer-copy-btn--ok) {
-  background: rgba(67, 160, 71, 0.18);
+  background: rgba(102,241,189, 0.18);
   color: var(--sp-accent-success-bright);
 }
 </style>

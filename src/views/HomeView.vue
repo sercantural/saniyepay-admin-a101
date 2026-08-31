@@ -386,7 +386,7 @@ const actionItems = computed(() => {
         ? 'Onayınız bekleniyor'
         : 'Admin onayı bekleniyor',
       icon: 'mdi-clock-outline',
-      tone: 'amber',
+      tone: 'warning',
       to: { name: 'Teslimler' },
     })
   }
@@ -399,7 +399,7 @@ const actionItems = computed(() => {
       title: 'Kredi limitiniz doldu',
       sub: 'Yeni teslim yaparak kredi açın',
       icon: 'mdi-alert-circle',
-      tone: 'amber',
+      tone: 'warning',
       to: { name: 'Teslimler' },
     })
   }
@@ -439,7 +439,7 @@ const widgetColumns = computed(() => {
           label: 'Yatırım',
           value: w.deposit?.volume ?? 0,
           icon: 'mdi-arrow-down-bold',
-          gradient: 'linear-gradient(135deg, #2E7D32, #66BB6A)',
+          gradient: 'linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-success-bright))',
           sub: w.deposit ? `${w.deposit.count} işlem` : '',
         },
         {
@@ -447,7 +447,7 @@ const widgetColumns = computed(() => {
           label: 'Yatırım Komisyonu',
           value: w.deposit_commission ?? 0,
           icon: 'mdi-percent',
-          gradient: 'linear-gradient(135deg, #00838F, #26C6DA)',
+          gradient: 'linear-gradient(135deg, var(--sp-accent-cyan), var(--sp-accent-cyan))',
         },
       ],
     },
@@ -459,7 +459,7 @@ const widgetColumns = computed(() => {
           label: 'Çekim',
           value: w.withdraw?.volume ?? 0,
           icon: 'mdi-arrow-up-bold',
-          gradient: 'linear-gradient(135deg, #1565C0, #42A5F5)',
+          gradient: 'linear-gradient(135deg, var(--sp-accent-info), var(--sp-accent-info))',
           sub: w.withdraw ? `${w.withdraw.count} işlem` : '',
         },
         {
@@ -467,7 +467,7 @@ const widgetColumns = computed(() => {
           label: 'Çekim Komisyonu',
           value: w.withdraw_commission ?? 0,
           icon: 'mdi-percent-outline',
-          gradient: 'linear-gradient(135deg, #1565C0, #5C6BC0)',
+          gradient: 'linear-gradient(135deg, var(--sp-accent-info), var(--sp-accent-indigo))',
         },
       ],
     },
@@ -479,7 +479,7 @@ const widgetColumns = computed(() => {
           label: 'Teslim',
           value: w.teslim?.volume ?? 0,
           icon: 'mdi-bitcoin',
-          gradient: 'linear-gradient(135deg, #EF6C00, #FFA726)',
+          gradient: 'linear-gradient(135deg, var(--sp-accent-orange), var(--sp-accent-orange))',
           sub: w.teslim ? `${w.teslim.count} teslim` : '',
         },
         {
@@ -487,7 +487,7 @@ const widgetColumns = computed(() => {
           label: 'Teslim Komisyonu',
           value: w.teslim_commission ?? 0,
           icon: 'mdi-cash-plus',
-          gradient: 'linear-gradient(135deg, #6A1B9A, #AB47BC)',
+          gradient: 'linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple))',
         },
       ],
     },
@@ -499,7 +499,7 @@ const widgetColumns = computed(() => {
           label: 'Ek İşlemler',
           value: w.ek_islemler?.total ?? 0,
           icon: 'mdi-swap-horizontal',
-          gradient: 'linear-gradient(135deg, #5D4037, #8D6E63)',
+          gradient: 'linear-gradient(135deg, var(--sp-text-dim), var(--sp-text-muted))',
           sub: w.ek_islemler ? `${w.ek_islemler.count} kayıt` : '',
         },
       ],
@@ -512,7 +512,7 @@ const widgetColumns = computed(() => {
           label: 'Devir',
           value: w.devir_try ?? 0,
           icon: 'mdi-history',
-          gradient: 'linear-gradient(135deg, #455A64, #78909C)',
+          gradient: 'linear-gradient(135deg, var(--sp-text-dim), var(--sp-text-muted))',
           sub: 'Dönem başı kredi',
           signColor: true,
         },
@@ -527,7 +527,7 @@ const widgetColumns = computed(() => {
               label: 'Dönem Sonu Kredi',
               value: w.closing_credit_try ?? 0,
               icon: 'mdi-wallet-outline',
-              gradient: 'linear-gradient(135deg, #4527A0, #7E57C2)',
+              gradient: 'linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple))',
               sub: 'Seçilen dönemin kapanış bakiyesi',
               signColor: true,
             }
@@ -536,7 +536,7 @@ const widgetColumns = computed(() => {
               label: 'Mevcut Kredi',
               value: w.credit_try ?? 0,
               icon: 'mdi-wallet',
-              gradient: 'linear-gradient(135deg, #C62828, #EF5350)',
+              gradient: 'linear-gradient(135deg, var(--sp-accent-error), var(--sp-accent-error))',
               sub: 'Anlık bakiye',
               signColor: true,
             },
@@ -664,12 +664,12 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
 .welcome-glow-1 {
   width: 300px; height: 300px;
   top: -120px; right: -80px;
-  background: rgba(124, 58, 237, 0.2);
+  background: rgba(102,241,189, 0.2);
 }
 .welcome-glow-2 {
   width: 200px; height: 200px;
   bottom: -80px; left: -60px;
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(112,169,255, 0.15);
 }
 .welcome-content {
   position: relative;
@@ -729,10 +729,10 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
   justify-content: center;
   flex-shrink: 0;
 }
-.info-card-icon--time { background: linear-gradient(135deg, #7B1FA2, #AB47BC); }
-.info-card-icon--active { background: linear-gradient(135deg, #2E7D32, #66BB6A); }
-.info-card-icon--inactive { background: linear-gradient(135deg, #C62828, #EF5350); }
-.info-card-icon--shift { background: linear-gradient(135deg, #1565C0, #42A5F5); }
+.info-card-icon--time { background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple)); }
+.info-card-icon--active { background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-success-bright)); }
+.info-card-icon--inactive { background: linear-gradient(135deg, var(--sp-accent-error), var(--sp-accent-error)); }
+.info-card-icon--shift { background: linear-gradient(135deg, var(--sp-accent-info), var(--sp-accent-info)); }
 
 .info-card-body {
   flex: 1;
@@ -808,8 +808,8 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
   filter: blur(70px);
   opacity: 0.35;
 }
-.hero-glow-1 { width: 240px; height: 240px; top: -100px; right: -70px; background: rgba(124, 58, 237, 0.22); }
-.hero-glow-2 { width: 180px; height: 180px; bottom: -70px; left: -40px; background: rgba(59, 130, 246, 0.18); }
+.hero-glow-1 { width: 240px; height: 240px; top: -100px; right: -70px; background: rgba(102,241,189, 0.22); }
+.hero-glow-2 { width: 180px; height: 180px; bottom: -70px; left: -40px; background: rgba(112,169,255, 0.18); }
 .hero-greet { position: relative; z-index: 1; min-width: 200px; flex: 1; }
 .hero-greet-line {
   font-size: 12px;
@@ -854,9 +854,9 @@ onUnmounted(() => { if (timeInterval) clearInterval(timeInterval) })
   justify-content: center;
   flex-shrink: 0;
 }
-.hero-meta-icon--time { background: linear-gradient(135deg, #7B1FA2, #AB47BC); }
-.hero-meta-icon--active { background: linear-gradient(135deg, #2E7D32, #66BB6A); }
-.hero-meta-icon--inactive { background: linear-gradient(135deg, #C62828, #EF5350); }
+.hero-meta-icon--time { background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple)); }
+.hero-meta-icon--active { background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-success-bright)); }
+.hero-meta-icon--inactive { background: linear-gradient(135deg, var(--sp-accent-error), var(--sp-accent-error)); }
 .hero-meta-body { line-height: 1.15; min-width: 0; }
 .hero-meta-label {
   font-size: 10px;

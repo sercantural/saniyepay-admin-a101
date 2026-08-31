@@ -30,7 +30,7 @@
               {{ roleLabel(u.role) }}
               <span v-if="u.sub_group"> &bull; {{ u.sub_group }}</span>
             </div>
-            <div v-if="u.is_clocked_in" class="text-caption mt-1" style="color: #4CAF50">
+            <div v-if="u.is_clocked_in" class="text-caption mt-1" style="color: var(--sp-accent-success)">
               <v-icon size="12" class="mr-1">mdi-clock-outline</v-icon>
               {{ formatMinutes(u.today_total_minutes) }}
             </div>
@@ -306,8 +306,8 @@ onMounted(async () => {
   flex: 0 0 auto;
 }
 .live-active {
-  border-color: rgba(76, 175, 80, 0.2);
-  background: rgba(76, 175, 80, 0.04);
+  border-color: rgba(102,241,189, 0.2);
+  background: rgba(102,241,189, 0.04);
 }
 
 .live-dot {
@@ -318,8 +318,8 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 .dot-online {
-  background: #4CAF50;
-  box-shadow: 0 0 6px rgba(76, 175, 80, 0.5);
+  background: var(--sp-accent-success);
+  box-shadow: 0 0 6px rgba(102,241,189, 0.5);
   animation: blink 2s ease-in-out infinite;
 }
 .dot-offline {

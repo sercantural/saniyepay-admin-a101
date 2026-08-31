@@ -36,7 +36,7 @@
             <v-icon color="success" size="28" class="mb-1">mdi-plus-thick</v-icon>
             <div class="text-caption text-medium-emphasis">Yatırım</div>
             <div class="text-h6 font-weight-bold">{{ summary.toplam_yatirim_adet }}</div>
-            <div class="text-caption" style="color: #6EC47A">{{ formatCurrency(summary.toplam_yatirim_hacim) }}</div>
+            <div class="text-caption" style="color: var(--sp-accent-success)">{{ formatCurrency(summary.toplam_yatirim_hacim) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -46,7 +46,7 @@
             <v-icon color="info" size="28" class="mb-1">mdi-minus-thick</v-icon>
             <div class="text-caption text-medium-emphasis">Çekim</div>
             <div class="text-h6 font-weight-bold">{{ summary.toplam_cekim_adet }}</div>
-            <div class="text-caption" style="color: #5EAFC7">{{ formatCurrency(summary.toplam_cekim_hacim) }}</div>
+            <div class="text-caption" style="color: var(--sp-accent-cyan)">{{ formatCurrency(summary.toplam_cekim_hacim) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -56,7 +56,7 @@
             <v-icon color="primary" size="28" class="mb-1">mdi-sigma</v-icon>
             <div class="text-caption text-medium-emphasis">Toplam Hacim</div>
             <div class="text-h6 font-weight-bold">{{ summary.toplam_islem_adet }}</div>
-            <div class="text-caption" style="color: #7C8FE4">{{ formatCurrency(summary.toplam_islem_hacmi) }}</div>
+            <div class="text-caption" style="color: var(--sp-primary)">{{ formatCurrency(summary.toplam_islem_hacmi) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -76,7 +76,7 @@
             <v-card-text class="pa-4 text-center">
               <v-icon color="warning" size="28" class="mb-1">mdi-percent</v-icon>
               <div class="text-caption text-medium-emphasis">Toplam Komisyon</div>
-              <div class="text-h6 font-weight-bold" style="color: #E4A34F">{{ formatCurrency(summary.toplam_komisyon) }}</div>
+              <div class="text-h6 font-weight-bold" style="color: var(--sp-accent-amber)">{{ formatCurrency(summary.toplam_komisyon) }}</div>
             </v-card-text>
           </v-card>
         </v-col>
@@ -85,7 +85,7 @@
             <v-card-text class="pa-4 text-center">
               <v-icon color="success" size="28" class="mb-1">mdi-cash-multiple</v-icon>
               <div class="text-caption text-medium-emphasis">Sahip Kârı</div>
-              <div class="text-h6 font-weight-bold" style="color: #6EC47A">{{ formatCurrency(summary.toplam_owner_kar) }}</div>
+              <div class="text-h6 font-weight-bold" style="color: var(--sp-accent-success)">{{ formatCurrency(summary.toplam_owner_kar) }}</div>
               <div class="text-caption text-medium-emphasis">Grup: {{ formatCurrency(summary.toplam_grup_payi) }}</div>
             </v-card-text>
           </v-card>
@@ -101,10 +101,10 @@
       <v-col cols="6" sm="4" md="2">
         <v-card>
           <v-card-text class="pa-4 text-center">
-            <v-icon color="deep-purple" size="28" class="mb-1">mdi-bank-transfer-out</v-icon>
+            <v-icon color="secondary" size="28" class="mb-1">mdi-bank-transfer-out</v-icon>
             <div class="text-caption text-medium-emphasis">Bayi Mutabakat</div>
             <div class="text-h6 font-weight-bold">{{ summary.mutabakat_bayi_adet }}</div>
-            <div class="text-caption" style="color: #CE93D8">{{ formatCurrency(summary.mutabakat_bayi_hacim) }}</div>
+            <div class="text-caption" style="color: var(--sp-accent-purple)">{{ formatCurrency(summary.mutabakat_bayi_hacim) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -113,7 +113,7 @@
           <v-card-text class="pa-4 text-center">
             <v-icon color="warning" size="28" class="mb-1">mdi-percent</v-icon>
             <div class="text-caption text-medium-emphasis">M. Komisyon</div>
-            <div class="text-h6 font-weight-bold" style="color: #E4A34F">{{ formatCurrency(summary.mutabakat_bayi_komisyon) }}</div>
+            <div class="text-h6 font-weight-bold" style="color: var(--sp-accent-amber)">{{ formatCurrency(summary.mutabakat_bayi_komisyon) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -122,7 +122,7 @@
           <v-card-text class="pa-4 text-center">
             <v-icon color="success" size="28" class="mb-1">mdi-cash-check</v-icon>
             <div class="text-caption text-medium-emphasis">Bayi Net</div>
-            <div class="text-h6 font-weight-bold" style="color: #6EC47A">{{ formatCurrency(summary.mutabakat_bayi_net) }}</div>
+            <div class="text-h6 font-weight-bold" style="color: var(--sp-accent-success)">{{ formatCurrency(summary.mutabakat_bayi_net) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -131,7 +131,7 @@
           <v-card-text class="pa-4 text-center">
             <v-icon color="success" size="28" class="mb-1">mdi-cash-multiple</v-icon>
             <div class="text-caption text-medium-emphasis">M. Sahip Kârı</div>
-            <div class="text-h6 font-weight-bold" style="color: #6EC47A">{{ formatCurrency(summary.mutabakat_bayi_owner_kar) }}</div>
+            <div class="text-h6 font-weight-bold" style="color: var(--sp-accent-success)">{{ formatCurrency(summary.mutabakat_bayi_owner_kar) }}</div>
             <div class="text-caption text-medium-emphasis">Grup: {{ formatCurrency(summary.mutabakat_bayi_grup_payi) }}</div>
           </v-card-text>
         </v-card>
@@ -142,7 +142,7 @@
             <v-icon color="grey" size="28" class="mb-1">mdi-domain</v-icon>
             <div class="text-caption text-medium-emphasis">Şirket Mutabakat</div>
             <div class="text-h6 font-weight-bold">{{ summary.mutabakat_sirket_adet }}</div>
-            <div class="text-caption" style="color: #90A4AE">{{ formatCurrency(summary.mutabakat_sirket_hacim) }}</div>
+            <div class="text-caption" style="color: var(--sp-text-muted)">{{ formatCurrency(summary.mutabakat_sirket_hacim) }}</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -169,16 +169,16 @@
               <span class="font-weight-medium">{{ formatCurrency(item.hacim) }}</span>
             </template>
             <template v-slot:item.yatirim_hacim="{ item }">
-              <span style="color: #6EC47A">{{ formatCurrency(item.yatirim_hacim) }}</span>
+              <span style="color: var(--sp-accent-success)">{{ formatCurrency(item.yatirim_hacim) }}</span>
             </template>
             <template v-slot:item.cekim_hacim="{ item }">
-              <span style="color: #5EAFC7">{{ formatCurrency(item.cekim_hacim) }}</span>
+              <span style="color: var(--sp-accent-cyan)">{{ formatCurrency(item.cekim_hacim) }}</span>
             </template>
             <template v-slot:item.toplam_komisyon="{ item }">
-              <span style="color: #E4A34F">{{ formatCurrency(item.toplam_komisyon) }}</span>
+              <span style="color: var(--sp-accent-amber)">{{ formatCurrency(item.toplam_komisyon) }}</span>
             </template>
             <template v-slot:item.owner_kar="{ item }">
-              <span style="color: #6EC47A; font-weight: 600">{{ formatCurrency(item.owner_kar) }}</span>
+              <span style="color: var(--sp-accent-success); font-weight: 600">{{ formatCurrency(item.owner_kar) }}</span>
             </template>
           </v-data-table>
         </v-tabs-window-item>
@@ -190,13 +190,13 @@
               <span class="font-weight-medium">{{ formatCurrency(item.hacim) }}</span>
             </template>
             <template v-slot:item.toplam_komisyon="{ item }">
-              <span style="color: #E4A34F">{{ formatCurrency(item.toplam_komisyon) }}</span>
+              <span style="color: var(--sp-accent-amber)">{{ formatCurrency(item.toplam_komisyon) }}</span>
             </template>
             <template v-slot:item.grup_payi="{ item }">
-              <span style="color: #5EAFC7">{{ formatCurrency(item.grup_payi) }}</span>
+              <span style="color: var(--sp-accent-cyan)">{{ formatCurrency(item.grup_payi) }}</span>
             </template>
             <template v-slot:item.owner_payi="{ item }">
-              <span style="color: #6EC47A; font-weight: 600">{{ formatCurrency(item.owner_payi) }}</span>
+              <span style="color: var(--sp-accent-success); font-weight: 600">{{ formatCurrency(item.owner_payi) }}</span>
             </template>
           </v-data-table>
         </v-tabs-window-item>
@@ -225,10 +225,10 @@
               {{ formatCurrency(item.hacim) }}
             </template>
             <template v-slot:item.yatirim_hacim="{ item }">
-              <span style="color: #6EC47A">{{ formatCurrency(item.yatirim_hacim) }}</span>
+              <span style="color: var(--sp-accent-success)">{{ formatCurrency(item.yatirim_hacim) }}</span>
             </template>
             <template v-slot:item.cekim_hacim="{ item }">
-              <span style="color: #5EAFC7">{{ formatCurrency(item.cekim_hacim) }}</span>
+              <span style="color: var(--sp-accent-cyan)">{{ formatCurrency(item.cekim_hacim) }}</span>
             </template>
           </v-data-table>
         </v-tabs-window-item>
@@ -241,25 +241,25 @@
               <v-col cols="6" md="3">
                 <div class="settle-stat">
                   <div class="settle-stat-label">Bayi Brüt</div>
-                  <div class="settle-stat-value" style="color: #CE93D8">{{ formatCurrency(settlementReport.summary?.toplam_bayi_brut) }}</div>
+                  <div class="settle-stat-value" style="color: var(--sp-accent-purple)">{{ formatCurrency(settlementReport.summary?.toplam_bayi_brut) }}</div>
                 </div>
               </v-col>
               <v-col cols="6" md="3">
                 <div class="settle-stat">
                   <div class="settle-stat-label">Bayi Komisyon</div>
-                  <div class="settle-stat-value" style="color: #E4A34F">{{ formatCurrency(settlementReport.summary?.toplam_bayi_komisyon) }}</div>
+                  <div class="settle-stat-value" style="color: var(--sp-accent-amber)">{{ formatCurrency(settlementReport.summary?.toplam_bayi_komisyon) }}</div>
                 </div>
               </v-col>
               <v-col cols="6" md="3">
                 <div class="settle-stat">
                   <div class="settle-stat-label">Bayi Net</div>
-                  <div class="settle-stat-value" style="color: #6EC47A">{{ formatCurrency(settlementReport.summary?.toplam_bayi_net) }}</div>
+                  <div class="settle-stat-value" style="color: var(--sp-accent-success)">{{ formatCurrency(settlementReport.summary?.toplam_bayi_net) }}</div>
                 </div>
               </v-col>
               <v-col cols="6" md="3">
                 <div class="settle-stat">
                   <div class="settle-stat-label">Toplam USDT</div>
-                  <div class="settle-stat-value" style="color: #4FC3F7">{{ Number(settlementReport.summary?.toplam_bayi_usdt || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) }}</div>
+                  <div class="settle-stat-value" style="color: var(--sp-accent-blue)">{{ Number(settlementReport.summary?.toplam_bayi_usdt || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) }}</div>
                 </div>
               </v-col>
             </v-row>
@@ -276,19 +276,19 @@
                 <span class="font-weight-medium">{{ formatCurrency(item.brut_hacim) }}</span>
               </template>
               <template v-slot:item.toplam_komisyon="{ item }">
-                <span style="color: #E4A34F">{{ formatCurrency(item.toplam_komisyon) }}</span>
+                <span style="color: var(--sp-accent-amber)">{{ formatCurrency(item.toplam_komisyon) }}</span>
               </template>
               <template v-slot:item.net_hacim="{ item }">
-                <span style="color: #6EC47A; font-weight: 600">{{ formatCurrency(item.net_hacim) }}</span>
+                <span style="color: var(--sp-accent-success); font-weight: 600">{{ formatCurrency(item.net_hacim) }}</span>
               </template>
               <template v-slot:item.grup_payi="{ item }">
-                <span style="color: #5EAFC7">{{ formatCurrency(item.grup_payi) }}</span>
+                <span style="color: var(--sp-accent-cyan)">{{ formatCurrency(item.grup_payi) }}</span>
               </template>
               <template v-slot:item.owner_payi="{ item }">
-                <span style="color: #6EC47A; font-weight: 600">{{ formatCurrency(item.owner_payi) }}</span>
+                <span style="color: var(--sp-accent-success); font-weight: 600">{{ formatCurrency(item.owner_payi) }}</span>
               </template>
               <template v-slot:item.toplam_usdt="{ item }">
-                <span style="color: #4FC3F7">{{ Number(item.toplam_usdt || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) }}</span>
+                <span style="color: var(--sp-accent-blue)">{{ Number(item.toplam_usdt || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) }}</span>
               </template>
             </v-data-table>
           </div>
@@ -326,7 +326,7 @@
                   </div>
                 </div>
                 <div class="trend-count">{{ row.islem_adet }}</div>
-                <div v-if="isSuperAdmin && row.owner_kar !== undefined" class="trend-profit" style="color: #6EC47A">
+                <div v-if="isSuperAdmin && row.owner_kar !== undefined" class="trend-profit" style="color: var(--sp-accent-success)">
                   {{ formatShort(row.owner_kar) }}
                 </div>
               </div>
@@ -340,7 +340,7 @@
             <div class="d-flex ga-4 mt-4">
               <div class="d-flex align-center"><div class="legend-dot bg-success mr-2" /> Yatırım</div>
               <div class="d-flex align-center"><div class="legend-dot bg-info mr-2" /> Çekim</div>
-              <div v-if="isSuperAdmin" class="d-flex align-center"><span style="color: #6EC47A; font-weight: 600" class="mr-1">₺</span> Sahip Kârı</div>
+              <div v-if="isSuperAdmin" class="d-flex align-center"><span style="color: var(--sp-accent-success); font-weight: 600" class="mr-1">₺</span> Sahip Kârı</div>
             </div>
           </div>
         </v-tabs-window-item>
@@ -580,7 +580,7 @@ onMounted(async () => {
   min-width: 2px;
 }
 
-.bg-success { background: rgba(110, 196, 122, 0.6) !important; }
+.bg-success { background: rgba(102,241,189, 0.6) !important; }
 .bg-info { background: rgba(94, 175, 199, 0.6) !important; }
 
 .trend-bar-text {

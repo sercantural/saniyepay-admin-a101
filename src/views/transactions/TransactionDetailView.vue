@@ -60,7 +60,7 @@
     <div v-if="txn.merchant_balance && !txn.merchant_balance.can_afford && !['approved','rejected','expired','cancelled'].includes(txn.status)" class="balance-alert mb-4">
       <v-icon color="error" size="24" class="mr-3 pulse-icon">mdi-alert</v-icon>
       <div>
-        <div class="font-weight-bold" style="color: #E06C6C">Yetersiz Bayi Bakiyesi!</div>
+        <div class="font-weight-bold" style="color: var(--sp-accent-error)">Yetersiz Bayi Bakiyesi!</div>
         <div class="text-caption" style="color: var(--sp-text-muted)">Lütfen bu hesaba para göndermeyin, bayinin bakiyesi yeterli değil. İşlemi reddedin!</div>
       </div>
     </div>
@@ -81,7 +81,7 @@
         <!-- Tutar Detayları -->
         <div class="detail-section mb-4">
           <div class="section-title">
-            <v-icon size="16" class="mr-2" style="color: #7C8FE4">mdi-currency-try</v-icon>
+            <v-icon size="16" class="mr-2" style="color: var(--sp-primary)">mdi-currency-try</v-icon>
             Tutar Bilgileri
           </div>
           <v-row dense>
@@ -94,7 +94,7 @@
             <v-col cols="6" sm="3">
               <div class="detail-box">
                 <div class="detail-label">Onaylanan</div>
-                <div class="detail-value" :style="txn.amount ? 'color: #6EC47A' : ''">{{ txn.amount ? formatCurrency(txn.amount) : '--' }}</div>
+                <div class="detail-value" :style="txn.amount ? 'color: var(--sp-accent-success)' : ''">{{ txn.amount ? formatCurrency(txn.amount) : '--' }}</div>
               </div>
             </v-col>
             <v-col cols="6" sm="3">
@@ -119,25 +119,25 @@
               <v-col cols="12" sm="6" md="4">
                 <div class="detail-mini">
                   <div class="detail-mini-label">Oran</div>
-                  <div class="detail-mini-value" style="color: #E4A34F">%{{ txn.merchant_fee_percent }}</div>
+                  <div class="detail-mini-value" style="color: var(--sp-accent-amber)">%{{ txn.merchant_fee_percent }}</div>
                 </div>
               </v-col>
               <v-col cols="12" sm="6" md="4">
                 <div class="detail-mini">
                   <div class="detail-mini-label">Komisyon</div>
-                  <div class="detail-mini-value" style="color: #E4A34F">{{ formatCurrency(txn.merchant_fee_amount || 0) }}</div>
+                  <div class="detail-mini-value" style="color: var(--sp-accent-amber)">{{ formatCurrency(txn.merchant_fee_amount || 0) }}</div>
                 </div>
               </v-col>
               <v-col cols="12" sm="6" md="4">
                 <div class="detail-mini">
                   <div class="detail-mini-label">Grup (%{{ txn.operator_fee_percent || 0 }})</div>
-                  <div class="detail-mini-value" style="color: #5EAFC7">{{ formatCurrency(txn.operator_fee_amount || 0) }}</div>
+                  <div class="detail-mini-value" style="color: var(--sp-accent-cyan)">{{ formatCurrency(txn.operator_fee_amount || 0) }}</div>
                 </div>
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="detail-mini">
                   <div class="detail-mini-label">Sahip Kârı</div>
-                  <div class="detail-mini-value" style="color: #6EC47A">{{ formatCurrency(txn.owner_fee_amount || 0) }}</div>
+                  <div class="detail-mini-value" style="color: var(--sp-accent-success)">{{ formatCurrency(txn.owner_fee_amount || 0) }}</div>
                 </div>
               </v-col>
               <v-col cols="12" sm="6">
@@ -155,7 +155,7 @@
           <v-col cols="12" md="6">
             <div class="detail-section h-100">
               <div class="section-title">
-                <v-icon size="16" class="mr-2" style="color: #7C8FE4">{{ isSuperAdmin ? 'mdi-store' : 'mdi-account' }}</v-icon>
+                <v-icon size="16" class="mr-2" style="color: var(--sp-primary)">{{ isSuperAdmin ? 'mdi-store' : 'mdi-account' }}</v-icon>
                 {{ isSuperAdmin ? 'Bayi & Müşteri' : 'Müşteri' }}
               </div>
               <div class="detail-grid">
@@ -181,7 +181,7 @@
           <v-col v-if="isSuperAdmin" cols="12" md="6">
             <div class="detail-section h-100">
               <div class="section-title">
-                <v-icon size="16" class="mr-2" style="color: #7C8FE4">mdi-bank</v-icon>
+                <v-icon size="16" class="mr-2" style="color: var(--sp-primary)">mdi-bank</v-icon>
                 Operatör Banka Hesabı
               </div>
               <div class="detail-grid">
@@ -212,7 +212,7 @@
         <!-- Çekim: Oyuncu Banka -->
         <div v-if="txn.type === 'withdrawal'" class="detail-section mb-4">
           <div class="section-title">
-            <v-icon size="16" class="mr-2" style="color: #5EAFC7">mdi-credit-card</v-icon>
+            <v-icon size="16" class="mr-2" style="color: var(--sp-accent-cyan)">mdi-credit-card</v-icon>
             Oyuncu Banka Bilgileri
           </div>
           <v-row dense>
@@ -234,7 +234,7 @@
         <!-- İşlem Süreci -->
         <div class="detail-section mb-4">
           <div class="section-title">
-            <v-icon size="16" class="mr-2" style="color: #E4A34F">mdi-account-clock</v-icon>
+            <v-icon size="16" class="mr-2" style="color: var(--sp-accent-amber)">mdi-account-clock</v-icon>
             İşlem Süreci
           </div>
 
@@ -253,7 +253,7 @@
               <div class="step-content">
                 <div class="step-title d-flex align-center ga-2">
                   İşleme Alındı
-                  <v-chip v-if="txn.locker" size="x-small" variant="tonal" color="orange">{{ txn.locker.name }}</v-chip>
+                  <v-chip v-if="txn.locker" size="x-small" variant="tonal" color="warning">{{ txn.locker.name }}</v-chip>
                 </div>
                 <div class="step-time">{{ txn.locked_at ? formatDate(txn.locked_at) : '--' }}</div>
               </div>
@@ -367,7 +367,7 @@
         <div class="detail-section sticky-panel">
           <div class="d-flex align-center mb-3">
             <div class="section-title mb-0">
-              <v-icon size="16" class="mr-2" style="color: #7C8FE4">mdi-webhook</v-icon>
+              <v-icon size="16" class="mr-2" style="color: var(--sp-primary)">mdi-webhook</v-icon>
               Webhook
             </div>
             <v-spacer />
@@ -639,7 +639,7 @@ const customerName = computed(() => {
 })
 
 function statusChipColor(s) {
-  return { pending: 'blue-grey', assigned: 'blue-grey', processing: 'warning', approved: 'success', rejected: 'error', expired: 'grey', cancelled: 'grey' }[s] || 'grey'
+  return { pending: 'secondary', assigned: 'secondary', processing: 'warning', approved: 'success', rejected: 'error', expired: 'grey', cancelled: 'grey' }[s] || 'grey'
 }
 function statusIcon(s) {
   return { pending: 'mdi-clock-outline', assigned: 'mdi-account-arrow-right', processing: 'mdi-progress-clock', approved: 'mdi-check-circle', rejected: 'mdi-close-circle', expired: 'mdi-timer-off', cancelled: 'mdi-cancel' }[s] || 'mdi-help-circle'
@@ -648,13 +648,13 @@ function statusText(s) {
   return { pending: 'Beklemede', assigned: 'Atandı', processing: 'İşlemde', approved: 'Onaylandı', rejected: 'Reddedildi', expired: 'Süresi Doldu', cancelled: 'İptal Edildi' }[s] || s
 }
 function statusHex(s) {
-  return { pending: '#90A4AE', assigned: '#78909C', processing: '#E4A34F', approved: '#6EC47A', rejected: '#E06C6C', expired: '#757575', cancelled: '#616161' }[s] || '#999'
+  return { pending: 'var(--sp-text-muted)', assigned: 'var(--sp-text-muted)', processing: 'var(--sp-accent-amber)', approved: 'var(--sp-accent-success)', rejected: 'var(--sp-accent-error)', expired: 'var(--sp-text-muted)', cancelled: 'var(--sp-text-muted)' }[s] || '#999'
 }
 function actionText(a) {
   return { created: 'Oluşturuldu', status_changed: 'Durum Değişti', locked: 'İşleme Alındı', note_added: 'Not Eklendi' }[a] || a
 }
 function logColor(a) {
-  return { created: 'primary', status_changed: 'warning', locked: 'orange', note_added: 'grey' }[a] || 'grey'
+  return { created: 'primary', status_changed: 'warning', locked: 'warning', note_added: 'grey' }[a] || 'grey'
 }
 function logIcon(a) {
   return { created: 'mdi-plus-circle', status_changed: 'mdi-swap-horizontal', locked: 'mdi-hand-extended', note_added: 'mdi-note-plus' }[a] || 'mdi-circle-small'
@@ -776,16 +776,16 @@ onMounted(() => loadTxn())
 .status-banner {
   padding: 20px 24px;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--sp-modal-bg) 0%, #252840 100%);
+  background: linear-gradient(135deg, var(--sp-modal-bg) 0%, var(--sp-surface-bright) 100%);
   border: 1px solid var(--sp-badge-bg);
 }
-.status-banner--approved { border-left: 4px solid #6EC47A; }
-.status-banner--rejected { border-left: 4px solid #E06C6C; }
-.status-banner--processing { border-left: 4px solid #E4A34F; }
-.status-banner--assigned { border-left: 4px solid #78909C; }
-.status-banner--pending { border-left: 4px solid #90A4AE; }
-.status-banner--expired { border-left: 4px solid #616161; }
-.status-banner--cancelled { border-left: 4px solid #616161; }
+.status-banner--approved { border-left: 4px solid var(--sp-accent-success); }
+.status-banner--rejected { border-left: 4px solid var(--sp-accent-error); }
+.status-banner--processing { border-left: 4px solid var(--sp-accent-amber); }
+.status-banner--assigned { border-left: 4px solid var(--sp-text-muted); }
+.status-banner--pending { border-left: 4px solid var(--sp-text-muted); }
+.status-banner--expired { border-left: 4px solid var(--sp-text-muted); }
+.status-banner--cancelled { border-left: 4px solid var(--sp-text-muted); }
 
 .status-icon-wrap {
   width: 48px; height: 48px; border-radius: 14px;
@@ -807,27 +807,27 @@ onMounted(() => loadTxn())
 .status-currency { font-size: 14px; font-weight: 600; color: var(--sp-text-dimmer); }
 
 .action-btn { font-weight: 600; letter-spacing: 0.2px; }
-.action-btn--approve { color: #2E7D32 !important; }
-.action-btn--reject { color: #C62828 !important; }
+.action-btn--approve { color: var(--sp-accent-success) !important; }
+.action-btn--reject { color: var(--sp-accent-error) !important; }
 
 /* ── Alerts ── */
 .payment-alert {
   display: flex; align-items: center;
   padding: 16px 20px; border-radius: 12px;
-  background: rgba(228,163,79,0.08);
-  border: 1px solid rgba(228,163,79,0.15);
+  background: rgba(255,190,91,0.08);
+  border: 1px solid rgba(255,190,91,0.15);
 }
 .reject-alert {
   display: flex; align-items: flex-start;
   padding: 14px 18px; border-radius: 12px;
-  background: rgba(224,108,108,0.06);
-  border: 1px solid rgba(224,108,108,0.12);
+  background: rgba(255,142,130,0.06);
+  border: 1px solid rgba(255,142,130,0.12);
 }
 .balance-alert {
   display: flex; align-items: flex-start;
   padding: 14px 18px; border-radius: 12px;
-  background: rgba(224,108,108,0.08);
-  border: 1px solid rgba(224,108,108,0.2);
+  background: rgba(255,142,130,0.08);
+  border: 1px solid rgba(255,142,130,0.2);
 }
 
 /* ── Detail Sections ── */
@@ -925,10 +925,10 @@ onMounted(() => loadTxn())
   z-index: 1;
 }
 .step-dot--done { background: var(--sp-primary); box-shadow: 0 0 8px rgba(var(--sp-primary-rgb),0.3); }
-.step-dot--success { background: #6EC47A; box-shadow: 0 0 8px rgba(110,196,122,0.3); }
-.step-dot--warning { background: #E4A34F; box-shadow: 0 0 8px rgba(228,163,79,0.3); }
-.step-dot--error { background: #E06C6C; box-shadow: 0 0 8px rgba(224,108,108,0.3); }
-.step-dot--grey { background: #616161; }
+.step-dot--success { background: var(--sp-accent-success); box-shadow: 0 0 8px rgba(102,241,189,0.3); }
+.step-dot--warning { background: var(--sp-accent-amber); box-shadow: 0 0 8px rgba(255,190,91,0.3); }
+.step-dot--error { background: var(--sp-accent-error); box-shadow: 0 0 8px rgba(255,142,130,0.3); }
+.step-dot--grey { background: var(--sp-text-muted); }
 .step-dot--waiting {
   background: transparent;
   border: 2px solid var(--sp-text-ghost);
@@ -960,9 +960,9 @@ onMounted(() => loadTxn())
 .wh-dot {
   width: 8px; height: 8px; border-radius: 50%; margin-right: 10px; flex-shrink: 0;
 }
-.wh-dot--success { background: #6EC47A; }
-.wh-dot--failed { background: #E06C6C; }
-.wh-dot--pending { background: #616161; }
+.wh-dot--success { background: var(--sp-accent-success); }
+.wh-dot--failed { background: var(--sp-accent-error); }
+.wh-dot--pending { background: var(--sp-text-muted); }
 
 .wh-code {
   font-family: 'JetBrains Mono', monospace;
@@ -1025,13 +1025,13 @@ onMounted(() => loadTxn())
 
 /* Light mode */
 :global(.v-theme--lightComfort .detail-section) {
-  box-shadow: 0 1px 4px rgba(30, 32, 48, 0.06);
+  box-shadow: 0 1px 4px rgba(16,33,27, 0.06);
 }
 :global(.v-theme--lightComfort .status-banner) {
-  box-shadow: 0 1px 3px rgba(30, 32, 48, 0.04);
+  box-shadow: 0 1px 3px rgba(16,33,27, 0.04);
 }
 :global(.v-theme--lightComfort .tech-panel) {
-  box-shadow: 0 1px 3px rgba(30, 32, 48, 0.04);
+  box-shadow: 0 1px 3px rgba(16,33,27, 0.04);
 }
 
 /* ── Responsive ── */

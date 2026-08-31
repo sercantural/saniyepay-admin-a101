@@ -3,7 +3,7 @@
     <!-- ══ Overview Stats ══ -->
     <div class="overview-row mb-4" v-if="stats">
       <div class="ov-card">
-        <div class="ov-icon" style="background: rgba(124,58,237,0.1); color: #7C3AED"><v-icon size="20">mdi-swap-horizontal</v-icon></div>
+        <div class="ov-icon" style="background: rgba(102,241,189,0.1); color: var(--sp-primary)"><v-icon size="20">mdi-swap-horizontal</v-icon></div>
         <div class="ov-body"><div class="ov-val">{{ stats.total_24h }}</div><div class="ov-lbl">Toplam İstek (24s)</div></div>
       </div>
       <div class="ov-card" v-for="(count, source) in stats.by_source" :key="source">
@@ -11,11 +11,11 @@
         <div class="ov-body"><div class="ov-val">{{ count }}</div><div class="ov-lbl">{{ sourceLabel(source) }}</div></div>
       </div>
       <div class="ov-card">
-        <div class="ov-icon" style="background: rgba(6,182,212,0.1); color: #06B6D4"><v-icon size="20">mdi-timer-outline</v-icon></div>
+        <div class="ov-icon" style="background: rgba(6,182,212,0.1); color: var(--sp-accent-cyan)"><v-icon size="20">mdi-timer-outline</v-icon></div>
         <div class="ov-body"><div class="ov-val">{{ stats.avg_duration_ms }}<span class="ov-unit">ms</span></div><div class="ov-lbl">Ort. Yanıt Süresi</div></div>
       </div>
       <div class="ov-card ov-error" v-if="stats.by_status">
-        <div class="ov-icon" style="background: rgba(224,108,108,0.1); color: #E06C6C"><v-icon size="20">mdi-alert-circle-outline</v-icon></div>
+        <div class="ov-icon" style="background: rgba(255,142,130,0.1); color: var(--sp-accent-error)"><v-icon size="20">mdi-alert-circle-outline</v-icon></div>
         <div class="ov-body"><div class="ov-val">{{ errorCount }}</div><div class="ov-lbl">Hatalı İstek (24s)</div></div>
       </div>
     </div>
@@ -23,7 +23,7 @@
     <!-- ══ Main Card ══ -->
     <v-card>
       <v-card-title class="d-flex align-center flex-wrap ga-2 pa-4">
-        <v-icon start color="deep-purple" size="20">mdi-console-network</v-icon>
+        <v-icon start color="secondary" size="20">mdi-console-network</v-icon>
         <span class="font-weight-bold">İstek Kayıtları</span>
         <v-spacer />
         <v-text-field
@@ -86,7 +86,7 @@
         <template #item.result="{ item }">
           <div class="d-flex align-center ga-2">
             <v-chip :color="statusColor(item.response_status)" size="x-small" variant="tonal" label>{{ item.response_status }}</v-chip>
-            <span class="text-caption" :style="{ color: item.duration_ms > 1000 ? '#E06C6C' : 'var(--sp-text-hint)' }">{{ item.duration_ms }}ms</span>
+            <span class="text-caption" :style="{ color: item.duration_ms > 1000 ? 'var(--sp-accent-error)' : 'var(--sp-text-hint)' }">{{ item.duration_ms }}ms</span>
           </div>
         </template>
       </v-data-table-server>
@@ -127,7 +127,7 @@
           <v-expansion-panels variant="accordion" class="detail-panels">
             <v-expansion-panel>
               <v-expansion-panel-title class="detail-panel-title">
-                <v-icon size="16" class="mr-2" style="color: #7C3AED">mdi-link-variant</v-icon> URL & User Agent
+                <v-icon size="16" class="mr-2" style="color: var(--sp-primary)">mdi-link-variant</v-icon> URL & User Agent
               </v-expansion-panel-title>
               <v-expansion-panel-text>
                 <div class="detail-code mb-2">{{ sel.url }}</div>
@@ -137,7 +137,7 @@
 
             <v-expansion-panel v-if="sel.request_headers">
               <v-expansion-panel-title class="detail-panel-title">
-                <v-icon size="16" class="mr-2" style="color: #3B82F6">mdi-code-braces</v-icon> İstek Başlıkları
+                <v-icon size="16" class="mr-2" style="color: var(--sp-accent-blue)">mdi-code-braces</v-icon> İstek Başlıkları
               </v-expansion-panel-title>
               <v-expansion-panel-text>
                 <pre class="detail-json">{{ JSON.stringify(sel.request_headers, null, 2) }}</pre>
@@ -146,7 +146,7 @@
 
             <v-expansion-panel v-if="sel.request_body">
               <v-expansion-panel-title class="detail-panel-title">
-                <v-icon size="16" class="mr-2" style="color: #22C55E">mdi-upload</v-icon> İstek Gövdesi
+                <v-icon size="16" class="mr-2" style="color: var(--sp-accent-success)">mdi-upload</v-icon> İstek Gövdesi
               </v-expansion-panel-title>
               <v-expansion-panel-text>
                 <pre class="detail-json">{{ JSON.stringify(sel.request_body, null, 2) }}</pre>
@@ -155,7 +155,7 @@
 
             <v-expansion-panel v-if="sel.response_body">
               <v-expansion-panel-title class="detail-panel-title">
-                <v-icon size="16" class="mr-2" style="color: #F59E0B">mdi-download</v-icon> Yanıt Gövdesi
+                <v-icon size="16" class="mr-2" style="color: var(--sp-accent-orange)">mdi-download</v-icon> Yanıt Gövdesi
                 <v-spacer />
                 <v-chip :color="statusColor(sel.response_status)" size="x-small" variant="tonal" class="mr-2">{{ sel.response_status }}</v-chip>
               </v-expansion-panel-title>
@@ -249,10 +249,10 @@ function describeAction(item) {
 }
 
 function sourceLabel(s) { return { api: 'API', portal: 'Admin', merchant: 'Bayi', other: 'Diğer' }[s] || s }
-function sourceColor(s) { return { api: 'info', portal: 'deep-purple', merchant: 'success', other: 'grey' }[s] || 'grey' }
+function sourceColor(s) { return { api: 'info', portal: 'secondary', merchant: 'success', other: 'grey' }[s] || 'grey' }
 function sourceIcon(s) { return { api: 'mdi-api', portal: 'mdi-shield-account', merchant: 'mdi-store', other: 'mdi-help-circle' }[s] || 'mdi-help' }
-function sourceIconBg(s) { return { api: 'rgba(59,130,246,0.1)', portal: 'rgba(124,58,237,0.1)', merchant: 'rgba(34,197,94,0.1)', other: 'rgba(148,163,184,0.1)' }[s] || 'rgba(0,0,0,0.05)' }
-function sourceIconColor(s) { return { api: '#3B82F6', portal: '#7C3AED', merchant: '#22C55E', other: '#94A3B8' }[s] || '#94A3B8' }
+function sourceIconBg(s) { return { api: 'rgba(112,169,255,0.1)', portal: 'rgba(102,241,189,0.1)', merchant: 'rgba(102,241,189,0.1)', other: 'rgba(148,163,184,0.1)' }[s] || 'rgba(0,0,0,0.05)' }
+function sourceIconColor(s) { return { api: 'var(--sp-accent-blue)', portal: 'var(--sp-primary)', merchant: 'var(--sp-accent-success)', other: 'var(--sp-text-muted)' }[s] || 'var(--sp-text-muted)' }
 function methodColor(m) { return { GET: 'info', POST: 'success', PUT: 'warning', PATCH: 'warning', DELETE: 'error' }[m] || 'grey' }
 function statusColor(s) { if (s < 300) return 'success'; if (s < 400) return 'info'; if (s < 500) return 'warning'; return 'error' }
 function userTypeLabel(t) { return { api_key: 'API', merchant_user: 'Bayi', user: 'Admin' }[t] || t }
@@ -316,7 +316,7 @@ onMounted(() => { loadData(); loadStats() })
 .ov-val { font-size: 18px; font-weight: 800; color: var(--sp-text); letter-spacing: -0.5px; }
 .ov-unit { font-size: 11px; font-weight: 500; color: var(--sp-text-dim); margin-left: 1px; }
 .ov-lbl { font-size: 10px; font-weight: 600; color: var(--sp-text-dim); }
-.ov-error .ov-val { color: #E06C6C; }
+.ov-error .ov-val { color: var(--sp-accent-error); }
 
 /* ── Filters ── */
 .filter-row {
@@ -334,7 +334,7 @@ onMounted(() => { loadData(); loadStats() })
 .detail-summary {
   display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
   padding: 14px 20px;
-  background: var(--sp-surface-1, rgba(124,58,237,0.03));
+  background: var(--sp-surface-1, rgba(102,241,189,0.03));
   border-bottom: 1px solid var(--sp-border);
 }
 .ds-item { display: flex; align-items: center; font-size: 12px; color: var(--sp-text); }
@@ -349,7 +349,7 @@ onMounted(() => { loadData(); loadStats() })
 }
 .detail-json {
   font-size: 11px; font-family: 'JetBrains Mono', monospace;
-  background: #1e1e2e; color: #cdd6f4;
+  background: var(--sp-surface-bright); color: var(--sp-text);
   padding: 12px 16px; border-radius: 8px;
   white-space: pre-wrap; word-break: break-all;
   max-height: 300px; overflow-y: auto;

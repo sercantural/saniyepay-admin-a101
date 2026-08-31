@@ -221,7 +221,7 @@
             <div v-if="item.amount && Number(item.amount) !== Number(item.requested_amount)" class="amount-approved">
               Onay: {{ formatCurrency(item.amount) }} {{ item.currency }}
             </div>
-            <div v-if="Number(item.requested_amount) >= ADMIN_REVIEW_THRESHOLD" class="text-caption" style="color: #29B6F6; font-size: 10px; font-weight: 700; margin-top: 1px">
+            <div v-if="Number(item.requested_amount) >= ADMIN_REVIEW_THRESHOLD" class="text-caption" style="color: var(--sp-accent-blue); font-size: 10px; font-weight: 700; margin-top: 1px">
               ≥ 5K · Yönetici onayı gerekli
             </div>
           </div>
@@ -230,7 +230,7 @@
       <template v-slot:item.player_bank="{ item }">
         <div v-if="item.player_iban" style="line-height: 1.4">
           <div class="text-caption font-weight-bold" style="color: var(--sp-text); font-size: 12px">{{ item.player_account_holder || '-' }}</div>
-          <div v-if="item.player_bank_resolved" class="font-weight-bold" style="color: #4FC3F7; font-size: 13px">{{ item.player_bank_resolved }}</div>
+          <div v-if="item.player_bank_resolved" class="font-weight-bold" style="color: var(--sp-accent-blue); font-size: 13px">{{ item.player_bank_resolved }}</div>
           <div class="d-flex align-center ga-1">
             <div class="text-caption text-medium-emphasis" style="font-family: 'JetBrains Mono', monospace; font-size: 10px">{{ item.player_iban }}</div>
             <v-tooltip text="IBAN kopyala" location="top">
@@ -310,8 +310,8 @@
 
             <!-- Stage 2 (≥5k): Dekont / URL upload -->
             <template v-else-if="canActOnLocked(item) && Number(item.requested_amount) >= ADMIN_REVIEW_THRESHOLD">
-              <v-btn size="small" variant="flat" color="purple-darken-1" @click="openProof(item, 'file')" prepend-icon="mdi-file-upload">Dekont Yükle</v-btn>
-              <v-btn size="small" variant="flat" color="indigo-darken-1" @click="openProof(item, 'url')"  prepend-icon="mdi-link-variant">URL Yükle</v-btn>
+              <v-btn size="small" variant="flat" color="secondary" @click="openProof(item, 'file')" prepend-icon="mdi-file-upload">Dekont Yükle</v-btn>
+              <v-btn size="small" variant="flat" color="info" @click="openProof(item, 'url')"  prepend-icon="mdi-link-variant">URL Yükle</v-btn>
             </template>
 
             <!-- Stage 3 (admin_review, SA only): inspect → decide -->
@@ -326,7 +326,7 @@
                   v-if="item.dekont_path || item.dekont_url"
                   size="small"
                   variant="tonal"
-                  color="purple-darken-1"
+                  color="secondary"
                   @click.stop="openDekontPreview(item)"
                   prepend-icon="mdi-file-eye"
                   block
@@ -346,7 +346,7 @@
               v-if="canRelease(item)"
               size="small"
               variant="text"
-              color="orange-darken-2"
+              color="warning"
               @click="openRelease(item)"
               prepend-icon="mdi-account-arrow-right"
             >
@@ -386,7 +386,7 @@
             <!-- Locked by other operator -->
             <v-tooltip v-if="item.locker && item.locked_by !== auth.user?.id && item.status === 'processing'" :text="`${item.locker.name} işliyor`" location="top">
               <template v-slot:activator="{ props }">
-                <v-icon v-bind="props" size="18" color="orange">mdi-lock</v-icon>
+                <v-icon v-bind="props" size="18" color="warning">mdi-lock</v-icon>
               </template>
             </v-tooltip>
           </div>
@@ -426,7 +426,7 @@
              timestamp) live in the conditional block below. -->
         <div v-if="selectedTxn.customer || selectedTxn.player_iban" class="wd-approve-meta">
           <div v-if="selectedTxn.customer" class="wd-approve-row">
-            <v-icon size="16" color="purple-lighten-2">mdi-account</v-icon>
+            <v-icon size="16" color="secondary">mdi-account</v-icon>
             <div class="wd-approve-row-label">Müşteri</div>
             <div class="wd-approve-row-value">
               {{ customerName(selectedTxn) }}
@@ -435,7 +435,7 @@
           </div>
 
           <div v-if="selectedTxn.player_iban" class="wd-approve-row">
-            <v-icon size="16" color="purple-lighten-2">mdi-bank-transfer-out</v-icon>
+            <v-icon size="16" color="secondary">mdi-bank-transfer-out</v-icon>
             <div class="wd-approve-row-label">Yatırılacak hesap</div>
             <div class="wd-approve-row-value">
               <div v-if="selectedTxn.player_account_holder">{{ selectedTxn.player_account_holder }}</div>
@@ -448,7 +448,7 @@
                the operator <threshold flow since they are the handler. -->
           <template v-if="approveIsAdminReview">
             <div v-if="selectedTxn.locker" class="wd-approve-row">
-              <v-icon size="16" color="purple-lighten-2">mdi-account-hard-hat</v-icon>
+              <v-icon size="16" color="secondary">mdi-account-hard-hat</v-icon>
               <div class="wd-approve-row-label">İşlemi yapan</div>
               <div class="wd-approve-row-value">{{ selectedTxn.locker.name }}</div>
             </div>
@@ -457,7 +457,7 @@
               <v-btn
                 block
                 variant="tonal"
-                color="purple-darken-1"
+                color="secondary"
                 prepend-icon="mdi-file-eye"
                 @click="approveDialog = false; openDekontPreview(selectedTxn)"
               >
@@ -551,7 +551,7 @@
              dekont from their banking app. -->
         <div v-if="selectedTxn.customer || selectedTxn.player_iban" class="proof-meta">
           <div v-if="selectedTxn.customer" class="proof-meta-row">
-            <v-icon size="14" color="purple-lighten-2">mdi-account</v-icon>
+            <v-icon size="14" color="secondary">mdi-account</v-icon>
             <div class="proof-meta-label">Müşteri</div>
             <div class="proof-meta-value">
               {{ customerName(selectedTxn) }}
@@ -559,7 +559,7 @@
             </div>
           </div>
           <div v-if="selectedTxn.player_iban" class="proof-meta-row">
-            <v-icon size="14" color="purple-lighten-2">mdi-bank-transfer-out</v-icon>
+            <v-icon size="14" color="secondary">mdi-bank-transfer-out</v-icon>
             <div class="proof-meta-label">Yatırılacak hesap</div>
             <div class="proof-meta-value">
               <div v-if="selectedTxn.player_account_holder">{{ selectedTxn.player_account_holder }}</div>
@@ -572,7 +572,7 @@
         <!-- Proof file/url -->
         <div class="proof-input-section">
           <div class="proof-prompt">
-            <v-icon size="18" color="purple-lighten-2" class="mr-2">mdi-paperclip</v-icon>
+            <v-icon size="18" color="secondary" class="mr-2">mdi-paperclip</v-icon>
             <span>Para transferinin dekontunu yükle veya bağlantısını yapıştır.</span>
           </div>
           <v-tabs v-model="proofTab" density="compact" align-tabs="center" class="proof-tabs mt-2">
@@ -612,7 +612,7 @@
 
         <v-card-actions class="proof-actions">
           <v-btn variant="text" size="large" @click="proofDialog = false" class="flex-grow-1">Vazgeç</v-btn>
-          <v-btn color="purple-darken-1" variant="flat" size="large" @click="confirmProof" :loading="actingId === selectedTxn?.id" class="flex-grow-1 proof-confirm-btn" prepend-icon="mdi-check-bold">
+          <v-btn color="secondary" variant="flat" size="large" @click="confirmProof" :loading="actingId === selectedTxn?.id" class="flex-grow-1 proof-confirm-btn" prepend-icon="mdi-check-bold">
             Onayla
           </v-btn>
         </v-card-actions>
@@ -627,7 +627,7 @@
       <v-card v-if="selectedTxn" class="dekont-preview-card">
         <div class="dekont-preview-header">
           <div class="d-flex align-center">
-            <v-icon size="26" color="purple-lighten-2" class="mr-2">mdi-file-eye</v-icon>
+            <v-icon size="26" color="secondary" class="mr-2">mdi-file-eye</v-icon>
             <div>
               <div class="dekont-preview-title">Dekont İnceleme</div>
               <div class="dekont-preview-sub">#{{ selectedTxn.internal_id }} · {{ formatCurrency(selectedTxn.requested_amount) }} {{ selectedTxn.currency }}</div>
@@ -667,7 +667,7 @@
           <!-- File-style proof: image preview or PDF embed via blob URL -->
           <template v-else-if="selectedTxn.dekont_path">
             <div v-if="dekontBlobLoading" class="dekont-loading">
-              <v-progress-circular indeterminate color="purple-lighten-2" size="32" />
+              <v-progress-circular indeterminate color="secondary" size="32" />
               <div class="mt-2">Dekont yükleniyor...</div>
             </div>
             <div v-else-if="dekontBlobError" class="dekont-error">
@@ -805,7 +805,7 @@
           <v-card-actions class="release-actions">
             <v-btn variant="text" size="large" @click="releaseDialog = false" class="flex-grow-1">Vazgeç</v-btn>
             <v-btn
-              color="orange-darken-2"
+              color="warning"
               variant="flat"
               size="large"
               @click="confirmRelease"
@@ -1160,7 +1160,7 @@ const visibleHeaders = computed(() => {
 // for the operator (both = "do something"). Only "processing" (locked by
 // an operator) shows as Kontrolde.
 function statusColor(status) {
-  const colors = { pending: 'amber-darken-2', assigned: 'amber-darken-2', payment_seen: 'deep-purple', processing: 'orange-darken-2', admin_review: 'purple-darken-2', approved: 'green-darken-1', rejected: 'red-darken-1', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
+  const colors = { pending: 'amber-darken-2', assigned: 'amber-darken-2', payment_seen: 'secondary', processing: 'warning', admin_review: 'purple-darken-2', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
   return colors[status] || 'grey'
 }
 function statusText(status) {
@@ -1720,8 +1720,8 @@ onUnmounted(() => {
   animation: row-highlight-pulse 1.2s ease-in-out infinite;
 }
 @keyframes row-highlight-pulse {
-  0%, 100% { background-color: rgba(124, 143, 228, 0.10) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
-  50% { background-color: rgba(124, 143, 228, 0.25) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
+  0%, 100% { background-color: rgba(102,241,189, 0.10) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
+  50% { background-color: rgba(102,241,189, 0.25) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
 }
 
 /* Status-row tints live in the unscoped block at the bottom of this file.
@@ -1729,7 +1729,7 @@ onUnmounted(() => {
 
 .amount-text { font-size: 14px; color: var(--sp-text); }
 .amount-currency { font-size: 11px; font-weight: 600; opacity: 0.6; }
-.amount-approved { font-size: 11px; font-weight: 600; color: #66BB6A; margin-top: 1px; }
+.amount-approved { font-size: 11px; font-weight: 600; color: var(--sp-accent-success-bright); margin-top: 1px; }
 
 .counter-bar {
   display: inline-block;
@@ -1744,11 +1744,11 @@ onUnmounted(() => {
 }
 .counter-bar--info {
   background: rgba(33, 150, 243, 0.14);
-  color: #42A5F5;
+  color: var(--sp-accent-info);
 }
 .counter-bar--red {
-  background: rgba(239, 68, 68, 0.18);
-  color: #EF4444;
+  background: rgba(255,142,130, 0.18);
+  color: var(--sp-accent-error);
   animation: counter-pulse 1s ease-in-out infinite;
 }
 .counter-bar--overdue {
@@ -1799,16 +1799,16 @@ onUnmounted(() => {
   font-variant-numeric: tabular-nums;
   border: 1px solid transparent;
 }
-.finalize-badge--fast   { background: rgba(110,196,122,0.15); color: #6EC47A; border-color: rgba(110,196,122,0.25); }
-.finalize-badge--normal { background: rgba(120,120,120,0.15); color: var(--sp-text-muted); border-color: rgba(150,150,150,0.20); }
-.finalize-badge--slow   { background: rgba(255,167,38,0.15);  color: #FFA726; border-color: rgba(255,167,38,0.25); }
-.finalize-badge--late   { background: rgba(229,115,115,0.18); color: #E57373; border-color: rgba(229,115,115,0.3); }
+.finalize-badge--fast   { background: rgba(102,241,189,0.15); color: var(--sp-accent-success); border-color: rgba(102,241,189,0.25); }
+.finalize-badge--normal { background: rgba(113,132,122,0.15); color: var(--sp-text-muted); border-color: rgba(150,150,150,0.20); }
+.finalize-badge--slow   { background: rgba(255,190,91,0.15);  color: var(--sp-accent-orange); border-color: rgba(255,190,91,0.25); }
+.finalize-badge--late   { background: rgba(255,142,130,0.18); color: var(--sp-accent-rose); border-color: rgba(255,142,130,0.3); }
 
 /* ── Modern filter shell ─────────────────────────────────────────── */
 .filter-shell {
   padding: 12px 16px 6px;
   border-bottom: 1px solid var(--sp-divider, rgba(255,255,255,0.06));
-  background: linear-gradient(180deg, rgba(124,58,237,0.03), transparent);
+  background: linear-gradient(180deg, rgba(102,241,189,0.03), transparent);
 }
 .filter-row {
   display: flex;
@@ -1832,7 +1832,7 @@ onUnmounted(() => {
   margin-top: 10px;
   padding: 14px 12px 8px;
   border-radius: 10px;
-  background: var(--sp-surface-1, rgba(124,58,237,0.04));
+  background: var(--sp-surface-1, rgba(102,241,189,0.04));
   border: 1px solid var(--sp-border);
 }
 
@@ -1854,11 +1854,11 @@ onUnmounted(() => {
 .status-pill.is-active {
   color: #fff;
 }
-.status-pill.pill-grey.is-active    { background: rgba(120,120,120,0.35); border-color: rgba(160,160,160,0.6); color: #FFF; }
-.status-pill.pill-amber.is-active   { background: rgba(255,167,38,0.22);  border-color: rgba(255,167,38,0.55);  color: #FFA726; }
-.status-pill.pill-info.is-active    { background: rgba(41,182,246,0.20);  border-color: rgba(41,182,246,0.55);  color: #29B6F6; }
-.status-pill.pill-success.is-active { background: rgba(110,196,122,0.22); border-color: rgba(110,196,122,0.55); color: #6EC47A; }
-.status-pill.pill-error.is-active   { background: rgba(229,115,115,0.22); border-color: rgba(229,115,115,0.55); color: #E57373; }
+.status-pill.pill-grey.is-active    { background: rgba(113,132,122,0.35); border-color: rgba(160,160,160,0.6); color: #FFF; }
+.status-pill.pill-amber.is-active   { background: rgba(255,190,91,0.22);  border-color: rgba(255,190,91,0.55);  color: var(--sp-accent-orange); }
+.status-pill.pill-info.is-active    { background: rgba(112,169,255,0.20);  border-color: rgba(112,169,255,0.55);  color: var(--sp-accent-blue); }
+.status-pill.pill-success.is-active { background: rgba(102,241,189,0.22); border-color: rgba(102,241,189,0.55); color: var(--sp-accent-success); }
+.status-pill.pill-error.is-active   { background: rgba(255,142,130,0.22); border-color: rgba(255,142,130,0.55); color: var(--sp-accent-rose); }
 
 /* Date preset pill */
 .date-pill {
@@ -1873,11 +1873,11 @@ onUnmounted(() => {
   color: var(--sp-text-muted);
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.date-pill:hover { color: var(--sp-text); border-color: rgba(124,58,237,0.4); }
+.date-pill:hover { color: var(--sp-text); border-color: rgba(102,241,189,0.4); }
 .date-pill.is-active {
-  background: rgba(124,58,237,0.16);
-  border-color: rgba(124,58,237,0.55);
-  color: #A78BFA;
+  background: rgba(102,241,189,0.16);
+  border-color: rgba(102,241,189,0.55);
+  color: var(--sp-accent-purple);
 }
 
 .more-btn { margin-left: auto !important; }
@@ -1904,11 +1904,11 @@ onUnmounted(() => {
 .wd-approve-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(67, 160, 71, 0.25) !important;
-  box-shadow: 0 12px 48px rgba(67, 160, 71, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(102,241,189, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .wd-approve-hero {
-  background: linear-gradient(135deg, #2E7D32 0%, #43A047 50%, #66BB6A 100%);
+  background: linear-gradient(135deg, var(--sp-accent-success) 0%, var(--sp-accent-success) 50%, var(--sp-accent-success-bright) 100%);
   padding: 24px 22px 16px;
   text-align: center;
   position: relative;
@@ -1947,7 +1947,7 @@ onUnmounted(() => {
 .wd-approve-amount {
   padding: 18px 22px 14px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(67, 160, 71, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(102,241,189, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .wd-approve-amount-label {
@@ -1969,7 +1969,7 @@ onUnmounted(() => {
 .wd-approve-amount-cur {
   font-size: 16px;
   font-weight: 700;
-  color: #66BB6A;
+  color: var(--sp-accent-success-bright);
   margin-left: 6px;
 }
 
@@ -2026,10 +2026,10 @@ onUnmounted(() => {
 .wd-approve-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(67, 160, 71, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(102,241,189, 0.45) !important;
 }
 .wd-approve-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(67, 160, 71, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(102,241,189, 0.6) !important;
   transform: translateY(-1px);
 }
 
@@ -2037,11 +2037,11 @@ onUnmounted(() => {
 .proof-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(142, 36, 170, 0.30) !important;
-  box-shadow: 0 12px 48px rgba(142, 36, 170, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(168,182,255, 0.30) !important;
+  box-shadow: 0 12px 48px rgba(168,182,255, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .proof-hero {
-  background: linear-gradient(135deg, #6A1B9A 0%, #8E24AA 50%, #AB47BC 100%);
+  background: linear-gradient(135deg, var(--sp-accent-purple) 0%, var(--sp-accent-purple) 50%, var(--sp-accent-purple) 100%);
   padding: 26px 24px 18px;
   text-align: center;
   position: relative;
@@ -2085,7 +2085,7 @@ onUnmounted(() => {
 .proof-amount-block {
   padding: 22px 24px 18px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(142, 36, 170, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(168,182,255, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .proof-amount-label {
@@ -2107,7 +2107,7 @@ onUnmounted(() => {
 .proof-amount-cur {
   font-size: 18px;
   font-weight: 700;
-  color: #CE93D8;
+  color: var(--sp-accent-purple);
   margin-left: 6px;
   letter-spacing: 0;
 }
@@ -2172,8 +2172,8 @@ onUnmounted(() => {
   font-size: 13px;
   font-weight: 600;
   color: var(--sp-text);
-  background: rgba(142, 36, 170, 0.08);
-  border-left: 3px solid #AB47BC;
+  background: rgba(168,182,255, 0.08);
+  border-left: 3px solid var(--sp-accent-purple);
   padding: 10px 12px;
   border-radius: 8px;
   line-height: 1.4;
@@ -2188,8 +2188,8 @@ onUnmounted(() => {
   margin: 8px 20px 14px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: rgba(142, 36, 170, 0.12);
-  border-left: 3px solid #AB47BC;
+  background: rgba(168,182,255, 0.12);
+  border-left: 3px solid var(--sp-accent-purple);
   display: flex;
   align-items: flex-start;
 }
@@ -2212,10 +2212,10 @@ onUnmounted(() => {
 .proof-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(142, 36, 170, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(168,182,255, 0.45) !important;
 }
 .proof-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(142, 36, 170, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(168,182,255, 0.6) !important;
   transform: translateY(-1px);
 }
 
@@ -2223,11 +2223,11 @@ onUnmounted(() => {
 .release-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(251, 140, 0, 0.32) !important;
-  box-shadow: 0 12px 48px rgba(251, 140, 0, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255,174,91, 0.32) !important;
+  box-shadow: 0 12px 48px rgba(255,174,91, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .release-hero {
-  background: linear-gradient(135deg, #E65100 0%, #FB8C00 50%, #FFA726 100%);
+  background: linear-gradient(135deg, var(--sp-accent-orange) 0%, var(--sp-accent-orange) 50%, var(--sp-accent-orange) 100%);
   padding: 26px 24px 18px;
   text-align: center;
   position: relative;
@@ -2271,7 +2271,7 @@ onUnmounted(() => {
 .release-amount-block {
   padding: 22px 24px 18px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(251, 140, 0, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(255,174,91, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .release-amount-label {
@@ -2293,7 +2293,7 @@ onUnmounted(() => {
 .release-amount-cur {
   font-size: 18px;
   font-weight: 700;
-  color: #FFB74D;
+  color: var(--sp-accent-orange-bright);
   margin-left: 6px;
   letter-spacing: 0;
 }
@@ -2302,8 +2302,8 @@ onUnmounted(() => {
   margin: 14px 20px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: rgba(251, 140, 0, 0.10);
-  border-left: 3px solid #FB8C00;
+  background: rgba(255,174,91, 0.10);
+  border-left: 3px solid var(--sp-accent-orange);
   display: flex;
   align-items: center;
   font-size: 13px;
@@ -2337,10 +2337,10 @@ onUnmounted(() => {
 .release-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(251, 140, 0, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(255,174,91, 0.45) !important;
 }
 .release-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(251, 140, 0, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(255,174,91, 0.6) !important;
   transform: translateY(-1px);
 }
 
@@ -2348,7 +2348,7 @@ onUnmounted(() => {
 .dekont-preview-card {
   border-radius: 16px !important;
   overflow: hidden;
-  border: 1px solid rgba(142, 36, 170, 0.22) !important;
+  border: 1px solid rgba(168,182,255, 0.22) !important;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4) !important;
 }
 .dekont-preview-header {
@@ -2356,8 +2356,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px 14px 20px;
-  background: linear-gradient(135deg, rgba(106, 27, 154, 0.18) 0%, rgba(142, 36, 170, 0.10) 100%);
-  border-bottom: 1px solid rgba(142, 36, 170, 0.20);
+  background: linear-gradient(135deg, rgba(168,182,255, 0.18) 0%, rgba(168,182,255, 0.10) 100%);
+  border-bottom: 1px solid rgba(168,182,255, 0.20);
 }
 .dekont-preview-title {
   font-size: 16px;
@@ -2380,8 +2380,8 @@ onUnmounted(() => {
 .dekont-url-bar {
   display: flex;
   align-items: center;
-  background: rgba(142, 36, 170, 0.10);
-  border: 1px solid rgba(142, 36, 170, 0.25);
+  background: rgba(168,182,255, 0.10);
+  border: 1px solid rgba(168,182,255, 0.25);
   border-radius: 8px;
   padding: 10px 12px;
   margin-bottom: 12px;
@@ -2494,9 +2494,9 @@ onUnmounted(() => {
   align-items: center;
   padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(41, 182, 246, 0.16);
-  color: #4FC3F7;
-  border: 1px solid rgba(41, 182, 246, 0.4);
+  background: rgba(112,169,255, 0.16);
+  color: var(--sp-accent-blue);
+  border: 1px solid rgba(112,169,255, 0.4);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.3px;
@@ -2529,45 +2529,45 @@ onUnmounted(() => {
      statuses (no assigned/payment_seen) but shares the same palette. -->
 <style>
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--pending,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending > td       { background: rgba(255, 167, 38, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending > td       { background: rgba(255,190,91, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--pending:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending:hover > td { background: rgba(255, 167, 38, 0.22) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending:hover > td { background: rgba(255,190,91, 0.22) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--processing,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing > td       { background: rgba(251, 140, 0, 0.10) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing > td       { background: rgba(255,174,91, 0.10) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--processing:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing:hover > td { background: rgba(251, 140, 0, 0.26) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing:hover > td { background: rgba(255,174,91, 0.26) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td       { background: rgba(142, 36, 170, 0.11) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td       { background: rgba(168,182,255, 0.11) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review:hover > td { background: rgba(142, 36, 170, 0.26) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review:hover > td { background: rgba(168,182,255, 0.26) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--approved,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved > td       { background: rgba(67, 160, 71, 0.07) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved > td       { background: rgba(102,241,189, 0.07) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--approved:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved:hover > td { background: rgba(67, 160, 71, 0.20) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved:hover > td { background: rgba(102,241,189, 0.20) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected > td       { background: rgba(229, 57, 53, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected > td       { background: rgba(255,142,130, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected:hover > td { background: rgba(229, 57, 53, 0.22) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected:hover > td { background: rgba(255,142,130, 0.22) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--expired,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired > td       { background: rgba(117, 117, 117, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired > td       { background: rgba(113,132,122, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--expired:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired:hover > td { background: rgba(117, 117, 117, 0.20) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired:hover > td { background: rgba(113,132,122, 0.20) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled > td       { background: rgba(97, 97, 97, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled > td       { background: rgba(113,132,122, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled:hover > td { background: rgba(97, 97, 97, 0.20) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled:hover > td { background: rgba(113,132,122, 0.20) !important; }
 
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending      > td:first-child { box-shadow: inset 3px 0 0 #FFA726; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing   > td:first-child { box-shadow: inset 3px 0 0 #FB8C00; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td:first-child { box-shadow: inset 3px 0 0 #8E24AA; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved     > td:first-child { box-shadow: inset 3px 0 0 #43A047; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected     > td:first-child { box-shadow: inset 3px 0 0 #E53935; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired      > td:first-child { box-shadow: inset 3px 0 0 #757575; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled    > td:first-child { box-shadow: inset 3px 0 0 #616161; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending      > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-orange); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing   > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-orange); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-purple); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved     > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-success); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected     > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-error); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired      > td:first-child { box-shadow: inset 3px 0 0 var(--sp-text-muted); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled    > td:first-child { box-shadow: inset 3px 0 0 var(--sp-text-muted); }
 </style>

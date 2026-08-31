@@ -1197,7 +1197,7 @@ onMounted(async () => {
               <div class="detail-note">{{ detailItem.notes }}</div>
             </template>
             <template v-if="detailItem.status === 'rejected' && detailItem.rejection_reason">
-              <div class="detail-section-label mt-3" style="color: #E57373">Red Nedeni</div>
+              <div class="detail-section-label mt-3" style="color: var(--sp-accent-rose)">Red Nedeni</div>
               <div class="detail-note detail-note--reject">{{ detailItem.rejection_reason }}</div>
             </template>
 
@@ -1257,16 +1257,16 @@ onMounted(async () => {
   padding: 16px 20px;
   margin-bottom: 18px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(124, 143, 228, 0.10) 0%, rgba(67, 160, 71, 0.06) 100%);
-  border: 1px solid rgba(124, 143, 228, 0.18);
+  background: linear-gradient(135deg, rgba(102,241,189, 0.10) 0%, rgba(102,241,189, 0.06) 100%);
+  border: 1px solid rgba(102,241,189, 0.18);
 }
 .page-header-icon {
   width: 44px; height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #FB8C00 0%, #FFA726 100%);
+  background: linear-gradient(135deg, var(--sp-accent-orange) 0%, var(--sp-accent-orange) 100%);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(251, 140, 0, 0.35);
+  box-shadow: 0 4px 12px rgba(255,174,91, 0.35);
 }
 .page-header-title {
   font-size: 22px;
@@ -1285,7 +1285,7 @@ onMounted(async () => {
   font-weight: 700 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  box-shadow: 0 4px 14px rgba(124, 143, 228, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(102,241,189, 0.35) !important;
 }
 
 /* Hero credit card — same visual language as the dashboard */
@@ -1370,7 +1370,7 @@ onMounted(async () => {
   font-size: 11px;
   font-weight: 500;
   color: var(--sp-text);
-  background: rgba(124, 143, 228, 0.10);
+  background: rgba(102,241,189, 0.10);
   padding: 4px 8px;
   border-radius: 6px;
   white-space: nowrap;
@@ -1382,7 +1382,7 @@ onMounted(async () => {
   color: var(--sp-text-muted);
 }
 .cell-hash-copy {
-  background: rgba(124, 143, 228, 0.14);
+  background: rgba(102,241,189, 0.14);
   border: 0;
   color: var(--sp-accent-blue);
   width: 26px; height: 26px;
@@ -1393,11 +1393,11 @@ onMounted(async () => {
   transition: background 0.15s, color 0.15s, transform 0.15s;
 }
 .cell-hash-copy:hover {
-  background: rgba(124, 143, 228, 0.24);
+  background: rgba(102,241,189, 0.24);
   transform: translateY(-1px);
 }
 .cell-hash-copy--ok {
-  background: rgba(67, 160, 71, 0.20);
+  background: rgba(102,241,189, 0.20);
   color: var(--sp-accent-success-bright);
 }
 
@@ -1417,11 +1417,11 @@ onMounted(async () => {
 .teslim-card {
   border-radius: 16px !important;
   overflow: hidden;
-  border: 1px solid rgba(246, 211, 101, 0.25) !important;
-  box-shadow: 0 12px 48px rgba(246, 211, 101, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255,190,91, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(255,190,91, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .teslim-hero {
-  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  background: linear-gradient(135deg, var(--sp-accent-amber) 0%, var(--sp-accent-peach) 100%);
   padding: 10px 14px;
   display: flex;
   align-items: center;
@@ -1475,8 +1475,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(124, 58, 237, 0.06);
-  border: 1px solid rgba(124, 58, 237, 0.22);
+  background: rgba(102,241,189, 0.06);
+  border: 1px solid rgba(102,241,189, 0.22);
   border-radius: 8px;
   padding: 4px 8px;
   margin-bottom: 8px;
@@ -1519,7 +1519,7 @@ onMounted(async () => {
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: #4A148C;
+  color: var(--sp-accent-purple);
 }
 .teslim-qr-addr {
   font-family: 'JetBrains Mono', monospace;
@@ -1546,8 +1546,8 @@ onMounted(async () => {
   font-variant-numeric: tabular-nums;
 }
 .teslim-try-line.is-active {
-  border-color: rgba(110, 196, 122, 0.4);
-  background: rgba(110,196,122,0.06);
+  border-color: rgba(102,241,189, 0.4);
+  background: rgba(102,241,189,0.06);
 }
 .teslim-try-tag {
   font-size: 9px;
@@ -1559,8 +1559,8 @@ onMounted(async () => {
   color: var(--sp-text-muted);
 }
 .teslim-try-line.is-active .teslim-try-tag {
-  background: rgba(110,196,122,0.15);
-  color: #6EC47A;
+  background: rgba(102,241,189,0.15);
+  color: var(--sp-accent-success);
 }
 .teslim-try-value {
   font-size: 16px;
@@ -1568,7 +1568,7 @@ onMounted(async () => {
   color: var(--sp-text);
   letter-spacing: -0.5px;
 }
-.teslim-try-line.is-active .teslim-try-value { color: #6EC47A; }
+.teslim-try-line.is-active .teslim-try-value { color: var(--sp-accent-success); }
 .teslim-try-formula {
   margin-left: auto;
   font-size: 10.5px;
@@ -1584,10 +1584,10 @@ onMounted(async () => {
 .teslim-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(246, 211, 101, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(255,190,91, 0.45) !important;
 }
 .teslim-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(246, 211, 101, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(255,190,91, 0.6) !important;
   transform: translateY(-1px);
 }
 
@@ -1595,11 +1595,11 @@ onMounted(async () => {
 .teslim-detail-card {
   border-radius: 16px !important;
   overflow: hidden;
-  border: 1px solid rgba(246, 211, 101, 0.25) !important;
-  box-shadow: 0 12px 48px rgba(246, 211, 101, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255,190,91, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(255,190,91, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .teslim-detail-hero {
-  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  background: linear-gradient(135deg, var(--sp-accent-amber) 0%, var(--sp-accent-peach) 100%);
   padding: 10px 14px;
   display: flex;
   align-items: center;
@@ -1662,9 +1662,9 @@ onMounted(async () => {
   font-variant-numeric: tabular-nums;
   word-break: break-all;
 }
-.detail-val--accent { color: #FFA726; font-weight: 800; }
+.detail-val--accent { color: var(--sp-accent-orange); font-weight: 800; }
 
-.commission-amount { color: #6EC47A; font-weight: 800; }
+.commission-amount { color: var(--sp-accent-success); font-weight: 800; }
 .commission-rate   { color: var(--sp-text-muted); margin-left: 4px; font-weight: 600; }
 .commission-est {
   margin-left: 6px;
@@ -1675,8 +1675,8 @@ onMounted(async () => {
   text-transform: uppercase;
   padding: 1px 6px;
   border-radius: 999px;
-  background: rgba(255, 167, 38, 0.16);
-  color: #FFA726;
+  background: rgba(255,190,91, 0.16);
+  color: var(--sp-accent-orange);
 }
 
 .detail-section-label {
@@ -1689,8 +1689,8 @@ onMounted(async () => {
 
 .detail-addr-row, .detail-hash-row {
   display: flex; align-items: center; gap: 6px;
-  background: rgba(124, 58, 237, 0.06);
-  border: 1px solid rgba(124, 58, 237, 0.22);
+  background: rgba(102,241,189, 0.06);
+  border: 1px solid rgba(102,241,189, 0.22);
   border-radius: 8px;
   padding: 6px 10px;
 }
@@ -1703,14 +1703,14 @@ onMounted(async () => {
 }
 .detail-addr--mono { font-size: 10.5px; }
 .detail-addr--link {
-  color: #29B6F6;
+  color: var(--sp-accent-blue);
   text-decoration: none;
-  border-bottom: 1px dashed rgba(41, 182, 246, 0.4);
+  border-bottom: 1px dashed rgba(112,169,255, 0.4);
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .detail-addr--link:hover {
-  color: #4FC3F7;
-  border-bottom-color: rgba(79, 195, 247, 0.7);
+  color: var(--sp-accent-blue);
+  border-bottom-color: rgba(112,169,255, 0.7);
 }
 
 .detail-note {
@@ -1724,8 +1724,8 @@ onMounted(async () => {
   white-space: pre-wrap;
 }
 .detail-note--reject {
-  background: rgba(229, 115, 115, 0.08);
-  border-color: rgba(229, 115, 115, 0.3);
+  background: rgba(255,142,130, 0.08);
+  border-color: rgba(255,142,130, 0.3);
 }
 
 .teslim-detail-actions {
@@ -1751,24 +1751,24 @@ onMounted(async () => {
   margin-top: 4px;
 }
 .hash-verify-result--ok {
-  background: rgba(110, 196, 122, 0.10);
-  border-color: rgba(110, 196, 122, 0.35);
-  color: #6EC47A;
+  background: rgba(102,241,189, 0.10);
+  border-color: rgba(102,241,189, 0.35);
+  color: var(--sp-accent-success);
 }
 .hash-verify-result--warn {
-  background: rgba(255, 167, 38, 0.10);
-  border-color: rgba(255, 167, 38, 0.35);
-  color: #FFA726;
+  background: rgba(255,190,91, 0.10);
+  border-color: rgba(255,190,91, 0.35);
+  color: var(--sp-accent-orange);
 }
 .hash-verify-result--err {
-  background: rgba(229, 115, 115, 0.10);
-  border-color: rgba(229, 115, 115, 0.35);
-  color: #E57373;
+  background: rgba(255,142,130, 0.10);
+  border-color: rgba(255,142,130, 0.35);
+  color: var(--sp-accent-rose);
 }
 .hash-verify-result--loading {
-  background: rgba(41, 182, 246, 0.08);
-  border-color: rgba(41, 182, 246, 0.30);
-  color: #29B6F6;
+  background: rgba(112,169,255, 0.08);
+  border-color: rgba(112,169,255, 0.30);
+  color: var(--sp-accent-blue);
   align-items: center;
 }
 
@@ -1807,8 +1807,8 @@ onMounted(async () => {
   font-weight: 700;
   color: var(--sp-text);
 }
-.verify-compare-act.is-ok  { color: #6EC47A; }
-.verify-compare-act.is-bad { color: #E57373; }
+.verify-compare-act.is-ok  { color: var(--sp-accent-success); }
+.verify-compare-act.is-bad { color: var(--sp-accent-rose); }
 .verify-mono {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10.5px;
@@ -1874,9 +1874,9 @@ onMounted(async () => {
   margin-top: 6px;
   padding: 6px 8px;
   border-radius: 6px;
-  background: rgba(124, 58, 237, 0.08);
-  border: 1px dashed rgba(124, 58, 237, 0.35);
-  color: #A78BFA;
+  background: rgba(102,241,189, 0.08);
+  border: 1px dashed rgba(102,241,189, 0.35);
+  color: var(--sp-accent-purple);
   font-size: 10.5px;
   font-weight: 600;
   display: inline-flex;
@@ -1903,31 +1903,31 @@ onMounted(async () => {
   letter-spacing: 0.6px !important;
   text-transform: uppercase !important;
   color: var(--sp-text-muted) !important;
-  background: rgba(124, 143, 228, 0.04) !important;
+  background: rgba(102,241,189, 0.04) !important;
 }
 
 /* Status-tinted rows — same treatment as the txn lists for consistency. */
 .teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress,
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress > td       { background: rgba(255, 167, 38, 0.08) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress > td       { background: rgba(255,190,91, 0.08) !important; }
 .teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress:hover,
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress:hover > td { background: rgba(255, 167, 38, 0.20) !important; }
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress > td:first-child { box-shadow: inset 3px 0 0 #FFA726; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress:hover > td { background: rgba(255,190,91, 0.20) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-in-progress > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-orange); }
 
 .teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved,
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved > td       { background: rgba(67, 160, 71, 0.07) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved > td       { background: rgba(102,241,189, 0.07) !important; }
 .teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved:hover,
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved:hover > td { background: rgba(67, 160, 71, 0.18) !important; }
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved > td:first-child { box-shadow: inset 3px 0 0 #43A047; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved:hover > td { background: rgba(102,241,189, 0.18) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-approved > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-success); }
 
 .teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected,
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected > td       { background: rgba(229, 57, 53, 0.07) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected > td       { background: rgba(255,142,130, 0.07) !important; }
 .teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected:hover,
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected:hover > td { background: rgba(229, 57, 53, 0.18) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected:hover > td { background: rgba(255,142,130, 0.18) !important; }
 
 /* SA-only: make the cursor read as clickable so the click target is
    obvious for the detail-modal trigger. */
 .teslim-table-card--reviewable .v-table > .v-table__wrapper > table > tbody > tr {
   cursor: pointer;
 }
-.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected > td:first-child { box-shadow: inset 3px 0 0 #E53935; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-error); }
 </style>

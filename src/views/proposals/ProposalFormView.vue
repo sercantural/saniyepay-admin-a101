@@ -87,7 +87,7 @@
             <div class="offer-hero-details">
               <span v-if="form.contact_name">{{ form.contact_name }}</span>
               <span v-if="form.contact_name && form.contact_email"> · </span>
-              <span v-if="form.contact_email" style="color: #06B6D4">{{ form.contact_email }}</span>
+              <span v-if="form.contact_email" style="color: var(--sp-accent-cyan)">{{ form.contact_email }}</span>
             </div>
           </div>
 
@@ -343,7 +343,7 @@ onMounted(async () => {
 }
 
 /* Top accent */
-.offer-top-accent { height: 8px; background: linear-gradient(90deg, #7C3AED, #3B82F6, #06B6D4, #10B981); }
+.offer-top-accent { height: 8px; background: linear-gradient(90deg, var(--sp-primary), var(--sp-accent-blue), var(--sp-accent-cyan), var(--sp-accent-success)); }
 
 /* Header */
 .offer-header {
@@ -355,24 +355,24 @@ onMounted(async () => {
 .offer-header-meta { text-align: right; }
 .offer-doc-type {
   font-size: 10px; font-weight: 800; letter-spacing: 4px;
-  background: linear-gradient(135deg, #7C3AED, #3B82F6);
+  background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-blue));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text; margin-bottom: 4px;
 }
-.offer-doc-date { font-size: 12px; color: #94A3B8; }
-.offer-doc-valid { font-size: 11px; color: #06B6D4; font-weight: 600; margin-top: 2px; }
+.offer-doc-date { font-size: 12px; color: var(--sp-text-muted); }
+.offer-doc-valid { font-size: 11px; color: var(--sp-accent-cyan); font-weight: 600; margin-top: 2px; }
 
 /* Merchant hero */
 .offer-hero {
   margin: 20px 28px; padding: 24px 28px;
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+  background: linear-gradient(135deg, #0F172A 0%, var(--sp-surface-variant) 100%);
   border-radius: 16px; color: #FFFFFF;
   position: relative; overflow: hidden;
 }
 .offer-hero::before {
   content: ''; position: absolute; right: -40px; top: -40px;
   width: 160px; height: 160px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(102,241,189,0.2) 0%, transparent 70%);
 }
 .offer-hero::after {
   content: ''; position: absolute; left: -20px; bottom: -20px;
@@ -389,18 +389,18 @@ onMounted(async () => {
 /* Section label */
 .offer-label {
   font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
-  color: #7C3AED; padding: 0 28px; margin-bottom: 10px; margin-top: 22px;
+  color: var(--sp-primary); padding: 0 28px; margin-bottom: 10px; margin-top: 22px;
 }
 
 /* Payment method */
 .offer-method {
   display: flex; align-items: center; gap: 12px;
   margin: 0 28px; padding: 14px 18px; border-radius: 12px;
-  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%);
-  border: 1px solid #BBF7D0;
+  background: linear-gradient(135deg, var(--sp-success-bg) 0%, var(--sp-success-bg) 100%);
+  border: 1px solid var(--sp-success-bg);
 }
 .method-icon { font-size: 20px; }
-.method-text { font-size: 15px; font-weight: 700; color: #166534; letter-spacing: -0.2px; }
+.method-text { font-size: 15px; font-weight: 700; color: var(--sp-accent-success); letter-spacing: -0.2px; }
 
 /* Rate cards */
 .offer-rates { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 0 28px; }
@@ -412,28 +412,28 @@ onMounted(async () => {
   font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
   display: inline-block; padding: 2px 10px; border-radius: 20px; margin-bottom: 8px;
 }
-.rate-deposit .rate-badge { background: rgba(16,185,129,0.1); color: #059669; }
-.rate-withdrawal .rate-badge { background: rgba(59,130,246,0.1); color: #2563EB; }
-.rate-settlement .rate-badge { background: rgba(124,58,237,0.1); color: #7C3AED; }
+.rate-deposit .rate-badge { background: rgba(102,241,189,0.1); color: var(--sp-accent-success); }
+.rate-withdrawal .rate-badge { background: rgba(112,169,255,0.1); color: var(--sp-accent-info); }
+.rate-settlement .rate-badge { background: rgba(102,241,189,0.1); color: var(--sp-primary); }
 .rate-value { font-size: 32px; font-weight: 900; color: #0F172A; letter-spacing: -1.5px; line-height: 1; margin-bottom: 10px; }
 .rate-bar { height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden; }
 .rate-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; min-width: 4px; }
-.rate-bar-green { background: linear-gradient(90deg, #10B981, #34D399); }
-.rate-bar-blue { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
-.rate-bar-purple { background: linear-gradient(90deg, #7C3AED, #A78BFA); }
+.rate-bar-green { background: linear-gradient(90deg, var(--sp-accent-success), var(--sp-accent-success)); }
+.rate-bar-blue { background: linear-gradient(90deg, var(--sp-accent-blue), var(--sp-accent-blue)); }
+.rate-bar-purple { background: linear-gradient(90deg, var(--sp-primary), var(--sp-accent-purple)); }
 
 /* Limits */
 .offer-limits { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 28px; }
 .limit-card { border-radius: 14px; background: #F8FAFC; border: 1px solid #E2E8F0; overflow: hidden; }
-.limit-card-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px 0; font-weight: 700; font-size: 13px; color: #334155; }
+.limit-card-header { display: flex; align-items: center; gap: 8px; padding: 12px 16px 0; font-weight: 700; font-size: 13px; color: var(--sp-surface-variant); }
 .limit-card-icon { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; }
-.limit-icon-green { background: rgba(16,185,129,0.12); color: #059669; }
-.limit-icon-blue { background: rgba(59,130,246,0.12); color: #2563EB; }
+.limit-icon-green { background: rgba(102,241,189,0.12); color: var(--sp-accent-success); }
+.limit-icon-blue { background: rgba(112,169,255,0.12); color: var(--sp-accent-info); }
 .limit-card-body { padding: 10px 16px 14px; }
 .limit-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
-.limit-item-label { font-size: 11px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; }
+.limit-item-label { font-size: 11px; font-weight: 600; color: var(--sp-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 .limit-item-value { font-size: 16px; font-weight: 800; color: #0F172A; }
-.limit-item-curr { font-size: 11px; font-weight: 600; color: #94A3B8; margin-left: 3px; }
+.limit-item-curr { font-size: 11px; font-weight: 600; color: var(--sp-text-muted); margin-left: 3px; }
 .limit-divider { height: 1px; background: #E2E8F0; margin: 2px 0; }
 
 /* Settlement chips */
@@ -445,28 +445,28 @@ onMounted(async () => {
 }
 .settle-chip-label {
   display: block; font-size: 9px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: #94A3B8; margin-bottom: 4px;
+  text-transform: uppercase; color: var(--sp-text-muted); margin-bottom: 4px;
 }
 
 /* Notes */
 .offer-notes {
-  white-space: pre-wrap; background: #FFFBEB; border: 1px solid #FDE68A;
-  border-radius: 10px; padding: 12px 16px; font-size: 12px; color: #92400E; line-height: 1.6;
+  white-space: pre-wrap; background: var(--sp-warning-bg); border: 1px solid var(--sp-warning-bg);
+  border-radius: 10px; padding: 12px 16px; font-size: 12px; color: var(--sp-accent-amber); line-height: 1.6;
 }
 
 /* Footer */
 .offer-footer { margin-top: auto; padding: 0 28px 24px; }
 .offer-footer-gradient {
   height: 3px; border-radius: 2px; margin-bottom: 16px;
-  background: linear-gradient(90deg, #7C3AED, #3B82F6, #06B6D4, #10B981);
+  background: linear-gradient(90deg, var(--sp-primary), var(--sp-accent-blue), var(--sp-accent-cyan), var(--sp-accent-success));
 }
 .offer-footer-inner { display: flex; justify-content: space-between; align-items: center; }
 .offer-footer-valid { font-size: 11px; color: #64748B; margin-bottom: 10px; }
-.offer-footer-contact { font-size: 10px; font-weight: 500; color: #94A3B8; }
+.offer-footer-contact { font-size: 10px; font-weight: 500; color: var(--sp-text-muted); }
 .offer-footer-sep { margin: 0 6px; color: #CBD5E1; }
 .offer-footer-brand {
   display: flex; align-items: center; gap: 8px;
-  font-size: 10px; font-weight: 600; letter-spacing: 0.5px; color: #94A3B8;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px; color: var(--sp-text-muted);
 }
 .offer-footer-logo-wrap { width: 60px; height: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .offer-footer-logo { height: 60px; object-fit: contain; }

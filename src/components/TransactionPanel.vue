@@ -70,7 +70,7 @@
       <div v-if="txn.merchant_balance && !txn.merchant_balance.can_afford && !['approved','rejected','expired','cancelled'].includes(txn.status)" class="balance-alert mb-3">
         <v-icon color="error" size="22" class="mr-3 pulse-icon">mdi-alert</v-icon>
         <div style="flex: 1">
-          <div class="font-weight-bold" style="color: #EF5350; font-size: 14px">Yetersiz Bayi Bakiyesi!</div>
+          <div class="font-weight-bold" style="color: var(--sp-accent-error); font-size: 14px">Yetersiz Bayi Bakiyesi!</div>
           <div style="color: var(--sp-text-muted); font-size: 12px">Para göndermeyin! Bakiye yetersiz. İşlemi reddedin.</div>
         </div>
       </div>
@@ -87,7 +87,7 @@
       <!-- Tutar Bilgileri -->
       <div class="detail-section mb-3">
         <div class="section-title">
-          <v-icon size="14" class="mr-1" style="color: #7C8FE4">mdi-currency-try</v-icon>
+          <v-icon size="14" class="mr-1" style="color: var(--sp-primary)">mdi-currency-try</v-icon>
           Tutar Bilgileri
         </div>
         <div class="detail-row-grid">
@@ -97,7 +97,7 @@
           </div>
           <div class="detail-item">
             <div class="detail-label">Onaylanan</div>
-            <div class="detail-val detail-val--big" :style="txn.amount ? 'color: #66BB6A' : ''">{{ txn.amount ? formatCurrency(txn.amount) : '--' }}</div>
+            <div class="detail-val detail-val--big" :style="txn.amount ? 'color: var(--sp-accent-success-bright)' : ''">{{ txn.amount ? formatCurrency(txn.amount) : '--' }}</div>
           </div>
         </div>
 
@@ -107,19 +107,19 @@
           <div class="detail-row-grid mt-2">
             <div class="detail-item">
               <div class="detail-label">Oran</div>
-              <div class="detail-val" style="color: #E4A34F">%{{ txn.merchant_fee_percent }}</div>
+              <div class="detail-val" style="color: var(--sp-accent-amber)">%{{ txn.merchant_fee_percent }}</div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Komisyon</div>
-              <div class="detail-val" style="color: #E4A34F">{{ formatCurrency(txn.merchant_fee_amount || 0) }}</div>
+              <div class="detail-val" style="color: var(--sp-accent-amber)">{{ formatCurrency(txn.merchant_fee_amount || 0) }}</div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Grup</div>
-              <div class="detail-val" style="color: #5EAFC7">{{ formatCurrency(txn.operator_fee_amount || 0) }}</div>
+              <div class="detail-val" style="color: var(--sp-accent-cyan)">{{ formatCurrency(txn.operator_fee_amount || 0) }}</div>
             </div>
             <div class="detail-item">
               <div class="detail-label">Sahip</div>
-              <div class="detail-val" style="color: #6EC47A">{{ formatCurrency(txn.owner_fee_amount || 0) }}</div>
+              <div class="detail-val" style="color: var(--sp-accent-success)">{{ formatCurrency(txn.owner_fee_amount || 0) }}</div>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@
       <!-- Müşteri Bilgileri -->
       <div class="detail-section mb-3">
         <div class="section-title">
-          <v-icon size="14" class="mr-1" style="color: #7C8FE4">mdi-account</v-icon>
+          <v-icon size="14" class="mr-1" style="color: var(--sp-primary)">mdi-account</v-icon>
           {{ isSuperAdmin ? 'Bayi & Müşteri' : 'Müşteri' }}
         </div>
         <div class="detail-row-grid">
@@ -154,7 +154,7 @@
       <!-- Banka Hesabı (deposits only) -->
       <div v-if="txn.type === 'deposit'" class="detail-section mb-3">
         <div class="section-title">
-          <v-icon size="14" class="mr-1" style="color: #7C8FE4">mdi-bank</v-icon>
+          <v-icon size="14" class="mr-1" style="color: var(--sp-primary)">mdi-bank</v-icon>
           Banka Hesabı
         </div>
         <template v-if="txn.bank_account">
@@ -203,7 +203,7 @@
             <template #item="{ item, props }">
               <v-list-item v-bind="props">
                 <template #subtitle>
-                  <span :style="item.raw.balance >= 0 ? 'color: #6EC47A' : 'color: #E06C6C'">{{ item.raw.subtitle }}</span>
+                  <span :style="item.raw.balance >= 0 ? 'color: var(--sp-accent-success)' : 'color: var(--sp-accent-error)'">{{ item.raw.subtitle }}</span>
                 </template>
               </v-list-item>
             </template>
@@ -225,7 +225,7 @@
       <!-- Oyuncu Banka (withdrawal) -->
       <div v-if="txn.type === 'withdrawal'" class="detail-section mb-3">
         <div class="section-title">
-          <v-icon size="14" class="mr-1" style="color: #4FC3F7">mdi-credit-card-outline</v-icon>
+          <v-icon size="14" class="mr-1" style="color: var(--sp-accent-blue)">mdi-credit-card-outline</v-icon>
           Oyuncu Banka Bilgileri
         </div>
         <div class="detail-row-grid">
@@ -235,7 +235,7 @@
           </div>
           <div class="detail-item">
             <div class="detail-label">Banka</div>
-            <div class="detail-val" style="color: #4FC3F7">{{ txn.player_bank_resolved || txn.player_bank_name || '--' }}</div>
+            <div class="detail-val" style="color: var(--sp-accent-blue)">{{ txn.player_bank_resolved || txn.player_bank_name || '--' }}</div>
           </div>
         </div>
         <div class="mt-2">
@@ -247,7 +247,7 @@
       <!-- İşlem Süreci -->
       <div class="detail-section mb-3">
         <div class="section-title">
-          <v-icon size="12" class="mr-1" style="color: #E4A34F">mdi-account-clock</v-icon>
+          <v-icon size="12" class="mr-1" style="color: var(--sp-accent-amber)">mdi-account-clock</v-icon>
           İşlem Süreci
         </div>
         <div class="process-steps">
@@ -263,7 +263,7 @@
             <div class="step-content">
               <div class="step-title d-flex align-center ga-1">
                 İşleme Alındı
-                <v-chip v-if="txn.locker" size="x-small" variant="tonal" color="orange">{{ txn.locker.name }}</v-chip>
+                <v-chip v-if="txn.locker" size="x-small" variant="tonal" color="warning">{{ txn.locker.name }}</v-chip>
               </div>
               <div class="step-time">{{ txn.locked_at ? formatDate(txn.locked_at) : '--' }}</div>
             </div>
@@ -320,7 +320,7 @@
       <div v-if="isSuperAdmin" class="detail-section mb-3">
         <div class="d-flex align-center mb-2">
           <div class="section-title mb-0">
-            <v-icon size="12" class="mr-1" style="color: #7C8FE4">mdi-webhook</v-icon>
+            <v-icon size="12" class="mr-1" style="color: var(--sp-primary)">mdi-webhook</v-icon>
             Webhook
           </div>
           <v-spacer />
@@ -622,7 +622,7 @@ const customerName = computed(() => {
 })
 
 function statusChipColor(s) {
-  return { pending: 'blue-grey', assigned: 'blue-grey', processing: 'warning', approved: 'success', rejected: 'error', expired: 'grey', cancelled: 'grey' }[s] || 'grey'
+  return { pending: 'secondary', assigned: 'secondary', processing: 'warning', approved: 'success', rejected: 'error', expired: 'grey', cancelled: 'grey' }[s] || 'grey'
 }
 function statusIcon(s) {
   return { pending: 'mdi-clock-outline', assigned: 'mdi-account-arrow-right', processing: 'mdi-progress-clock', approved: 'mdi-check-circle', rejected: 'mdi-close-circle', expired: 'mdi-timer-off', cancelled: 'mdi-cancel' }[s] || 'mdi-help-circle'
@@ -631,13 +631,13 @@ function statusText(s) {
   return { pending: 'Beklemede', assigned: 'Atandı', processing: 'İşlemde', approved: 'Onaylandı', rejected: 'Reddedildi', expired: 'Süresi Doldu', cancelled: 'İptal Edildi' }[s] || s
 }
 function statusHex(s) {
-  return { pending: '#90A4AE', assigned: '#78909C', processing: '#E4A34F', approved: '#6EC47A', rejected: '#E06C6C', expired: '#757575', cancelled: '#616161' }[s] || '#999'
+  return { pending: 'var(--sp-text-muted)', assigned: 'var(--sp-text-muted)', processing: 'var(--sp-accent-amber)', approved: 'var(--sp-accent-success)', rejected: 'var(--sp-accent-error)', expired: 'var(--sp-text-muted)', cancelled: 'var(--sp-text-muted)' }[s] || '#999'
 }
 function actionText(a) {
   return { created: 'Oluşturuldu', status_changed: 'Durum Değişti', locked: 'İşleme Alındı', note_added: 'Not Eklendi' }[a] || a
 }
 function logColor(a) {
-  return { created: 'primary', status_changed: 'warning', locked: 'orange', note_added: 'grey' }[a] || 'grey'
+  return { created: 'primary', status_changed: 'warning', locked: 'warning', note_added: 'grey' }[a] || 'grey'
 }
 function logIcon(a) {
   return { created: 'mdi-plus-circle', status_changed: 'mdi-swap-horizontal', locked: 'mdi-hand-extended', note_added: 'mdi-note-plus' }[a] || 'mdi-circle-small'
@@ -838,7 +838,7 @@ defineExpose({ open, close, visible, txn })
 }
 .close-btn:hover {
   color: var(--sp-text) !important;
-  background: rgba(239, 68, 68, 0.1) !important;
+  background: rgba(255,142,130, 0.1) !important;
 }
 
 .panel-body {
@@ -851,17 +851,17 @@ defineExpose({ open, close, visible, txn })
 .hero-banner {
   padding: 18px 16px;
   border-radius: 14px;
-  background: linear-gradient(135deg, var(--sp-modal-bg) 0%, #252840 100%);
+  background: linear-gradient(135deg, var(--sp-modal-bg) 0%, var(--sp-surface-bright) 100%);
   border: 1px solid var(--sp-badge-bg);
   text-align: center;
 }
-.hero-banner--approved { border-left: 4px solid #66BB6A; }
-.hero-banner--rejected { border-left: 4px solid #EF5350; }
-.hero-banner--processing { border-left: 4px solid #FFA726; }
-.hero-banner--assigned { border-left: 4px solid #42A5F5; }
-.hero-banner--pending { border-left: 4px solid #BDBDBD; }
-.hero-banner--expired { border-left: 4px solid #757575; }
-.hero-banner--cancelled { border-left: 4px solid #757575; }
+.hero-banner--approved { border-left: 4px solid var(--sp-accent-success-bright); }
+.hero-banner--rejected { border-left: 4px solid var(--sp-accent-error); }
+.hero-banner--processing { border-left: 4px solid var(--sp-accent-orange); }
+.hero-banner--assigned { border-left: 4px solid var(--sp-accent-info); }
+.hero-banner--pending { border-left: 4px solid var(--sp-text-muted); }
+.hero-banner--expired { border-left: 4px solid var(--sp-text-muted); }
+.hero-banner--cancelled { border-left: 4px solid var(--sp-text-muted); }
 
 .hero-amount-row {
   display: flex;
@@ -913,25 +913,25 @@ defineExpose({ open, close, visible, txn })
 .payment-alert {
   display: flex; align-items: center;
   padding: 14px 16px; border-radius: 12px;
-  background: rgba(228,163,79,0.1);
-  border: 2px solid rgba(228,163,79,0.25);
+  background: rgba(255,190,91,0.1);
+  border: 2px solid rgba(255,190,91,0.25);
 }
 .reject-alert {
   display: flex; align-items: flex-start;
   padding: 14px 16px; border-radius: 12px;
-  background: rgba(239,83,80,0.06);
-  border: 2px solid rgba(239,83,80,0.2);
+  background: rgba(255,142,130,0.06);
+  border: 2px solid rgba(255,142,130,0.2);
 }
 .balance-alert {
   display: flex; align-items: flex-start;
   padding: 14px 16px; border-radius: 12px;
-  background: rgba(239,83,80,0.1);
-  border: 2px solid rgba(239,83,80,0.25);
+  background: rgba(255,142,130,0.1);
+  border: 2px solid rgba(255,142,130,0.25);
   animation: balance-pulse 2s ease-in-out infinite;
 }
 @keyframes balance-pulse {
-  0%, 100% { border-color: rgba(239,83,80,0.25); }
-  50% { border-color: rgba(239,83,80,0.5); }
+  0%, 100% { border-color: rgba(255,142,130,0.25); }
+  50% { border-color: rgba(255,142,130,0.5); }
 }
 
 .info-row {
@@ -1013,10 +1013,10 @@ defineExpose({ open, close, visible, txn })
   z-index: 1;
 }
 .step-dot--done { background: var(--sp-primary); box-shadow: 0 0 6px rgba(var(--sp-primary-rgb), 0.3); }
-.step-dot--success { background: #6EC47A; box-shadow: 0 0 6px rgba(110,196,122,0.3); }
-.step-dot--warning { background: #E4A34F; box-shadow: 0 0 6px rgba(228,163,79,0.3); }
-.step-dot--error { background: #E06C6C; box-shadow: 0 0 6px rgba(224,108,108,0.3); }
-.step-dot--grey { background: #616161; }
+.step-dot--success { background: var(--sp-accent-success); box-shadow: 0 0 6px rgba(102,241,189,0.3); }
+.step-dot--warning { background: var(--sp-accent-amber); box-shadow: 0 0 6px rgba(255,190,91,0.3); }
+.step-dot--error { background: var(--sp-accent-error); box-shadow: 0 0 6px rgba(255,142,130,0.3); }
+.step-dot--grey { background: var(--sp-text-muted); }
 .step-dot--waiting {
   background: transparent;
   border: 2px solid var(--sp-text-ghost);
@@ -1048,9 +1048,9 @@ defineExpose({ open, close, visible, txn })
 .wh-dot {
   width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; flex-shrink: 0;
 }
-.wh-dot--success { background: #6EC47A; }
-.wh-dot--failed { background: #E06C6C; }
-.wh-dot--pending { background: #616161; }
+.wh-dot--success { background: var(--sp-accent-success); }
+.wh-dot--failed { background: var(--sp-accent-error); }
+.wh-dot--pending { background: var(--sp-text-muted); }
 .wh-code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px; font-weight: 600;
@@ -1108,29 +1108,29 @@ defineExpose({ open, close, visible, txn })
 
 /* Light mode */
 :global(.v-theme--lightComfort .txn-panel) {
-  box-shadow: 0 1px 4px rgba(30, 32, 48, 0.06);
+  box-shadow: 0 1px 4px rgba(16,33,27, 0.06);
 }
 :global(.v-theme--lightComfort .detail-section) {
-  box-shadow: 0 1px 3px rgba(30, 32, 48, 0.04);
+  box-shadow: 0 1px 3px rgba(16,33,27, 0.04);
 }
 :global(.v-theme--lightComfort .hero-banner) {
   background: linear-gradient(135deg, #F7F8FC 0%, #ECEEF5 100%);
   border-color: #D8DBE8;
 }
 :global(.v-theme--lightComfort .hero-amount) {
-  color: #1E2030;
+  color: var(--sp-surface-bright);
 }
 :global(.v-theme--lightComfort .hero-currency) {
-  color: #6B7084;
+  color: var(--sp-text-muted);
 }
 :global(.v-theme--lightComfort .hero-id) {
-  color: #8A8FA6;
+  color: var(--sp-text-muted);
 }
-:global(.v-theme--lightComfort .hero-banner--approved) { border-left-color: #43A047; }
-:global(.v-theme--lightComfort .hero-banner--rejected) { border-left-color: #E53935; }
-:global(.v-theme--lightComfort .hero-banner--processing) { border-left-color: #EF6C00; }
-:global(.v-theme--lightComfort .hero-banner--assigned) { border-left-color: #1E88E5; }
-:global(.v-theme--lightComfort .hero-banner--pending) { border-left-color: #9E9E9E; }
+:global(.v-theme--lightComfort .hero-banner--approved) { border-left-color: var(--sp-accent-success); }
+:global(.v-theme--lightComfort .hero-banner--rejected) { border-left-color: var(--sp-accent-error); }
+:global(.v-theme--lightComfort .hero-banner--processing) { border-left-color: var(--sp-accent-orange); }
+:global(.v-theme--lightComfort .hero-banner--assigned) { border-left-color: var(--sp-accent-blue); }
+:global(.v-theme--lightComfort .hero-banner--pending) { border-left-color: var(--sp-text-muted); }
 
 /* ── Responsive ── */
 @media (max-width: 960px) {

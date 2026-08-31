@@ -352,7 +352,7 @@
           <!-- Locked by another operator -->
           <v-tooltip v-else-if="item.locker && item.locked_by !== auth.user?.id" :text="`${item.locker.name} işliyor`" location="top">
             <template v-slot:activator="{ props }">
-              <v-icon v-bind="props" size="20" color="orange">mdi-lock</v-icon>
+              <v-icon v-bind="props" size="20" color="warning">mdi-lock</v-icon>
             </template>
           </v-tooltip>
         </div>
@@ -480,7 +480,7 @@
             Sıfırla
           </v-btn>
           <v-btn
-            color="purple-darken-1"
+            color="secondary"
             variant="flat"
             size="large"
             @click="saveAmountEdit"
@@ -827,7 +827,7 @@ const visibleHeaders = computed(() => {
 })
 
 function statusColor(status) {
-  const colors = { pending: 'amber-darken-2', assigned: 'light-blue-darken-1', payment_seen: 'deep-purple', processing: 'orange-darken-2', admin_review: 'purple-darken-2', approved: 'green-darken-1', rejected: 'red-darken-1', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
+  const colors = { pending: 'amber-darken-2', assigned: 'light-blue-darken-1', payment_seen: 'secondary', processing: 'warning', admin_review: 'purple-darken-2', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
   return colors[status] || 'grey'
 }
 function statusText(status) {
@@ -1184,10 +1184,10 @@ onUnmounted(() => {
   font-variant-numeric: tabular-nums;
   border: 1px solid transparent;
 }
-.finalize-badge--fast   { background: rgba(110,196,122,0.15); color: #6EC47A; border-color: rgba(110,196,122,0.25); }
-.finalize-badge--normal { background: rgba(120,120,120,0.15); color: var(--sp-text-muted); border-color: rgba(150,150,150,0.20); }
-.finalize-badge--slow   { background: rgba(255,167,38,0.15);  color: #FFA726; border-color: rgba(255,167,38,0.25); }
-.finalize-badge--late   { background: rgba(229,115,115,0.18); color: #E57373; border-color: rgba(229,115,115,0.3); }
+.finalize-badge--fast   { background: rgba(102,241,189,0.15); color: var(--sp-accent-success); border-color: rgba(102,241,189,0.25); }
+.finalize-badge--normal { background: rgba(113,132,122,0.15); color: var(--sp-text-muted); border-color: rgba(150,150,150,0.20); }
+.finalize-badge--slow   { background: rgba(255,190,91,0.15);  color: var(--sp-accent-orange); border-color: rgba(255,190,91,0.25); }
+.finalize-badge--late   { background: rgba(255,142,130,0.18); color: var(--sp-accent-rose); border-color: rgba(255,142,130,0.3); }
 
 .amount-text {
   font-size: 14px;
@@ -1203,8 +1203,8 @@ onUnmounted(() => {
   animation: row-highlight-pulse 1.2s ease-in-out infinite;
 }
 @keyframes row-highlight-pulse {
-  0%, 100% { background-color: rgba(124, 143, 228, 0.10) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
-  50% { background-color: rgba(124, 143, 228, 0.25) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
+  0%, 100% { background-color: rgba(102,241,189, 0.10) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
+  50% { background-color: rgba(102,241,189, 0.25) !important; box-shadow: inset 4px 0 0 var(--sp-primary); }
 }
 
 /* Status-row tints live in the unscoped block at the bottom of this file
@@ -1214,7 +1214,7 @@ onUnmounted(() => {
 .amount-approved {
   font-size: 11px;
   font-weight: 600;
-  color: #66BB6A;
+  color: var(--sp-accent-success-bright);
   margin-top: 1px;
 }
 
@@ -1232,11 +1232,11 @@ onUnmounted(() => {
 }
 .counter-bar--info {
   background: rgba(33, 150, 243, 0.14);
-  color: #42A5F5;
+  color: var(--sp-accent-info);
 }
 .counter-bar--red {
-  background: rgba(239, 68, 68, 0.18);
-  color: #EF4444;
+  background: rgba(255,142,130, 0.18);
+  color: var(--sp-accent-error);
   animation: counter-pulse 1s ease-in-out infinite;
 }
 @keyframes counter-pulse {
@@ -1259,7 +1259,7 @@ onUnmounted(() => {
 .filter-shell {
   padding: 12px 16px 6px;
   border-bottom: 1px solid var(--sp-divider, rgba(255,255,255,0.06));
-  background: linear-gradient(180deg, rgba(67,160,71,0.04), transparent);
+  background: linear-gradient(180deg, rgba(102,241,189,0.04), transparent);
 }
 .filter-row {
   display: flex;
@@ -1283,7 +1283,7 @@ onUnmounted(() => {
   margin-top: 10px;
   padding: 14px 12px 8px;
   border-radius: 10px;
-  background: var(--sp-surface-1, rgba(67,160,71,0.04));
+  background: var(--sp-surface-1, rgba(102,241,189,0.04));
   border: 1px solid var(--sp-border);
 }
 
@@ -1302,10 +1302,10 @@ onUnmounted(() => {
 }
 .status-pill:hover { transform: translateY(-1px); }
 .status-pill.is-active { color: #fff; }
-.status-pill.pill-grey.is-active    { background: rgba(120,120,120,0.35); border-color: rgba(160,160,160,0.6); color: #FFF; }
-.status-pill.pill-amber.is-active   { background: rgba(255,167,38,0.22);  border-color: rgba(255,167,38,0.55);  color: #FFA726; }
-.status-pill.pill-success.is-active { background: rgba(110,196,122,0.22); border-color: rgba(110,196,122,0.55); color: #6EC47A; }
-.status-pill.pill-error.is-active   { background: rgba(229,115,115,0.22); border-color: rgba(229,115,115,0.55); color: #E57373; }
+.status-pill.pill-grey.is-active    { background: rgba(113,132,122,0.35); border-color: rgba(160,160,160,0.6); color: #FFF; }
+.status-pill.pill-amber.is-active   { background: rgba(255,190,91,0.22);  border-color: rgba(255,190,91,0.55);  color: var(--sp-accent-orange); }
+.status-pill.pill-success.is-active { background: rgba(102,241,189,0.22); border-color: rgba(102,241,189,0.55); color: var(--sp-accent-success); }
+.status-pill.pill-error.is-active   { background: rgba(255,142,130,0.22); border-color: rgba(255,142,130,0.55); color: var(--sp-accent-rose); }
 
 .date-pill {
   display: inline-flex; align-items: center;
@@ -1319,11 +1319,11 @@ onUnmounted(() => {
   color: var(--sp-text-muted);
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.date-pill:hover { color: var(--sp-text); border-color: rgba(67,160,71,0.4); }
+.date-pill:hover { color: var(--sp-text); border-color: rgba(102,241,189,0.4); }
 .date-pill.is-active {
-  background: rgba(67,160,71,0.16);
-  border-color: rgba(67,160,71,0.55);
-  color: #6EC47A;
+  background: rgba(102,241,189,0.16);
+  border-color: rgba(102,241,189,0.55);
+  color: var(--sp-accent-success);
 }
 
 .more-btn { margin-left: auto !important; }
@@ -1368,11 +1368,11 @@ onUnmounted(() => {
 .approve-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(67, 160, 71, 0.25) !important;
-  box-shadow: 0 12px 48px rgba(67, 160, 71, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(102,241,189, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .approve-hero {
-  background: linear-gradient(135deg, #2E7D32 0%, #43A047 50%, #66BB6A 100%);
+  background: linear-gradient(135deg, var(--sp-accent-success) 0%, var(--sp-accent-success) 50%, var(--sp-accent-success-bright) 100%);
   padding: 26px 24px 18px;
   text-align: center;
   position: relative;
@@ -1416,7 +1416,7 @@ onUnmounted(() => {
 .approve-amount-block {
   padding: 22px 24px 18px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(67, 160, 71, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(102,241,189, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .approve-amount-label {
@@ -1438,7 +1438,7 @@ onUnmounted(() => {
 .approve-amount-cur {
   font-size: 18px;
   font-weight: 700;
-  color: #66BB6A;
+  color: var(--sp-accent-success-bright);
   margin-left: 6px;
   letter-spacing: 0;
 }
@@ -1470,8 +1470,8 @@ onUnmounted(() => {
   margin: 14px 20px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: rgba(255, 167, 38, 0.10);
-  border-left: 3px solid #FFA726;
+  background: rgba(255,190,91, 0.10);
+  border-left: 3px solid var(--sp-accent-orange);
   display: flex;
   align-items: flex-start;
 }
@@ -1494,10 +1494,10 @@ onUnmounted(() => {
 .approve-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(67, 160, 71, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(102,241,189, 0.45) !important;
 }
 .approve-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(67, 160, 71, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(102,241,189, 0.6) !important;
   transform: translateY(-1px);
 }
 
@@ -1505,11 +1505,11 @@ onUnmounted(() => {
 .reject-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(229, 57, 53, 0.28) !important;
-  box-shadow: 0 12px 48px rgba(229, 57, 53, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(255,142,130, 0.28) !important;
+  box-shadow: 0 12px 48px rgba(255,142,130, 0.20), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .reject-hero {
-  background: linear-gradient(135deg, #B71C1C 0%, #E53935 50%, #EF5350 100%);
+  background: linear-gradient(135deg, var(--sp-accent-error) 0%, var(--sp-accent-error) 50%, var(--sp-accent-error) 100%);
   padding: 26px 24px 18px;
   text-align: center;
   position: relative;
@@ -1554,7 +1554,7 @@ onUnmounted(() => {
 .reject-amount-block {
   padding: 22px 24px 18px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(229, 57, 53, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(255,142,130, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .reject-amount-label {
@@ -1576,7 +1576,7 @@ onUnmounted(() => {
 .reject-amount-cur {
   font-size: 18px;
   font-weight: 700;
-  color: #EF5350;
+  color: var(--sp-accent-error);
   margin-left: 6px;
   letter-spacing: 0;
 }
@@ -1600,8 +1600,8 @@ onUnmounted(() => {
   margin: 14px 20px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: rgba(229, 57, 53, 0.12);
-  border-left: 3px solid #E53935;
+  background: rgba(255,142,130, 0.12);
+  border-left: 3px solid var(--sp-accent-error);
   display: flex;
   align-items: flex-start;
 }
@@ -1624,10 +1624,10 @@ onUnmounted(() => {
 .reject-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(229, 57, 53, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(255,142,130, 0.45) !important;
 }
 .reject-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(255,142,130, 0.6) !important;
   transform: translateY(-1px);
 }
 
@@ -1635,11 +1635,11 @@ onUnmounted(() => {
 .amount-edit-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(124, 58, 237, 0.25) !important;
-  box-shadow: 0 12px 48px rgba(124, 58, 237, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(102,241,189, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .amount-edit-hero {
-  background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 50%, #A78BFA 100%);
+  background: linear-gradient(135deg, var(--sp-accent-purple) 0%, var(--sp-primary) 50%, var(--sp-accent-purple) 100%);
   padding: 26px 24px 18px;
   text-align: center;
   position: relative;
@@ -1686,7 +1686,7 @@ onUnmounted(() => {
 .amount-edit-amount-block {
   padding: 20px 24px 14px;
   text-align: center;
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(102,241,189, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .amount-edit-amount-label {
@@ -1708,7 +1708,7 @@ onUnmounted(() => {
 .amount-edit-amount-cur {
   font-size: 16px;
   font-weight: 700;
-  color: #A78BFA;
+  color: var(--sp-accent-purple);
   margin-left: 6px;
   letter-spacing: 0;
 }
@@ -1724,10 +1724,10 @@ onUnmounted(() => {
 .amount-edit-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(102,241,189, 0.45) !important;
 }
 .amount-edit-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(102,241,189, 0.6) !important;
   transform: translateY(-1px);
 }
 </style>
@@ -1735,59 +1735,59 @@ onUnmounted(() => {
 <!-- Unscoped on purpose: Vuetify's hover rule targets `.v-table > .v-table__wrapper > table > tbody > tr:hover` with a high-specificity selector that scoped CSS via :deep() loses to. We also tint each <td> because cells in v-data-table-server have an opaque cell background that masks any tr-level background, so a tr-only rule appears to do nothing. The custom-tint class is added on the row in rowProps() so unrelated tables in the app are unaffected. -->
 <style>
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--pending,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending > td       { background: rgba(255, 167, 38, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending > td       { background: rgba(255,190,91, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--pending:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending:hover > td { background: rgba(255, 167, 38, 0.22) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending:hover > td { background: rgba(255,190,91, 0.22) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned > td       { background: rgba(41, 182, 246, 0.09) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned > td       { background: rgba(112,169,255, 0.09) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned:hover > td { background: rgba(41, 182, 246, 0.24) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned:hover > td { background: rgba(112,169,255, 0.24) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen > td       { background: rgba(126, 87, 194, 0.10) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen > td       { background: rgba(168,182,255, 0.10) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen:hover > td { background: rgba(126, 87, 194, 0.26) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen:hover > td { background: rgba(168,182,255, 0.26) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--processing,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing > td       { background: rgba(251, 140, 0, 0.10) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing > td       { background: rgba(255,174,91, 0.10) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--processing:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing:hover > td { background: rgba(251, 140, 0, 0.26) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing:hover > td { background: rgba(255,174,91, 0.26) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td       { background: rgba(142, 36, 170, 0.11) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td       { background: rgba(168,182,255, 0.11) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review:hover > td { background: rgba(142, 36, 170, 0.26) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review:hover > td { background: rgba(168,182,255, 0.26) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--approved,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved > td       { background: rgba(67, 160, 71, 0.07) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved > td       { background: rgba(102,241,189, 0.07) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--approved:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved:hover > td { background: rgba(67, 160, 71, 0.20) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved:hover > td { background: rgba(102,241,189, 0.20) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected > td       { background: rgba(229, 57, 53, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected > td       { background: rgba(255,142,130, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected:hover > td { background: rgba(229, 57, 53, 0.22) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected:hover > td { background: rgba(255,142,130, 0.22) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--expired,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired > td       { background: rgba(117, 117, 117, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired > td       { background: rgba(113,132,122, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--expired:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired:hover > td { background: rgba(117, 117, 117, 0.20) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired:hover > td { background: rgba(113,132,122, 0.20) !important; }
 
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled > td       { background: rgba(97, 97, 97, 0.08) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled > td       { background: rgba(113,132,122, 0.08) !important; }
 .v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled:hover,
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled:hover > td { background: rgba(97, 97, 97, 0.20) !important; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled:hover > td { background: rgba(113,132,122, 0.20) !important; }
 
 /* Left-edge accent bar — applied on the first td so it sits inside the
    row's clip area and isn't hidden by the cell's own background. */
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending      > td:first-child { box-shadow: inset 3px 0 0 #FFA726; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned     > td:first-child { box-shadow: inset 3px 0 0 #29B6F6; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen > td:first-child { box-shadow: inset 3px 0 0 #7E57C2; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing   > td:first-child { box-shadow: inset 3px 0 0 #FB8C00; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td:first-child { box-shadow: inset 3px 0 0 #8E24AA; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved     > td:first-child { box-shadow: inset 3px 0 0 #43A047; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected     > td:first-child { box-shadow: inset 3px 0 0 #E53935; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired      > td:first-child { box-shadow: inset 3px 0 0 #757575; }
-.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled    > td:first-child { box-shadow: inset 3px 0 0 #616161; }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--pending      > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-orange); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--assigned     > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-blue); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--payment_seen > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-purple); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--processing   > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-orange); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--admin_review > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-purple); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--approved     > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-success); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--rejected     > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-error); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--expired      > td:first-child { box-shadow: inset 3px 0 0 var(--sp-text-muted); }
+.v-table > .v-table__wrapper > table > tbody > tr.status-row--cancelled    > td:first-child { box-shadow: inset 3px 0 0 var(--sp-text-muted); }
 </style>

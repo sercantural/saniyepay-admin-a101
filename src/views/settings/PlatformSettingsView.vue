@@ -15,7 +15,7 @@
         <!-- Çekim Dekont Eşiği -->
         <div class="setting-block">
           <div class="setting-head">
-            <v-icon size="16" color="purple-lighten-2" class="mr-2">mdi-receipt-text-check</v-icon>
+            <v-icon size="16" color="secondary" class="mr-2">mdi-receipt-text-check</v-icon>
             <span class="setting-name">Çekim Dekont Eşiği</span>
           </div>
           <div class="setting-desc">
@@ -134,7 +134,7 @@ onMounted(load)
 .settings-icon {
   width: 38px; height: 38px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #7C3AED, #A78BFA);
+  background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
 }
 .settings-title { font-size: 15px; font-weight: 700; color: var(--sp-text); }
@@ -143,7 +143,7 @@ onMounted(load)
 .setting-block {
   padding: 16px;
   border-radius: 10px;
-  background: var(--sp-surface-1, rgba(124,58,237,0.04));
+  background: var(--sp-surface-1, rgba(102,241,189,0.04));
   border: 1px solid var(--sp-border);
 }
 .setting-head { display: flex; align-items: center; margin-bottom: 6px; }

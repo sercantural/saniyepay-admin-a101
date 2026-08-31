@@ -727,13 +727,13 @@ onMounted(async () => {
   box-shadow: 0 8px 28px rgba(0,0,0,0.18);
 }
 
-.stat-deposit::before    { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-.stat-deposit            { border-color: rgba(67,233,123,0.2); }
-.stat-withdrawal::before { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.stat-withdrawal         { border-color: rgba(79,172,254,0.2); }
-.stat-teslim::before     { background: linear-gradient(135deg, #f6d365, #fda085); }
-.stat-teslim             { border-color: rgba(246,211,101,0.2); }
-.stat-commission::before { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+.stat-deposit::before    { background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan)); }
+.stat-deposit            { border-color: rgba(102,241,189,0.2); }
+.stat-withdrawal::before { background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan)); }
+.stat-withdrawal         { border-color: rgba(112,169,255,0.2); }
+.stat-teslim::before     { background: linear-gradient(135deg, var(--sp-accent-amber), var(--sp-accent-peach)); }
+.stat-teslim             { border-color: rgba(255,190,91,0.2); }
+.stat-commission::before { background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple)); }
 .stat-commission         { border-color: rgba(161,140,209,0.22); }
 
 .stat-icon-wrap {
@@ -743,10 +743,10 @@ onMounted(async () => {
   flex-shrink: 0;
   position: relative; z-index: 1;
 }
-.stat-deposit .stat-icon-wrap    { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-.stat-withdrawal .stat-icon-wrap { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.stat-teslim .stat-icon-wrap     { background: linear-gradient(135deg, #f6d365, #fda085); }
-.stat-commission .stat-icon-wrap { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+.stat-deposit .stat-icon-wrap    { background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan)); }
+.stat-withdrawal .stat-icon-wrap { background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan)); }
+.stat-teslim .stat-icon-wrap     { background: linear-gradient(135deg, var(--sp-accent-amber), var(--sp-accent-peach)); }
+.stat-commission .stat-icon-wrap { background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple)); }
 
 .stat-content { position: relative; z-index: 1; min-width: 0; flex: 1; }
 .stat-label {
@@ -791,7 +791,7 @@ onMounted(async () => {
 .bank-table-icon {
   width: 36px; height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #7C3AED, #A78BFA);
+  background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -800,10 +800,10 @@ onMounted(async () => {
 .bank-add-btn {
   font-weight: 700 !important;
   letter-spacing: 0.3px !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(102,241,189, 0.35) !important;
 }
 .bank-add-btn:hover {
-  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.5) !important;
+  box-shadow: 0 6px 18px rgba(102,241,189, 0.5) !important;
 }
 
 /* ═══════════════════════════════════════════ */
@@ -813,7 +813,7 @@ onMounted(async () => {
 .account-avatar {
   width: 28px; height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #7C3AED, #A78BFA);
+  background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   margin-top: 2px;
@@ -845,18 +845,18 @@ onMounted(async () => {
   display: inline-block;
 }
 .status-pill.is-active {
-  background: rgba(110,196,122,0.15);
-  color: #6EC47A;
-  border: 1px solid rgba(110,196,122,0.25);
+  background: rgba(102,241,189,0.15);
+  color: var(--sp-accent-success);
+  border: 1px solid rgba(102,241,189,0.25);
 }
 .status-pill.is-active .status-dot {
-  background: #6EC47A;
-  box-shadow: 0 0 0 3px rgba(110,196,122,0.18);
+  background: var(--sp-accent-success);
+  box-shadow: 0 0 0 3px rgba(102,241,189,0.18);
 }
 .status-pill.is-inactive {
-  background: rgba(120,120,120,0.12);
+  background: rgba(113,132,122,0.12);
   color: var(--sp-text-dim);
-  border: 1px solid rgba(120,120,120,0.2);
+  border: 1px solid rgba(113,132,122,0.2);
 }
 .status-pill.is-inactive .status-dot { background: var(--sp-text-dim); }
 
@@ -867,14 +867,14 @@ onMounted(async () => {
   border-radius: 6px;
 }
 .owner-pill {
-  background: rgba(228,163,79,0.12);
-  color: #E4A34F;
-  border: 1px solid rgba(228,163,79,0.2);
+  background: rgba(255,190,91,0.12);
+  color: var(--sp-accent-amber);
+  border: 1px solid rgba(255,190,91,0.2);
 }
 .group-pill {
-  background: rgba(124,58,237,0.12);
-  color: #A78BFA;
-  border: 1px solid rgba(124,58,237,0.22);
+  background: rgba(102,241,189,0.12);
+  color: var(--sp-accent-purple);
+  border: 1px solid rgba(102,241,189,0.22);
 }
 .owner-pill .presence-dot {
   width: 6px; height: 6px;
@@ -883,8 +883,8 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 .owner-pill.is-online .presence-dot {
-  background: #6EC47A;
-  box-shadow: 0 0 0 3px rgba(110,196,122,0.18);
+  background: var(--sp-accent-success);
+  box-shadow: 0 0 0 3px rgba(102,241,189,0.18);
   animation: presence-pulse 2s ease-in-out infinite;
 }
 .owner-pill.is-offline .presence-dot {
@@ -892,8 +892,8 @@ onMounted(async () => {
   opacity: 0.5;
 }
 @keyframes presence-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(110,196,122,0.18); }
-  50%      { box-shadow: 0 0 0 5px rgba(110,196,122,0.05); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(102,241,189,0.18); }
+  50%      { box-shadow: 0 0 0 5px rgba(102,241,189,0.05); }
 }
 
 /* ═══════════════════════════════════════════ */
@@ -920,7 +920,7 @@ onMounted(async () => {
 }
 
 .bank-table :deep(tbody tr:hover) {
-  background: rgba(124,58,237,0.04) !important;
+  background: rgba(102,241,189,0.04) !important;
 }
 
 /* ── Hero modal — same shape as DepositListView's approve/reject confirm,
@@ -928,11 +928,11 @@ onMounted(async () => {
 .bank-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(124, 58, 237, 0.25) !important;
-  box-shadow: 0 12px 48px rgba(124, 58, 237, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(102,241,189, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .bank-hero {
-  background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 50%, #A78BFA 100%);
+  background: linear-gradient(135deg, var(--sp-accent-purple) 0%, var(--sp-primary) 50%, var(--sp-accent-purple) 100%);
   padding: 14px 18px;
   display: flex;
   align-items: center;
@@ -1008,8 +1008,8 @@ onMounted(async () => {
   font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
   padding: 1px 6px; border-radius: 4px;
 }
-.tag-min { background: rgba(228,163,79,0.15); color: #E4A34F; border: 1px solid rgba(228,163,79,0.22); }
-.tag-max { background: rgba(110,196,122,0.15); color: #6EC47A; border: 1px solid rgba(110,196,122,0.22); }
+.tag-min { background: rgba(255,190,91,0.15); color: var(--sp-accent-amber); border: 1px solid rgba(255,190,91,0.22); }
+.tag-max { background: rgba(102,241,189,0.15); color: var(--sp-accent-success); border: 1px solid rgba(102,241,189,0.22); }
 .range-value { font-size: 11.5px; font-weight: 600; color: var(--sp-text); font-variant-numeric: tabular-nums; }
 
 /* Bugün cell — daily volume + count usage stacked */
@@ -1032,8 +1032,8 @@ onMounted(async () => {
   border-radius: 4px;
   flex-shrink: 0;
 }
-.act-dep .act-tag { background: rgba(110,196,122,0.18); color: #6EC47A; }
-.act-com .act-tag { background: rgba(206,147,216,0.18); color: #CE93D8; }
+.act-dep .act-tag { background: rgba(102,241,189,0.18); color: var(--sp-accent-success); }
+.act-com .act-tag { background: rgba(206,147,216,0.18); color: var(--sp-accent-purple); }
 .act-value { font-size: 11.5px; font-weight: 700; color: var(--sp-text); }
 .act-count { font-size: 10px; color: var(--sp-text-hint); }
 
@@ -1043,7 +1043,7 @@ onMounted(async () => {
 .switch-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 6px 12px; border-radius: 8px;
-  background: var(--sp-surface-1, rgba(124,58,237,0.05));
+  background: var(--sp-surface-1, rgba(102,241,189,0.05));
   border: 1px solid var(--sp-border);
   min-height: 40px;
 }
@@ -1058,10 +1058,10 @@ onMounted(async () => {
 .bank-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(102,241,189, 0.45) !important;
 }
 .bank-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(102,241,189, 0.6) !important;
   transform: translateY(-1px);
 }
 

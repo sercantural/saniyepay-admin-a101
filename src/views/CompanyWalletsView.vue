@@ -145,10 +145,10 @@ onMounted(load)
           <v-chip v-else color="grey" size="small" variant="tonal">Pasif</v-chip>
         </template>
         <template #item.coin="{ item }">
-          <v-chip size="small" variant="tonal" color="blue">{{ item.coin }}</v-chip>
+          <v-chip size="small" variant="tonal" color="info">{{ item.coin }}</v-chip>
         </template>
         <template #item.network="{ item }">
-          <v-chip size="small" variant="tonal" color="purple">{{ item.network }}</v-chip>
+          <v-chip size="small" variant="tonal" color="secondary">{{ item.network }}</v-chip>
         </template>
         <template #item.address="{ item }">
           <code style="font-size: 11px">{{ truncateAddress(item.address) }}</code>

@@ -2,7 +2,7 @@
   <div>
     <v-card>
       <v-card-title class="d-flex align-center flex-wrap ga-2">
-        <v-icon start color="deep-purple">mdi-file-document-outline</v-icon>
+        <v-icon start color="secondary">mdi-file-document-outline</v-icon>
         Teklifler
         <v-spacer />
         <v-select
@@ -42,11 +42,11 @@
 
         <template #item.fees="{ item }">
           <div class="text-caption" style="line-height: 1.6">
-            <span style="color: #66BB6A">Y %{{ item.deposit_fee_percent }}</span>
+            <span style="color: var(--sp-accent-success-bright)">Y %{{ item.deposit_fee_percent }}</span>
             <span style="color: var(--sp-text-dim)"> · </span>
-            <span style="color: #4FC3F7">Ç %{{ item.withdrawal_fee_percent }}</span>
+            <span style="color: var(--sp-accent-blue)">Ç %{{ item.withdrawal_fee_percent }}</span>
             <span style="color: var(--sp-text-dim)"> · </span>
-            <span style="color: #CE93D8">M %{{ item.settlement_fee_percent }}</span>
+            <span style="color: var(--sp-accent-purple)">M %{{ item.settlement_fee_percent }}</span>
           </div>
         </template>
 
@@ -111,7 +111,7 @@ const headers = [
 ]
 
 function statusColor(s) {
-  return { draft: 'blue-grey', sent: 'info', accepted: 'success', rejected: 'error' }[s] || 'grey'
+  return { draft: 'secondary', sent: 'info', accepted: 'success', rejected: 'error' }[s] || 'grey'
 }
 function statusIcon(s) {
   return { draft: 'mdi-file-edit-outline', sent: 'mdi-send', accepted: 'mdi-check-circle', rejected: 'mdi-close-circle' }[s] || 'mdi-help'

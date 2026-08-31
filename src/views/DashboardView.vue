@@ -53,7 +53,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <div v-if="auth.isSuperAdmin && stats.business" class="mb-5">
       <div class="section-header mb-3">
-        <div class="section-icon" style="background: linear-gradient(135deg, #667eea, #764ba2)">
+        <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-purple))">
           <v-icon size="18" color="white">mdi-office-building</v-icon>
         </div>
         <div>
@@ -64,25 +64,25 @@
 
       <div class="glass-grid grid-4">
         <div class="glass-card">
-          <div class="glass-card-accent" style="background: linear-gradient(135deg, #f093fb, #f5576c)"></div>
+          <div class="glass-card-accent" style="background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-error))"></div>
           <div class="glass-label">Toplam Komisyon</div>
           <div class="glass-value" style="color: var(--sp-accent-peach)">{{ formatCurrency(stats.business.total_fees) }}</div>
           <div class="glass-hint">Toplam kazanılan komisyon</div>
         </div>
         <div class="glass-card">
-          <div class="glass-card-accent" style="background: linear-gradient(135deg, #43e97b, #38f9d7)"></div>
+          <div class="glass-card-accent" style="background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan))"></div>
           <div class="glass-label">Mutabakat Edilen</div>
           <div class="glass-value text-success">{{ formatCurrency(stats.business.settled_balance) }}</div>
           <div class="glass-hint">Şirkete transfer edilen</div>
         </div>
         <div class="glass-card">
-          <div class="glass-card-accent" style="background: linear-gradient(135deg, #f6d365, #fda085)"></div>
+          <div class="glass-card-accent" style="background: linear-gradient(135deg, var(--sp-accent-amber), var(--sp-accent-peach))"></div>
           <div class="glass-label">Bekleyen Mutabakat</div>
           <div class="glass-value" style="color: var(--sp-accent-amber)">{{ formatCurrency(stats.business.active_settlements) }}</div>
           <div class="glass-hint">İşlemde olan talepler</div>
         </div>
         <div class="glass-card">
-          <div class="glass-card-accent" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb)"></div>
+          <div class="glass-card-accent" style="background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple))"></div>
           <div class="glass-label">Mutabakat Edilmemiş</div>
           <div class="glass-value" style="color: var(--sp-accent-indigo)">{{ formatCurrency(stats.business.unsettled_fees) }}</div>
           <div class="glass-hint">Operatörlerde bekleyen komisyon</div>
@@ -92,12 +92,12 @@
       <!-- Operator Flow Summary -->
       <div class="flow-card mt-4">
         <div class="flow-header">
-          <v-icon size="16" color="#89B4FA" class="mr-2">mdi-account-group</v-icon>
+          <v-icon size="16" color="var(--sp-accent-indigo)" class="mr-2">mdi-account-group</v-icon>
           <span class="flow-title">Operatör Para Akışı</span>
         </div>
         <div class="flow-body">
           <div class="flow-item">
-            <div class="flow-dot" style="background: #6EC47A"></div>
+            <div class="flow-dot" style="background: var(--sp-accent-success)"></div>
             <div class="flow-item-label">Giren (Yatırım)</div>
             <div class="flow-item-value text-success">{{ formatCurrency(stats.business.operator_deposits) }}</div>
           </div>
@@ -105,7 +105,7 @@
             <v-icon size="16" :style="{ color: 'var(--sp-text-ghost)' }">mdi-minus</v-icon>
           </div>
           <div class="flow-item">
-            <div class="flow-dot" style="background: #E57373"></div>
+            <div class="flow-dot" style="background: var(--sp-accent-rose)"></div>
             <div class="flow-item-label">Çıkan (Çekim)</div>
             <div class="flow-item-value text-error">{{ formatCurrency(stats.business.operator_withdrawals) }}</div>
           </div>
@@ -113,7 +113,7 @@
             <v-icon size="16" :style="{ color: 'var(--sp-text-ghost)' }">mdi-minus</v-icon>
           </div>
           <div class="flow-item">
-            <div class="flow-dot" style="background: #CE93D8"></div>
+            <div class="flow-dot" style="background: var(--sp-accent-purple)"></div>
             <div class="flow-item-label">Mutabakat</div>
             <div class="flow-item-value" style="color: var(--sp-accent-purple)">{{ formatCurrency(stats.business.total_settled) }}</div>
           </div>
@@ -121,7 +121,7 @@
             <v-icon size="16" :style="{ color: 'var(--sp-text-ghost)' }">mdi-equal</v-icon>
           </div>
           <div class="flow-item flow-item-result">
-            <div class="flow-dot" style="background: #89B4FA"></div>
+            <div class="flow-dot" style="background: var(--sp-accent-indigo)"></div>
             <div class="flow-item-label">Kalan Bakiye</div>
             <div class="flow-item-value font-weight-bold" :class="stats.business.operator_total_balance >= 0 ? 'text-success' : 'text-error'">
               {{ formatCurrency(stats.business.operator_total_balance) }}
@@ -136,7 +136,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <div v-if="auth.isSuperAdmin && merchants.length" class="mb-5">
       <div class="section-header mb-3">
-        <div class="section-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe)">
+        <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan))">
           <v-icon size="18" color="white">mdi-store</v-icon>
         </div>
         <div>
@@ -218,7 +218,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <div v-if="operators.length" class="mb-5">
       <div class="section-header mb-3">
-        <div class="section-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7)">
+        <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan))">
           <v-icon size="18" color="white">mdi-account-group</v-icon>
         </div>
         <div>
@@ -299,7 +299,7 @@
     <div v-if="auth.isSuperAdmin" class="mb-5">
       <div class="d-flex align-center justify-space-between mb-3">
         <div class="section-header">
-          <div class="section-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe)">
+          <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan))">
             <v-icon size="18" color="white">mdi-swap-horizontal</v-icon>
           </div>
           <div>
@@ -365,7 +365,7 @@
                   <span>{{ t.locker.name }}</span>
                 </div>
                 <div v-if="t.approver" class="txn-actor txn-actor-approved">
-                  <v-icon size="10" color="#6EC47A" class="mr-1">mdi-account-check</v-icon>
+                  <v-icon size="10" color="var(--sp-accent-success)" class="mr-1">mdi-account-check</v-icon>
                   <span>{{ t.approver.name }}</span>
                 </div>
               </div>
@@ -505,7 +505,7 @@
     <div v-if="!auth.isSuperAdmin" class="mb-5">
       <div class="d-flex align-center justify-space-between mb-3">
         <div class="section-header">
-          <div class="section-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe)">
+          <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan))">
             <v-icon size="18" color="white">mdi-history</v-icon>
           </div>
           <div>
@@ -613,7 +613,7 @@
                   <span>{{ t.locker.name }}</span>
                 </div>
                 <div v-if="t.approver" class="txn-actor txn-actor-approved">
-                  <v-icon size="10" color="#6EC47A" class="mr-1">mdi-account-check</v-icon>
+                  <v-icon size="10" color="var(--sp-accent-success)" class="mr-1">mdi-account-check</v-icon>
                   <span>{{ t.approver.name }}</span>
                 </div>
               </div>
@@ -893,7 +893,7 @@ const recentHeaders = []
 
 // Helpers
 function statusColor(status) {
-  return { pending: 'grey', assigned: 'blue-grey', payment_seen: 'deep-purple', processing: 'orange', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }[status] || 'grey'
+  return { pending: 'grey', assigned: 'secondary', payment_seen: 'secondary', processing: 'warning', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }[status] || 'grey'
 }
 
 function statusText(status) {
@@ -927,7 +927,7 @@ function truncateHash(hash) {
 }
 
 function settlementStatusColor(status) {
-  return { pending_approval: 'blue-grey', assigned: 'info', pending_final: 'warning', approved: 'success', rejected: 'error', pending: 'warning' }[status] || 'grey'
+  return { pending_approval: 'secondary', assigned: 'info', pending_final: 'warning', approved: 'success', rejected: 'error', pending: 'warning' }[status] || 'grey'
 }
 
 function settlementStatusText(status) {
@@ -966,10 +966,10 @@ function avgTimeColor(seconds) {
 }
 
 function perfGradient(seconds) {
-  if (!seconds || seconds <= 0) return 'linear-gradient(135deg, #667eea, #764ba2)'
-  if (seconds <= 60) return 'linear-gradient(135deg, #43e97b, #38f9d7)'
-  if (seconds <= 180) return 'linear-gradient(135deg, #f6d365, #fda085)'
-  return 'linear-gradient(135deg, #f5576c, #ff6f61)'
+  if (!seconds || seconds <= 0) return 'linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-purple))'
+  if (seconds <= 60) return 'linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan))'
+  if (seconds <= 180) return 'linear-gradient(135deg, var(--sp-accent-amber), var(--sp-accent-peach))'
+  return 'linear-gradient(135deg, var(--sp-accent-error), var(--sp-accent-error))'
 }
 
 function perfCardClass(seconds) {
@@ -1016,7 +1016,7 @@ onMounted(async () => {
 .hero-earnings {
   padding: 28px 32px;
   border-radius: 18px;
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: linear-gradient(135deg, var(--sp-accent-success) 0%, var(--sp-accent-success) 100%);
   color: white;
   position: relative;
   overflow: hidden;
@@ -1091,10 +1091,10 @@ onMounted(async () => {
   color: var(--sp-text-dim);
   margin-top: 4px;
 }
-.simple-card--credit-good     .simple-card-icon { background: rgba(67,160,71,0.10); }
-.simple-card--credit-earnings .simple-card-icon { background: rgba(30,136,229,0.10); }
-.simple-card--credit-bad      .simple-card-icon { background: rgba(144,164,174,0.12); }
-.simple-card--pending         .simple-card-icon { background: rgba(228,163,79,0.10); }
+.simple-card--credit-good     .simple-card-icon { background: rgba(102,241,189,0.10); }
+.simple-card--credit-earnings .simple-card-icon { background: rgba(112,169,255,0.10); }
+.simple-card--credit-bad      .simple-card-icon { background: rgba(113,132,122,0.12); }
+.simple-card--pending         .simple-card-icon { background: rgba(255,190,91,0.10); }
 
 /* ── Operator dashboard widgets ── */
 .op-credit-card {
@@ -1257,9 +1257,9 @@ onMounted(async () => {
   z-index: 0;
 }
 
-.hero-deposit { background: linear-gradient(135deg, rgba(67,233,123,0.12), rgba(56,249,215,0.05)); border-color: rgba(67,233,123,0.15); }
-.hero-withdrawal { background: linear-gradient(135deg, rgba(79,172,254,0.12), rgba(0,242,254,0.05)); border-color: rgba(79,172,254,0.15); }
-.hero-pending { background: linear-gradient(135deg, rgba(246,211,101,0.12), rgba(253,160,133,0.05)); border-color: rgba(246,211,101,0.15); }
+.hero-deposit { background: linear-gradient(135deg, rgba(102,241,189,0.12), rgba(56,249,215,0.05)); border-color: rgba(102,241,189,0.15); }
+.hero-withdrawal { background: linear-gradient(135deg, rgba(112,169,255,0.12), rgba(0,242,254,0.05)); border-color: rgba(112,169,255,0.15); }
+.hero-pending { background: linear-gradient(135deg, rgba(255,190,91,0.12), rgba(253,160,133,0.05)); border-color: rgba(255,190,91,0.15); }
 
 .hero-icon-wrap {
   width: 52px;
@@ -1273,9 +1273,9 @@ onMounted(async () => {
   z-index: 1;
 }
 
-.hero-deposit .hero-icon-wrap { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-.hero-withdrawal .hero-icon-wrap { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.hero-pending .hero-icon-wrap { background: linear-gradient(135deg, #f6d365, #fda085); }
+.hero-deposit .hero-icon-wrap { background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan)); }
+.hero-withdrawal .hero-icon-wrap { background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan)); }
+.hero-pending .hero-icon-wrap { background: linear-gradient(135deg, var(--sp-accent-amber), var(--sp-accent-peach)); }
 
 .hero-content { position: relative; z-index: 1; flex: 1; }
 .hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--sp-text-muted); font-weight: 600; margin-bottom: 4px; }
@@ -1291,16 +1291,16 @@ onMounted(async () => {
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 20px;
-  background: rgba(246,211,101,0.15);
-  color: #f6d365;
+  background: rgba(255,190,91,0.15);
+  color: var(--sp-accent-amber);
   z-index: 1;
 }
 
 .pulse-badge { animation: pulse-glow 2s ease-in-out infinite; }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(246,211,101,0.2); }
-  50% { box-shadow: 0 0 0 6px rgba(246,211,101,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,190,91,0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(255,190,91,0); }
 }
 
 /* ═══════════════════════════════════════ */
@@ -1373,9 +1373,9 @@ onMounted(async () => {
 .glass-value-sm { font-size: 17px; font-weight: 700; }
 .glass-hint { font-size: 10px; color: var(--sp-text-dim); margin-top: 4px; }
 
-.glass-perf-fast { border-color: rgba(110,196,122,0.2) !important; }
-.glass-perf-normal { border-color: rgba(228,163,79,0.2) !important; }
-.glass-perf-slow { border-color: rgba(229,115,115,0.2) !important; }
+.glass-perf-fast { border-color: rgba(102,241,189,0.2) !important; }
+.glass-perf-normal { border-color: rgba(255,190,91,0.2) !important; }
+.glass-perf-slow { border-color: rgba(255,142,130,0.2) !important; }
 
 /* ═══════════════════════════════════════ */
 /* FLOW CARD (Operator balance flow) */
@@ -1453,7 +1453,7 @@ onMounted(async () => {
 }
 
 .merchant-card:hover {
-  border-color: rgba(79,172,254,0.2);
+  border-color: rgba(112,169,255,0.2);
   transform: translateY(-2px);
   box-shadow: 0 8px 30px var(--sp-shadow);
 }
@@ -1469,7 +1469,7 @@ onMounted(async () => {
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1642,7 +1642,7 @@ onMounted(async () => {
 }
 
 .txn-row-pending {
-  border-left: 3px solid rgba(246,211,101,0.4);
+  border-left: 3px solid rgba(255,190,91,0.4);
 }
 
 .txn-row-active {
@@ -1660,8 +1660,8 @@ onMounted(async () => {
   flex-shrink: 0;
 }
 
-.txn-type-deposit { background: linear-gradient(135deg, rgba(67,233,123,0.8), rgba(56,249,215,0.8)); }
-.txn-type-withdrawal { background: linear-gradient(135deg, rgba(79,172,254,0.8), rgba(0,242,254,0.8)); }
+.txn-type-deposit { background: linear-gradient(135deg, rgba(102,241,189,0.8), rgba(56,249,215,0.8)); }
+.txn-type-withdrawal { background: linear-gradient(135deg, rgba(112,169,255,0.8), rgba(0,242,254,0.8)); }
 
 .txn-main { flex: 1; min-width: 0; }
 
@@ -1685,7 +1685,7 @@ onMounted(async () => {
   letter-spacing: 0.5px;
 }
 
-.txn-type-blue { color: #5EAFC7; }
+.txn-type-blue { color: var(--sp-accent-cyan); }
 
 .txn-id-label {
   font-size: 10px;
@@ -1815,7 +1815,7 @@ onMounted(async () => {
 }
 
 .txn-actor-approved {
-  color: rgba(110,196,122,0.6);
+  color: rgba(102,241,189,0.6);
 }
 
 .txn-time-block {
@@ -1831,7 +1831,7 @@ onMounted(async () => {
 
 .txn-time-approved {
   font-size: 9px;
-  color: rgba(110,196,122,0.5);
+  color: rgba(102,241,189,0.5);
   margin-top: 2px;
 }
 
@@ -1900,9 +1900,9 @@ onMounted(async () => {
   border-color: #E3E5EE;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
-:global(.v-theme--lightComfort .hero-deposit) { background: #FFFFFF; border-left: 3px solid #43e97b; }
-:global(.v-theme--lightComfort .hero-withdrawal) { background: #FFFFFF; border-left: 3px solid #4facfe; }
-:global(.v-theme--lightComfort .hero-pending) { background: #FFFFFF; border-left: 3px solid #f6d365; }
+:global(.v-theme--lightComfort .hero-deposit) { background: #FFFFFF; border-left: 3px solid var(--sp-accent-success); }
+:global(.v-theme--lightComfort .hero-withdrawal) { background: #FFFFFF; border-left: 3px solid var(--sp-accent-blue); }
+:global(.v-theme--lightComfort .hero-pending) { background: #FFFFFF; border-left: 3px solid var(--sp-accent-amber); }
 
 :global(.v-theme--lightComfort .glass-card) {
   background: #FFFFFF;
@@ -1957,7 +1957,7 @@ onMounted(async () => {
 }
 :global(.v-theme--lightComfort .txn-row-active) {
   background: #EEF0FA !important;
-  border-color: #B8BDD6 !important;
+  border-color: var(--sp-text) !important;
 }
 
 :global(.v-theme--lightComfort .txn-empty) {

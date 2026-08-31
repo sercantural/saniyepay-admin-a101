@@ -274,7 +274,7 @@ const txnPermissions = [
   { value: 'transactions.approve.withdrawal', label: 'Çekim Onaylayabilir', color: 'success' },
   { value: 'transactions.reject.deposit', label: 'Yatırım Reddedebilir', color: 'error' },
   { value: 'transactions.reject.withdrawal', label: 'Çekim Reddedebilir', color: 'error' },
-  { value: 'transactions.lock', label: 'İşleme Alabilir', color: 'orange' },
+  { value: 'transactions.lock', label: 'İşleme Alabilir', color: 'warning' },
 ]
 
 const bankPermissions = [

@@ -4,44 +4,25 @@ import * as directives from 'vuetify/directives'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 
-// Eye-comfort dark theme — optimised for long screen sessions
-// Uses warm-tinted neutrals, muted accent colours, and low contrast ratios
+// "Signal" — tanitim sitesi, giris ekrani ve bayi paneliyle ayni dil.
+// Neredeyse siyah zemin, tek mint sinyal rengi. Anlamsal renkler
+// (uyari / hata) sinyal renginden ayri tutuluyor ki durum okunabilsin.
 const darkComfort = {
   dark: true,
   colors: {
-    background: '#0F1117',       // Deep navy-black
-    surface: '#171921',          // Card / drawer
-    'surface-bright': '#1E2030', // Elevated cards
-    'surface-variant': '#252736',// Hover / subtle bg
-    'on-background': '#C8CCD8', // Primary text (not pure white)
-    'on-surface': '#C8CCD8',
-    primary: '#7C8FE4',         // Soft indigo — easy on eyes
-    'primary-darken-1': '#5C6FC4',
-    secondary: '#A78BFA',       // Soft purple
-    success: '#6EC47A',         // Muted green
-    warning: '#E4A34F',         // Warm amber
-    error: '#E06C6C',           // Soft red
-    info: '#5EAFC7',            // Muted teal-blue
-  },
-}
-
-// Eye-comfort light theme — clean, professional, low-glare
-const lightComfort = {
-  dark: false,
-  colors: {
-    background: '#F0F2F8',       // Warm grey-blue canvas
-    surface: '#FFFFFF',          // White cards
-    'surface-bright': '#FFFFFF', // Elevated cards
-    'surface-variant': '#E8EAF2',// Hover / subtle bg
-    'on-background': '#1E2030', // Rich dark text (not pure black)
-    'on-surface': '#1E2030',
-    primary: '#4F63B8',         // Deep indigo — strong contrast
-    'primary-darken-1': '#3D4FA0',
-    secondary: '#6B4DAD',       // Rich purple
-    success: '#2E7D32',         // Forest green
-    warning: '#E67E00',         // Deep amber
-    error: '#C62828',           // Strong red
-    info: '#0277BD',            // Deep blue
+    background: '#070B09',
+    surface: '#0D1310',
+    'surface-bright': '#101815',
+    'surface-variant': '#16211C',
+    'on-background': '#EDF7F1',
+    'on-surface': '#EDF7F1',
+    primary: '#66F1BD',
+    'primary-darken-1': '#4BD3A0',
+    secondary: '#70A9FF',
+    success: '#66F1BD',
+    warning: '#FFBE5B',
+    error: '#FF8E82',
+    info: '#70A9FF',
   },
 }
 
@@ -123,16 +104,16 @@ export default createVuetify({
     defaultTheme: 'darkComfort',
     themes: {
       darkComfort,
-      lightComfort,
     },
   },
   defaults: {
-    VCard: { rounded: 'lg', elevation: 0 },
-    VBtn: { rounded: 'lg' },
-    VTextField: { variant: 'outlined', density: 'compact', rounded: 'lg' },
-    VSelect: { variant: 'outlined', density: 'compact', rounded: 'lg' },
-    VTextarea: { variant: 'outlined', density: 'compact', rounded: 'lg' },
-    VChip: { rounded: 'lg' },
+    // Signal sifir kose yaricapli; rounded='lg' varsayilanlari kaldirildi.
+    VCard: { rounded: 0, elevation: 0 },
+    VBtn: { rounded: 0 },
+    VTextField: { variant: 'outlined', density: 'compact', rounded: 0 },
+    VSelect: { variant: 'outlined', density: 'compact', rounded: 0 },
+    VTextarea: { variant: 'outlined', density: 'compact', rounded: 0 },
+    VChip: { rounded: 0 },
     VDataTable: { density: 'comfortable' },
   },
 })

@@ -245,7 +245,7 @@ function selectRow(item) {
 
 // ── Helpers ──
 function statusColor(s) {
-  return { pending_approval: 'warning', approved: 'success', rejected: 'error', assigned: 'info', pending_final: 'deep-purple' }[s] || 'grey'
+  return { pending_approval: 'warning', approved: 'success', rejected: 'error', assigned: 'info', pending_final: 'secondary' }[s] || 'grey'
 }
 
 function statusLabel(s) {
@@ -327,7 +327,7 @@ onMounted(() => {
           >
             <template #item.created_at="{ item }">{{ fmtDate(item.created_at) }}</template>
             <template #item.settlement_type="{ item }">
-              <v-chip size="x-small" :color="item.settlement_type === 'merchant' ? 'blue' : 'purple'" variant="tonal">
+              <v-chip size="x-small" :color="item.settlement_type === 'merchant' ? 'info' : 'secondary'" variant="tonal">
                 {{ item.settlement_type === 'merchant' ? 'Bayi' : 'Şirket' }}
               </v-chip>
             </template>
@@ -339,15 +339,15 @@ onMounted(() => {
               <span class="font-weight-bold">{{ fmtAmount(item.amount_try) }}</span>
             </template>
             <template #item.merchant_fee_amount="{ item }">
-              <span v-if="item.merchant_fee_amount > 0" style="color: #E4A34F; font-weight: 600">{{ fmtAmount(item.merchant_fee_amount) }}</span>
+              <span v-if="item.merchant_fee_amount > 0" style="color: var(--sp-accent-amber); font-weight: 600">{{ fmtAmount(item.merchant_fee_amount) }}</span>
               <span v-else class="text-medium-emphasis">--</span>
             </template>
             <template #item.net_amount="{ item }">
-              <span style="color: #66BB6A; font-weight: 600">{{ fmtAmount(item.net_amount) }}</span>
+              <span style="color: var(--sp-accent-success-bright); font-weight: 600">{{ fmtAmount(item.net_amount) }}</span>
             </template>
             <template #item.coin_network="{ item }">
               <div style="line-height: 1.2">
-                <v-chip size="x-small" color="blue" variant="tonal">{{ item.coin || '--' }}</v-chip>
+                <v-chip size="x-small" color="info" variant="tonal">{{ item.coin || '--' }}</v-chip>
                 <div class="text-caption">{{ item.network }}</div>
               </div>
             </template>
@@ -377,7 +377,7 @@ onMounted(() => {
           <div class="mb-3">
             <div class="text-caption text-medium-emphasis">Hedef</div>
             <div><strong>{{ selectedItem.merchant?.name || 'Şirket Mutabakatı' }}</strong></div>
-            <div v-if="selectedItem.source === 'merchant'" class="text-caption" style="color: #4FC3F7">Bayi tarafından oluşturuldu</div>
+            <div v-if="selectedItem.source === 'merchant'" class="text-caption" style="color: var(--sp-accent-blue)">Bayi tarafından oluşturuldu</div>
           </div>
 
           <div class="mb-3">
@@ -385,17 +385,17 @@ onMounted(() => {
             <div>Brüt: <strong>{{ fmtAmount(selectedItem.amount_try) }} TRY</strong></div>
             <div v-if="selectedItem.merchant_fee_amount > 0">
               Komisyon (%{{ selectedItem.merchant_fee_percent }}):
-              <span style="color: #E4A34F">{{ fmtAmount(selectedItem.merchant_fee_amount) }}</span>
+              <span style="color: var(--sp-accent-amber)">{{ fmtAmount(selectedItem.merchant_fee_amount) }}</span>
             </div>
-            <div>Net: <span style="color: #66BB6A; font-weight: 600">{{ fmtAmount(selectedItem.net_amount) }} TRY</span></div>
+            <div>Net: <span style="color: var(--sp-accent-success-bright); font-weight: 600">{{ fmtAmount(selectedItem.net_amount) }} TRY</span></div>
           </div>
 
           <div class="mb-3">
             <div class="text-caption text-medium-emphasis">Hedef Cüzdan</div>
             <code style="font-size: 11px; word-break: break-all">{{ selectedItem.wallet_address }}</code>
             <div class="mt-1">
-              <v-chip size="x-small" color="blue" variant="tonal">{{ selectedItem.coin }}</v-chip>
-              <v-chip size="x-small" color="purple" variant="tonal" class="ml-1">{{ selectedItem.network }}</v-chip>
+              <v-chip size="x-small" color="info" variant="tonal">{{ selectedItem.coin }}</v-chip>
+              <v-chip size="x-small" color="secondary" variant="tonal" class="ml-1">{{ selectedItem.network }}</v-chip>
             </div>
           </div>
 
@@ -410,7 +410,7 @@ onMounted(() => {
 
           <div v-if="selectedItem.rejection_reason" class="mb-3">
             <div class="text-caption text-medium-emphasis">Red Nedeni</div>
-            <div style="color: #E57373">{{ selectedItem.rejection_reason }}</div>
+            <div style="color: var(--sp-accent-rose)">{{ selectedItem.rejection_reason }}</div>
           </div>
 
           <div v-if="selectedItem.notes" class="mb-3">
@@ -489,7 +489,7 @@ onMounted(() => {
             item-title="label" item-value="id"
             label="Kaynak Cüzdan (Şirket)" variant="outlined" density="compact"
           />
-          <div v-if="!activeWallets.some(w => w.coin === selectedItem.coin && w.network === selectedItem.network)" class="text-caption mb-2" style="color: #E57373">
+          <div v-if="!activeWallets.some(w => w.coin === selectedItem.coin && w.network === selectedItem.network)" class="text-caption mb-2" style="color: var(--sp-accent-rose)">
             <v-icon size="14">mdi-alert</v-icon>
             {{ selectedItem.coin }}/{{ selectedItem.network }} için aktif şirket cüzdanı yok.
           </div>

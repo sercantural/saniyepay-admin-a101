@@ -291,11 +291,11 @@ onMounted(loadTeam)
 .team-card {
   border-radius: 18px !important;
   overflow: hidden;
-  border: 1px solid rgba(124, 58, 237, 0.25) !important;
-  box-shadow: 0 12px 48px rgba(124, 58, 237, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid rgba(102,241,189, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(102,241,189, 0.18), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
 }
 .team-hero {
-  background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 50%, #A78BFA 100%);
+  background: linear-gradient(135deg, var(--sp-accent-purple) 0%, var(--sp-primary) 50%, var(--sp-accent-purple) 100%);
   padding: 26px 24px 18px;
   text-align: center;
   position: relative;
@@ -344,13 +344,13 @@ onMounted(loadTeam)
   align-items: center;
   gap: 14px;
   padding: 14px 22px;
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.08) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(102,241,189, 0.08) 0%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .team-role-icon {
   width: 44px; height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #7C3AED, #A78BFA);
+  background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -378,10 +378,10 @@ onMounted(loadTeam)
 .team-confirm-btn {
   font-weight: 800 !important;
   letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(102,241,189, 0.45) !important;
 }
 .team-confirm-btn:hover {
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.6) !important;
+  box-shadow: 0 6px 20px rgba(102,241,189, 0.6) !important;
   transform: translateY(-1px);
 }
 </style>

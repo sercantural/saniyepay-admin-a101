@@ -202,7 +202,7 @@
                 </div>
                 <div class="switch-item">
                   <div><div class="switch-label">İstek İmzalama</div><div class="switch-desc">API isteklerinde HMAC imza doğrulamasını zorunlu kılar</div></div>
-                  <v-switch v-model="form.require_request_signature" color="deep-purple" hide-details density="compact" />
+                  <v-switch v-model="form.require_request_signature" color="secondary" hide-details density="compact" />
                 </div>
               </div>
 
@@ -711,18 +711,18 @@ onMounted(() => loadMerchants())
 </script>
 
 <style scoped>
-.mc-deposit { color: #6EC47A; }
-.mc-withdrawal { color: #5EAFC7; }
-.mc-settlement { color: #AB47BC; }
-.mc-commission { color: #E4A34F; }
-.mc-negative { color: #E06C6C; }
+.mc-deposit { color: var(--sp-accent-success); }
+.mc-withdrawal { color: var(--sp-accent-cyan); }
+.mc-settlement { color: var(--sp-accent-purple); }
+.mc-commission { color: var(--sp-accent-amber); }
+.mc-negative { color: var(--sp-accent-error); }
 .mc-sub-text { color: var(--sp-text-hint); }
 .mc-separator { color: var(--sp-text-ghost); }
 
-:global(.v-theme--lightComfort .mc-deposit) { color: #2E7D32; }
-:global(.v-theme--lightComfort .mc-withdrawal) { color: #0277BD; }
-:global(.v-theme--lightComfort .mc-commission) { color: #E67E00; }
-:global(.v-theme--lightComfort .mc-negative) { color: #C62828; }
+:global(.v-theme--lightComfort .mc-deposit) { color: var(--sp-accent-success); }
+:global(.v-theme--lightComfort .mc-withdrawal) { color: var(--sp-accent-info); }
+:global(.v-theme--lightComfort .mc-commission) { color: var(--sp-accent-amber); }
+:global(.v-theme--lightComfort .mc-negative) { color: var(--sp-accent-error); }
 
 /* ── Merchant Dialog ── */
 .merchant-dialog { overflow: hidden; }
@@ -739,7 +739,7 @@ onMounted(() => loadMerchants())
 }
 .limit-card {
   padding: 14px; border-radius: 10px;
-  background: var(--sp-surface-1, rgba(124,58,237,0.03));
+  background: var(--sp-surface-1, rgba(102,241,189,0.03));
   border: 1px solid var(--sp-border);
 }
 .limit-card-head {
@@ -755,7 +755,7 @@ onMounted(() => loadMerchants())
 .switch-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 14px; border-radius: 10px;
-  background: var(--sp-surface-1, rgba(124,58,237,0.03));
+  background: var(--sp-surface-1, rgba(102,241,189,0.03));
   border: 1px solid var(--sp-border);
 }
 .switch-label { font-size: 13px; font-weight: 600; color: var(--sp-text); }
