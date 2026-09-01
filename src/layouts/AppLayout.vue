@@ -240,6 +240,7 @@ const menu = computed(() => {
         { name: 'Dashboard', title: 'Genel Bakış', sub: 'İstatistikler', icon: 'mdi-chart-box-outline', show: true },
         { name: 'BankAccounts', title: 'Banka Hesapları', sub: 'Hesap yapılandırması', icon: 'mdi-bank-outline', show: can('bank_accounts.view') },
         { name: 'Users', title: 'Kullanıcılar', sub: 'Yetki yönetimi', icon: 'mdi-account-group-outline', show: can('users.view') },
+        { name: 'Roles', title: 'Roller', sub: 'Rol ve izinler', icon: 'mdi-shield-account-outline', show: can('roles.view') },
         { name: 'Team', title: 'Ekibim', sub: 'Ekip yönetimi', icon: 'mdi-account-multiple-plus-outline',
           show: !auth.isSuperAdmin && auth.can('team.create') },
         { name: 'SubGroups', title: 'Alt Gruplar', sub: 'Grup yapılandırması', icon: 'mdi-folder-account-outline', show: can('sub_groups.view') },
@@ -260,7 +261,7 @@ const menu = computed(() => {
 
 const pages = {
   Home: 'Ana Sayfa', Dashboard: 'Genel Bakış', Deposits: 'Yatırımlar', Withdrawals: 'Çekimler',
-  WithdrawalPool: 'Çekim Havuzu', OperatorBalances: 'Operatör Bakiyeleri',
+  WithdrawalPool: 'Çekim Havuzu', OperatorBalances: 'Operatör Bakiyeleri', Roles: 'Roller ve İzinler',
   TxnDetail: 'İşlem Detayı', BankAccounts: 'Banka Hesapları', Users: 'Kullanıcılar', Team: 'Ekibim',
   SubGroups: 'Alt Gruplar', Merchants: 'Bayiler', Settlements: 'Mutabakat', Teslimler: 'Teslim',
   CompanyWallets: 'Şirket Cüzdanları', ApiLogs: 'API Kayıtları', Reports: 'Raporlar',

@@ -77,6 +77,13 @@ const routes = [
         component: () => import('@/views/bank-accounts/BankAccountListView.vue'),
       },
       {
+        // Roller ve granul izinler. Yeni gorev tanimlari icin kod
+        // degistirmek gerekmesin diye.
+        path: 'roles',
+        name: 'Roles',
+        component: () => import('@/views/RolesView.vue'),
+      },
+      {
         path: 'users',
         name: 'Users',
         component: () => import('@/views/users/UserListView.vue'),
