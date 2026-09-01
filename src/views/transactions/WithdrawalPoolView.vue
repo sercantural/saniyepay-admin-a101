@@ -27,17 +27,14 @@
         </v-btn>
       </div>
 
-      <!-- Aralik bilgisi: operator neden bazi tutarlari gormedigini
-           tahmin etmek zorunda kalmasin. -->
-      <div class="pool-limits">
+      <!-- Aralik bilgisi YALNIZCA super admin'e. Operatore "size su
+           araligi gosteriyoruz" demek ic politikayi ifsa ediyor ve
+           onun icin bir ise yaramiyor: aralik disindaki kayitlari
+           zaten hic gormuyor. -->
+      <div v-if="isSuperAdmin" class="pool-limits">
         <v-icon size="14" class="mr-1">mdi-arrow-expand-vertical</v-icon>
-        <template v-if="auth.isSuperAdmin">
-          Alt gruplar {{ limitText }} aralığındaki çekimleri görür.
-          Aralık dışındakiler yalnızca size görünür; elle atamanız gerekir.
-        </template>
-        <template v-else>
-          Size gösterilen aralık: {{ limitText }}
-        </template>
+        Alt gruplar {{ limitText }} aralığındaki çekimleri görür.
+        Aralık dışındakiler yalnızca size görünür; elle atamanız gerekir.
       </div>
 
       <v-alert
@@ -130,6 +127,9 @@ const items = ref([])
 const total = ref(0)
 const enabled = ref(true)
 const canClaim = ref(false)
+// Sunucunun soyledigi; auth store ile ayni olmali ama yetki kararini
+// veren taraf sunucu oldugu icin onu esas aliyoruz.
+const isSuperAdmin = ref(false)
 const limits = ref({ min: 0, max: null })
 const loading = ref(false)
 const claiming = ref(null)
@@ -138,14 +138,19 @@ const snackbar = ref(false)
 const snackText = ref('')
 const snackColor = ref('success')
 
-const headers = [
+/*
+ * Bayi adi yalnizca super admin'e gosteriliyor -- panelin genelinde
+ * gecerli olan kural. Sunucu zaten iliskiyi non-SA icin hic yuklemiyor;
+ * sutunu da gizliyoruz ki bos bir kolon kalmasin.
+ */
+const headers = computed(() => [
   { title: 'Talep', key: 'created_at', sortable: false, width: 160 },
-  { title: 'Bayi', key: 'merchant', sortable: false },
+  ...(isSuperAdmin.value ? [{ title: 'Bayi', key: 'merchant', sortable: false }] : []),
   { title: 'Oyuncu', key: 'player', sortable: false },
   { title: 'IBAN', key: 'player_iban', sortable: false },
   { title: 'Tutar', key: 'requested_amount', sortable: false, align: 'end' },
   { title: '', key: 'actions', sortable: false, align: 'end', width: 120 },
-]
+])
 
 const limitText = computed(() => {
   const min = limits.value.min || 0
@@ -198,6 +203,7 @@ async function load() {
     const { data } = await api.get('/portal/transactions/pool')
     enabled.value = data.enabled
     canClaim.value = data.can_claim
+    isSuperAdmin.value = Boolean(data.is_super_admin)
     limits.value = data.limits || { min: 0, max: null }
     items.value = data.data || []
     total.value = data.total || 0
