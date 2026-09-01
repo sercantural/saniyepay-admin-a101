@@ -215,6 +215,21 @@
             >
               <v-icon size="14">{{ item.is_active ? 'mdi-power-off' : 'mdi-power' }}</v-icon>
             </v-btn>
+            <!-- Silme yalnizca HIC KULLANILMAMIS hesaplar icin gecerli.
+                 Gecmisi olan hesabi silmek islemlerin hesap baglantisini
+                 kopariyor ve operator kredisini degistiriyor; sunucu bunu
+                 reddediyor, sebebini de yaziyor. -->
+            <v-btn
+              v-if="auth.can('bank_accounts.delete') || auth.isSuperAdmin"
+              size="x-small"
+              variant="tonal"
+              color="error"
+              icon
+              @click="askDelete(item)"
+              title="Sil"
+            >
+              <v-icon size="14">mdi-trash-can-outline</v-icon>
+            </v-btn>
           </div>
         </template>
       </v-data-table>
@@ -394,6 +409,28 @@
           >
             {{ editing ? 'Güncelle' : 'Oluştur' }}
           </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Silme onayi. Kalici bir islem, geri alinamiyor. -->
+    <v-dialog v-model="deleteDialog" max-width="460">
+      <v-card>
+        <v-card-title class="pa-4">Hesabı sil</v-card-title>
+        <v-card-text>
+          <div v-if="deleteTarget" class="mb-3">
+            <strong>{{ deleteTarget.account_holder }}</strong><br>
+            <span class="text-medium-emphasis">{{ deleteTarget.bank_name }} · {{ deleteTarget.iban }}</span>
+          </div>
+          <v-alert type="warning" variant="tonal" density="compact">
+            Bu işlem geri alınamaz. İşlem geçmişi olan hesaplar silinemez;
+            onları kullanımdan kaldırmak için pasife alın.
+          </v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="deleteDialog = false">Vazgeç</v-btn>
+          <v-btn color="error" variant="flat" :loading="deleting" @click="confirmDelete">Sil</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -657,6 +694,32 @@ async function saveAccount() {
   } catch (e) {
     showSnack(e.response?.data?.message || 'İşlem başarısız', 'error')
   } finally { saving.value = false }
+}
+
+const deleteDialog = ref(false)
+const deleteTarget = ref(null)
+const deleting = ref(false)
+
+function askDelete(item) {
+  deleteTarget.value = item
+  deleteDialog.value = true
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/portal/bank-accounts/${deleteTarget.value.id}`)
+    showSnack('Hesap silindi')
+    deleteDialog.value = false
+    await loadAccounts()
+  } catch (e) {
+    // Sunucu "islem gecmisi var" derse mesaji oldugu gibi gosteriyoruz:
+    // ne yapilmasi gerektigini (pasife alma) o soyluyor.
+    showSnack(e.response?.data?.message || 'Hesap silinemedi', 'error')
+  } finally {
+    deleting.value = false
+  }
 }
 
 async function toggleAccount(id) {
