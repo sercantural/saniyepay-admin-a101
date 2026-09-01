@@ -49,13 +49,14 @@
         :items="items"
         :loading="loading"
         :items-per-page="25"
+        :sort-by="[{ key: 'created_at', order: 'asc' }]"
         density="comfortable"
         class="pool-table"
         no-data-text="Havuzda bekleyen çekim yok."
       >
         <template #item.created_at="{ item }">
-          <div class="mono">{{ formatDate(item.created_at) }}</div>
-          <div class="waited">{{ waited(item.created_at) }}</div>
+          <div class="waited-main" :class="waitClass(item.created_at)">{{ waited(item.created_at) }}</div>
+          <div class="waited-at mono">{{ formatDate(item.created_at) }}</div>
         </template>
 
         <template #item.merchant="{ item }">
@@ -217,7 +218,11 @@ const snackColor = ref('success')
  * sutunu da gizliyoruz ki bos bir kolon kalmasin.
  */
 const headers = computed(() => [
-  { title: 'Talep', key: 'created_at', sortable: false, width: 160 },
+  // Siralanabilir tek sutun bilerek bu: havuzda onceligi belirleyen
+  // sey bekleme suresi. created_at uzerinden siraliyoruz -- eski kayit
+  // = uzun bekleyen, yani artan created_at dogrudan "en cok bekleyen
+  // ustte" demek.
+  { title: 'Bekleme', key: 'created_at', sortable: true, width: 175 },
   ...(isSuperAdmin.value ? [{ title: 'Bayi', key: 'merchant', sortable: false }] : []),
   { title: 'Oyuncu', key: 'player', sortable: false },
   // IBAN yalnizca super admin'de. Operator isi ustlenmeden IBAN
@@ -259,6 +264,16 @@ function formatDate(v) {
   return new Date(v).toLocaleString('tr-TR', {
     day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
   })
+}
+
+// Uzun bekleyen is one ciksin: 30 dk ustu sari, 2 saat ustu kirmizi.
+// Siralama zaten dogru sirayi veriyor, renk de bakisla fark ettiriyor.
+function waitClass(v) {
+  if (!v) return ''
+  const mins = (now.value - new Date(v).getTime()) / 60000
+  if (mins >= 120) return 'w-crit'
+  if (mins >= 30) return 'w-warn'
+  return ''
 }
 
 // Havuzda ne kadar bekledigi, oncelik icin en ise yarar bilgi.
@@ -419,7 +434,10 @@ onUnmounted(() => clearInterval(ticker))
 
 .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 .muted { color: var(--sp-text-muted); font-size: 11px; }
-.waited { font-size: 11px; color: var(--sp-text-muted); }
+.waited-main { font-size: 12.5px; font-weight: 600; }
+.waited-main.w-warn { color: #f0a35e; }
+.waited-main.w-crit { color: #ff8e82; }
+.waited-at { font-size: 10.5px; color: var(--sp-text-muted); }
 .amount { font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
