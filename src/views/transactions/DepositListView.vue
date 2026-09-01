@@ -326,7 +326,7 @@
             :loading="actingId === item.id"
             prepend-icon="mdi-hand-extended"
           >
-            Üzerime Al
+            İşleme Al
           </v-btn>
           <!-- Stage 2: ONAYLA / REDDET — after operator has locked it -->
           <template v-else-if="canActOnLocked(item)">
