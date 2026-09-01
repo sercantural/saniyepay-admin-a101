@@ -331,6 +331,7 @@
           <!-- Stage 2: ONAYLA / REDDET — after operator has locked it -->
           <template v-else-if="canActOnLocked(item)">
             <v-btn
+              v-if="canApproveItem(item)"
               size="small"
               variant="flat"
               color="success"
@@ -340,6 +341,7 @@
               Onayla
             </v-btn>
             <v-btn
+              v-if="canRejectItem(item)"
               size="small"
               variant="flat"
               color="error"
@@ -968,6 +970,21 @@ function canActOnLocked(item) {
   if (!['processing', 'payment_seen'].includes(item.status)) return false
   if (auth.isSuperAdmin) return true
   return item.locked_by === auth.user?.id
+}
+
+/*
+ * Onay ve red AYRI izinler.
+ *
+ * Onceden yalnizca canActOnLocked'a bakiliyordu, yani kilidi elinde
+ * olan herkes iki dugmeyi de goruyordu -- transactions.approve.* /
+ * reject.* izinleri arayuzde hic kontrol edilmiyordu. Sunucu zaten
+ * reddediyordu ama kullanici bunu ancak tikladiktan sonra ogreniyordu.
+ */
+function canApproveItem(item) {
+  return canActOnLocked(item) && (auth.isSuperAdmin || auth.can('transactions.approve.deposit'))
+}
+function canRejectItem(item) {
+  return canActOnLocked(item) && (auth.isSuperAdmin || auth.can('transactions.reject.deposit'))
 }
 
 async function handleLock(item) {

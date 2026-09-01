@@ -86,7 +86,7 @@
           <!-- Super admin havuzdan is ALMAZ; sahada parayi tasiyan taraf
                degil. Onun eylemi elle atamak, o da islem detayinda. -->
           <v-btn
-            v-if="canClaim"
+            v-if="mayClaim"
             size="small" color="primary" variant="flat"
             :loading="claiming === item.id"
             :disabled="claiming !== null"
@@ -94,7 +94,7 @@
           >
             Üzerime al
           </v-btn>
-          <div v-else-if="isSuperAdmin" class="row-actions">
+          <div v-else-if="mayAssign" class="row-actions">
             <v-btn size="small" color="primary" variant="flat" @click="openAssign(item)">
               Ata
             </v-btn>
@@ -197,6 +197,10 @@ const items = ref([])
 const total = ref(0)
 const enabled = ref(true)
 const canClaim = ref(false)
+// Sunucu 'alabilir mi' diyor; arayuz ayrica izni de kontrol ediyor
+// ki izinsiz kullanicida dugme hic gorunmesin.
+const mayClaim = computed(() => canClaim.value && (auth.isSuperAdmin || auth.can('withdrawal_pool.claim')))
+const mayAssign = computed(() => auth.isSuperAdmin || auth.can('withdrawal_pool.assign'))
 // Sunucunun soyledigi; auth store ile ayni olmali ama yetki kararini
 // veren taraf sunucu oldugu icin onu esas aliyoruz.
 const isSuperAdmin = ref(false)

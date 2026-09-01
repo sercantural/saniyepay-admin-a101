@@ -18,7 +18,7 @@
           style="max-width: 160px"
           @update:model-value="loadData"
         />
-        <v-btn color="primary" variant="elevated" :to="{ name: 'ProposalCreate' }">
+        <v-btn v-if="can('proposals.create')" color="primary" variant="elevated" :to="{ name: 'ProposalCreate' }">
           <v-icon start>mdi-plus</v-icon> Yeni Teklif
         </v-btn>
       </v-card-title>
@@ -71,10 +71,10 @@
             <v-btn size="x-small" variant="tonal" color="primary" :to="{ name: 'ProposalDetail', params: { id: item.id } }" @click.stop>
               <v-icon size="14">mdi-eye</v-icon>
             </v-btn>
-            <v-btn v-if="item.status === 'draft'" size="x-small" variant="tonal" :to="{ name: 'ProposalEdit', params: { id: item.id } }" @click.stop>
+            <v-btn v-if="can('proposals.edit') && item.status === 'draft'" size="x-small" variant="tonal" :to="{ name: 'ProposalEdit', params: { id: item.id } }" @click.stop>
               <v-icon size="14">mdi-pencil</v-icon>
             </v-btn>
-            <v-btn size="x-small" variant="tonal" color="error" @click.stop="deleteProposal(item.id)">
+            <v-btn v-if="can('proposals.delete')" size="x-small" variant="tonal" color="error" @click.stop="deleteProposal(item.id)">
               <v-icon size="14">mdi-trash-can-outline</v-icon>
             </v-btn>
           </div>
@@ -85,9 +85,14 @@
 </template>
 
 <script setup>
+import { useAuthStore } from '@/stores/auth'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/plugins/axios'
+
+const auth = useAuthStore()
+// Ekran ici eylemler de izne bagli.
+const can = (p) => auth.can(p) || auth.isSuperAdmin
 
 const router = useRouter()
 const items = ref([])

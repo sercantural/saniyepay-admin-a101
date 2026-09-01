@@ -302,7 +302,7 @@
 
             <!-- Stage 2 (<5k): direct Onayla -->
             <v-btn
-              v-else-if="canActOnLocked(item) && Number(item.requested_amount) < ADMIN_REVIEW_THRESHOLD"
+              v-else-if="canApproveItem(item) && Number(item.requested_amount) < ADMIN_REVIEW_THRESHOLD"
               size="small"
               variant="flat"
               color="success"
@@ -313,13 +313,13 @@
             </v-btn>
 
             <!-- Stage 2 (≥5k): Dekont / URL upload -->
-            <template v-else-if="canActOnLocked(item) && Number(item.requested_amount) >= ADMIN_REVIEW_THRESHOLD">
+            <template v-else-if="canSubmitProof(item) && Number(item.requested_amount) >= ADMIN_REVIEW_THRESHOLD">
               <v-btn size="small" variant="flat" color="secondary" @click="openProof(item, 'file')" prepend-icon="mdi-file-upload">Dekont Yükle</v-btn>
               <v-btn size="small" variant="flat" color="info" @click="openProof(item, 'url')"  prepend-icon="mdi-link-variant">URL Yükle</v-btn>
             </template>
 
             <!-- Stage 3 (admin_review, SA only): inspect → decide -->
-            <template v-if="item.status === 'admin_review' && auth.isSuperAdmin">
+            <template v-if="item.status === 'admin_review' && (auth.isSuperAdmin || auth.can('transactions.approve.withdrawal'))">
               <!-- Decisive actions side-by-side; review action on its own row below -->
               <div class="admin-review-stack">
                 <div class="admin-review-decision">
@@ -1273,6 +1273,23 @@ function canActOnLocked(item) {
   if (!['processing', 'payment_seen'].includes(item.status)) return false
   if (auth.isSuperAdmin) return true
   return item.locked_by === auth.user?.id
+}
+
+/*
+ * Onay, red ve dekont AYRI izinler.
+ *
+ * Onceden yalnizca canActOnLocked'a bakiliyordu: kilidi elinde olan
+ * herkes onay dugmesini goruyordu. Sunucu zaten reddediyordu ama
+ * kullanici bunu ancak tikladiktan sonra ogreniyordu.
+ */
+function canApproveItem(item) {
+  return canActOnLocked(item) && (auth.isSuperAdmin || auth.can('transactions.approve.withdrawal'))
+}
+function canRejectItem(item) {
+  return canActOnLocked(item) && (auth.isSuperAdmin || auth.can('transactions.reject.withdrawal'))
+}
+function canSubmitProof(item) {
+  return canActOnLocked(item) && (auth.isSuperAdmin || auth.can('transactions.submit_proof'))
 }
 
 // Reassignment is super-admin-only now — operators can't release a

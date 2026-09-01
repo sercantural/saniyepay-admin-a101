@@ -5,7 +5,7 @@
         <v-icon start color="primary">mdi-store</v-icon>
         Bayiler
         <v-spacer />
-        <v-btn color="primary" @click="openCreate">
+        <v-btn v-if="can('merchants.manage')" color="primary" @click="openCreate">
           <v-icon start>mdi-plus</v-icon> Bayi Ekle
         </v-btn>
       </v-card-title>
@@ -54,15 +54,15 @@
           </v-chip>
         </template>
         <template v-slot:item.actions="{ item }">
-          <v-btn size="small" variant="text" color="primary" @click="editMerchant(item)" title="Düzenle">
+          <v-btn v-if="can('merchants.manage')" size="small" variant="text" color="primary" @click="editMerchant(item)" title="Düzenle">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn size="small" variant="text" color="info" @click="openUserManager(item)" title="Kullanıcılar">
+          <v-btn v-if="can('merchants.users')" size="small" variant="text" color="info" @click="openUserManager(item)" title="Kullanıcılar">
             <v-icon>mdi-account-group</v-icon>
           </v-btn>
           <v-menu>
             <template v-slot:activator="{ props }">
-              <v-btn size="small" variant="text" color="warning" v-bind="props" title="Anahtar Yönetimi">
+              <v-btn v-if="can('merchants.regenerate_key')" size="small" variant="text" color="warning" v-bind="props" title="Anahtar Yönetimi">
                 <v-icon>mdi-key-variant</v-icon>
               </v-btn>
             </template>
@@ -295,7 +295,7 @@
           <v-icon start>mdi-account-group</v-icon>
           {{ selectedMerchant?.name }} — Kullanıcılar
           <v-spacer />
-          <v-btn size="small" color="primary" variant="tonal" @click="openCreateUser">
+          <v-btn v-if="can('merchants.users')" size="small" color="primary" variant="tonal" @click="openCreateUser">
             <v-icon start size="small">mdi-plus</v-icon> Kullanıcı Ekle
           </v-btn>
         </v-card-title>
@@ -461,9 +461,15 @@
 </template>
 
 <script setup>
+import { useAuthStore } from '@/stores/auth'
 import { ref, reactive, onMounted } from 'vue'
 import api from '@/plugins/axios'
 
+
+const auth = useAuthStore()
+// Ekran ici eylemler de izne bagli: menuyu gormek ile islem
+// yapabilmek ayni sey degil.
+const can = (p) => auth.can(p) || auth.isSuperAdmin
 const merchants = ref([])
 const loading = ref(false)
 const dialog = ref(false)

@@ -1,7 +1,13 @@
 <script setup>
+import { useAuthStore } from '@/stores/auth'
 import { ref, onMounted, computed } from 'vue'
 import api from '@/plugins/axios'
 import { useNotificationStore } from '@/stores/notifications'
+
+const auth = useAuthStore()
+// Ekran ici eylemler de izne bagli: menuyu gormek ile
+// islem yapabilmek ayni sey degil.
+const can = (p) => auth.can(p) || auth.isSuperAdmin
 
 const notif = useNotificationStore()
 
@@ -129,7 +135,7 @@ onMounted(load)
           Her (coin, ağ) çifti için sadece bir aktif cüzdan olabilir.
         </div>
       </div>
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreate">Yeni Cüzdan</v-btn>
+      <v-btn v-if="can('company_wallets.create') || can('company_wallet.manage')" color="primary" prepend-icon="mdi-plus" @click="openCreate">Yeni Cüzdan</v-btn>
     </div>
 
     <v-card>
@@ -157,11 +163,11 @@ onMounted(load)
           {{ formatDate(item.created_at) }}
         </template>
         <template #item.actions="{ item }">
-          <v-btn size="x-small" variant="text" :color="item.is_active ? 'warning' : 'success'" @click="toggle(item)">
+          <v-btn v-if="can('company_wallets.toggle') || can('company_wallet.manage')" size="x-small" variant="text" :color="item.is_active ? 'warning' : 'success'" @click="toggle(item)">
             {{ item.is_active ? 'Pasifleştir' : 'Aktifleştir' }}
           </v-btn>
-          <v-btn size="x-small" variant="text" color="primary" @click="openEdit(item)">Düzenle</v-btn>
-          <v-btn size="x-small" variant="text" color="error" @click="remove(item)">Sil</v-btn>
+          <v-btn v-if="can('company_wallets.edit') || can('company_wallet.manage')" size="x-small" variant="text" color="primary" @click="openEdit(item)">Düzenle</v-btn>
+          <v-btn v-if="can('company_wallets.delete') || can('company_wallet.manage')" size="x-small" variant="text" color="error" @click="remove(item)">Sil</v-btn>
         </template>
       </v-data-table>
     </v-card>

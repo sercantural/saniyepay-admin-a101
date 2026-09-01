@@ -35,7 +35,7 @@
         </template>
         <template v-slot:item.actions="{ item }">
           <v-btn
-            v-if="!item.roles?.some(r => r.name === 'super_admin') || auth.isSuperAdmin"
+            v-if="can('users.edit') && (!item.roles?.some(r => r.name === 'super_admin') || auth.isSuperAdmin)"
             size="small"
             variant="text"
             color="primary"
@@ -44,7 +44,7 @@
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
           <v-btn
-            v-if="auth.isSuperAdmin && item.two_factor_confirmed_at"
+            v-if="can('users.reset_2fa') && item.two_factor_confirmed_at"
             size="small"
             variant="text"
             color="warning"
@@ -163,6 +163,8 @@ import { useAuthStore } from '@/stores/auth'
 import api from '@/plugins/axios'
 
 const auth = useAuthStore()
+// Ekran ici eylemler de izne bagli.
+const can = (p) => auth.can(p) || auth.isSuperAdmin
 const users = ref([])
 const subGroups = ref([])
 const loading = ref(false)

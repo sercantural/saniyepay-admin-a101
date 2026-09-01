@@ -39,7 +39,7 @@
               color="primary"
               variant="flat"
               :loading="saving === 'withdrawal.dekont_threshold'"
-              :disabled="!isDirty('withdrawal.dekont_threshold')"
+              :disabled="!canManage || !isDirty('withdrawal.dekont_threshold')"
               @click="save('withdrawal.dekont_threshold', form.dekontThreshold)"
               prepend-icon="mdi-content-save"
             >
@@ -59,9 +59,10 @@
             <span class="setting-name">Çekim Havuzu</span>
           </div>
           <div class="setting-desc">
-            Açıkken gelen çekimler bir operatöre otomatik atanmaz; havuzda bekler ve
-            operatörler kendilerine alır. Kapalıyken sistem, kasası en dolu operatörü
-            seçerek atamayı kendisi yapar.
+            Çekimler hiçbir durumda operatöre otomatik atanmaz; her zaman havuzda bekler.
+            Bu anahtar <strong>operatörlerin havuzdan iş alıp alamayacağını</strong> belirler:
+            açıkken operatörler tutar aralığındaki çekimleri görüp kendilerine alır,
+            kapalıyken listeyi yalnızca süper yönetici görür ve elle atar.
           </div>
           <div class="setting-input">
             <v-switch
@@ -75,7 +76,7 @@
               color="primary"
               variant="flat"
               :loading="saving === 'withdrawal.pool_enabled'"
-              :disabled="!isDirty('withdrawal.pool_enabled')"
+              :disabled="!canManage || !isDirty('withdrawal.pool_enabled')"
               @click="save('withdrawal.pool_enabled', form.poolEnabled)"
               prepend-icon="mdi-content-save"
             >
@@ -119,14 +120,14 @@
             <v-btn
               color="primary" variant="flat"
               :loading="saving === 'withdrawal.pool_min_amount'"
-              :disabled="!isDirty('withdrawal.pool_min_amount')"
+              :disabled="!canManage || !isDirty('withdrawal.pool_min_amount')"
               @click="save('withdrawal.pool_min_amount', form.poolMin || 0)"
               prepend-icon="mdi-content-save"
             >Alt limiti kaydet</v-btn>
             <v-btn
               color="primary" variant="flat"
               :loading="saving === 'withdrawal.pool_max_amount'"
-              :disabled="!isDirty('withdrawal.pool_max_amount')"
+              :disabled="!canManage || !isDirty('withdrawal.pool_max_amount')"
               @click="save('withdrawal.pool_max_amount', form.poolMax || 0)"
               prepend-icon="mdi-content-save"
             >Üst limiti kaydet</v-btn>
@@ -144,8 +145,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import api from '@/plugins/axios'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+// Ayarlari GORMEK ile DEGISTIRMEK ayri izinler.
+const canManage = computed(() => auth.isSuperAdmin || auth.can('settings.manage'))
 
 const original = reactive({})
 const form = reactive({

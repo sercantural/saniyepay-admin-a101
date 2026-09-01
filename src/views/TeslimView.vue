@@ -12,6 +12,11 @@ const txnStore = useTransactionStore()
 const notif = useNotificationStore()
 
 const canReview = computed(() => auth.isSuperAdmin || auth.can('teslim.review'))
+// Olusturma/onay/red ayri izinler: inceleyebilmek onaylayabilmek
+// anlamina gelmiyor.
+const canCreateTeslim = computed(() => auth.isSuperAdmin || auth.can('teslim.create'))
+const canApprove = computed(() => auth.isSuperAdmin || auth.can('teslim.approve'))
+const canRejectTeslim = computed(() => auth.isSuperAdmin || auth.can('teslim.reject'))
 
 const items = ref([])
 const operators = ref([])
@@ -710,7 +715,7 @@ onMounted(async () => {
         </div>
       </div>
       <v-btn
-        v-if="!canReview || auth.user?.sub_group_id"
+        v-if="canCreateTeslim && (!canReview || auth.user?.sub_group_id)"
         color="primary"
         size="large"
         prepend-icon="mdi-plus-thick"
@@ -1260,8 +1265,8 @@ onMounted(async () => {
         <v-card-actions class="teslim-detail-actions">
           <v-btn variant="text" size="large" @click="detailDialog = false" class="flex-grow-1">Kapat</v-btn>
           <template v-if="detailItem.status === 'pending'">
-            <v-btn variant="tonal" color="error" size="large" prepend-icon="mdi-close-thick" @click="rejectFromDetail" class="flex-grow-1">Reddet</v-btn>
-            <v-btn variant="flat" color="success" size="large" prepend-icon="mdi-check-bold" @click="approveFromDetail" class="flex-grow-1">Onayla</v-btn>
+            <v-btn v-if="canRejectTeslim" variant="tonal" color="error" size="large" prepend-icon="mdi-close-thick" @click="rejectFromDetail" class="flex-grow-1">Reddet</v-btn>
+            <v-btn v-if="canApprove" variant="flat" color="success" size="large" prepend-icon="mdi-check-bold" @click="approveFromDetail" class="flex-grow-1">Onayla</v-btn>
           </template>
         </v-card-actions>
       </v-card>

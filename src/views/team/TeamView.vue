@@ -185,8 +185,11 @@ function roleName(role) {
 const inheritedRole = computed(() => auth.user?.roles?.[0]?.name || '')
 const inheritedRoleLabel = computed(() => roleName(inheritedRole.value) || '—')
 
+// Ekip uyesi ekleme artik ayri bir izin. Onceden yalnizca "super admin
+// degilsin ve devralinacak bir rolun var" kosuluna bakiliyordu, yani
+// izinden tamamen bagimsizdi.
 const canAddMember = computed(
-  () => !auth.isSuperAdmin && !!inheritedRole.value
+  () => (auth.isSuperAdmin || auth.can('team.create')) && !auth.isSuperAdmin && !!inheritedRole.value
 )
 
 const teammates = computed(() =>

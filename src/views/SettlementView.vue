@@ -10,6 +10,10 @@ const txnStore = useTransactionStore()
 const notif = useNotificationStore()
 
 const canHandle = computed(() => auth.isSuperAdmin || auth.can('settlement.handle'))
+// Ekrana erisim ile talep acma/onaylama ayri yetkiler.
+const canCreateSettlement = computed(() => auth.isSuperAdmin || auth.can('settlements.create') || auth.can('settlement.handle'))
+const canApproveSettlement = computed(() => auth.isSuperAdmin || auth.can('settlements.approve') || auth.can('settlement.handle'))
+const canRejectSettlement = computed(() => auth.isSuperAdmin || auth.can('settlements.reject') || auth.can('settlement.handle'))
 
 // ── Data ──
 const items = ref([])
@@ -299,7 +303,7 @@ onMounted(() => {
           Bayi ve şirket mutabakat taleplerini görüntüle ve işle.
         </div>
       </div>
-      <v-btn v-if="canHandle" color="primary" prepend-icon="mdi-plus" @click="openCreate">Yeni Mutabakat</v-btn>
+      <v-btn v-if="canCreateSettlement" color="primary" prepend-icon="mdi-plus" @click="openCreate">Yeni Mutabakat</v-btn>
     </div>
 
     <!-- Filters -->
@@ -355,7 +359,7 @@ onMounted(() => {
               <v-chip :color="statusColor(item.status)" size="small" variant="tonal">{{ statusLabel(item.status) }}</v-chip>
             </template>
             <template #item.actions="{ item }">
-              <template v-if="canHandle && item.status === 'pending_approval'">
+              <template v-if="(canApproveSettlement || canRejectSettlement) && item.status === 'pending_approval'">
                 <v-btn size="x-small" variant="text" color="success" @click.stop="openApprove(item)">Onayla</v-btn>
                 <v-btn size="x-small" variant="text" color="error" @click.stop="openReject(item)">Reddet</v-btn>
               </template>
@@ -424,7 +428,7 @@ onMounted(() => {
             <span v-if="selectedItem.reviewer"><br>İnceleyen: {{ selectedItem.reviewer.name }}</span>
           </div>
 
-          <div v-if="canHandle && selectedItem.status === 'pending_approval'" class="mt-3 d-flex ga-2">
+          <div v-if="(canApproveSettlement || canRejectSettlement) && selectedItem.status === 'pending_approval'" class="mt-3 d-flex ga-2">
             <v-btn color="success" size="small" @click="openApprove(selectedItem)">Onayla & Gönder</v-btn>
             <v-btn color="error" size="small" variant="tonal" @click="openReject(selectedItem)">Reddet</v-btn>
           </div>

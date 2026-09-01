@@ -5,9 +5,9 @@
       <div class="text-h6 font-weight-bold" style="color: var(--sp-text)">Teklif #{{ p.id }}</div>
       <v-chip :color="sColor(p.status)" variant="flat" size="small" label class="font-weight-bold ml-2">{{ sLabel(p.status) }}</v-chip>
       <v-spacer />
-      <v-btn v-if="p.status==='draft'" variant="tonal" color="info" size="small" @click="setStatus('sent')" :loading="acting" class="mr-1"><v-icon start size="16">mdi-send</v-icon> Gönderildi</v-btn>
-      <v-btn v-if="p.status==='sent'" variant="tonal" color="success" size="small" @click="setStatus('accepted')" :loading="acting" class="mr-1"><v-icon start size="16">mdi-check-circle</v-icon> Kabul</v-btn>
-      <v-btn v-if="p.status==='sent'" variant="tonal" color="error" size="small" @click="setStatus('rejected')" :loading="acting" class="mr-1"><v-icon start size="16">mdi-close-circle</v-icon> Red</v-btn>
+      <v-btn v-if="can('proposals.change_status') && p.status==='draft'" variant="tonal" color="info" size="small" @click="setStatus('sent')" :loading="acting" class="mr-1"><v-icon start size="16">mdi-send</v-icon> Gönderildi</v-btn>
+      <v-btn v-if="can('proposals.change_status') && p.status==='sent'" variant="tonal" color="success" size="small" @click="setStatus('accepted')" :loading="acting" class="mr-1"><v-icon start size="16">mdi-check-circle</v-icon> Kabul</v-btn>
+      <v-btn v-if="can('proposals.change_status') && p.status==='sent'" variant="tonal" color="error" size="small" @click="setStatus('rejected')" :loading="acting" class="mr-1"><v-icon start size="16">mdi-close-circle</v-icon> Red</v-btn>
       <v-btn v-if="p.status==='draft'" variant="tonal" size="small" :to="{ name: 'ProposalEdit', params: { id: p.id } }" class="mr-1"><v-icon start size="16">mdi-pencil</v-icon> Düzenle</v-btn>
       <v-btn variant="tonal" color="primary" size="small" @click="printIt" class="mr-1"><v-icon start size="16">mdi-printer</v-icon> Yazdır</v-btn>
       <v-btn variant="elevated" color="error" size="small" @click="downloadPdf" :loading="downloading" class="mr-1"><v-icon start size="16">mdi-file-pdf-box</v-icon> PDF</v-btn>
@@ -102,12 +102,17 @@
 </template>
 
 <script setup>
+import { useAuthStore } from '@/stores/auth'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 // docx + file-saver are dynamically imported in downloadWord() to reduce initial chunk size
 import api from '@/plugins/axios'
+
+const auth = useAuthStore()
+// Ekran ici eylemler de izne bagli.
+const can = (p) => auth.can(p) || auth.isSuperAdmin
 
 const router = useRouter(), route = useRoute()
 const p = ref(null), acting = ref(false), downloading = ref(false), downloadingWord = ref(false)

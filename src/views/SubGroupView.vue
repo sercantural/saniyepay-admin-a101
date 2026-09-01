@@ -5,7 +5,7 @@
         <v-icon start color="primary">mdi-folder-account</v-icon>
         Alt Gruplar
         <v-spacer />
-        <v-btn color="primary" @click="openCreate" v-if="auth.isSuperAdmin">
+        <v-btn color="primary" @click="openCreate" v-if="can('sub_groups.manage')">
           <v-icon start>mdi-plus</v-icon> Grup Ekle
         </v-btn>
       </v-card-title>
@@ -22,7 +22,7 @@
           </v-icon>
         </template>
         <template v-slot:item.actions="{ item }">
-          <v-btn v-if="auth.isSuperAdmin" size="small" variant="text" color="primary" @click="editGroup(item)">
+          <v-btn v-if="can('sub_groups.manage')" size="small" variant="text" color="primary" @click="editGroup(item)">
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
         </template>
@@ -105,6 +105,9 @@ import { useAuthStore } from '@/stores/auth'
 import api from '@/plugins/axios'
 
 const auth = useAuthStore()
+// Ekran ici eylemler de izne bagli: menuyu gormek ile
+// islem yapabilmek ayni sey degil.
+const can = (p) => auth.can(p) || auth.isSuperAdmin
 const groups = ref([])
 const loading = ref(false)
 const dialog = ref(false)

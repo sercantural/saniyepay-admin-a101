@@ -372,7 +372,7 @@
             </div>
             <v-spacer />
             <v-btn
-              v-if="['approved', 'rejected'].includes(txn.status)"
+              v-if="['approved', 'rejected'].includes(txn.status) && (isSuperAdmin || auth.can('transactions.retry_webhook'))"
               size="x-small"
               color="warning"
               variant="tonal"
