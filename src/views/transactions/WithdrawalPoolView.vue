@@ -88,7 +88,7 @@
             :disabled="claiming !== null"
             @click="claim(item)"
           >
-            Bana ata
+            Üzerime al
           </v-btn>
           <div v-else-if="isSuperAdmin" class="row-actions">
             <v-btn size="small" color="primary" variant="flat" @click="openAssign(item)">
@@ -352,7 +352,8 @@ async function claim(item) {
   claiming.value = item.id
   try {
     await api.post(`/portal/transactions/${item.id}/claim`)
-    snack('İşlem size atandı. Çekimler ekranından devam edebilirsiniz.')
+    // Metin dugmeyle ayni dili konussun: "Üzerime al" -> "üzerinize alındı".
+    snack('İşlem üzerinize alındı. Çekimler ekranından devam edebilirsiniz.')
     // Listeden hemen dus; sunucudan da tazele ki baskasinin aldiklari
     // da ayni anda temizlensin.
     items.value = items.value.filter(t => t.id !== item.id)
