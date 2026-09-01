@@ -283,7 +283,11 @@
         <div class="action-cell">
           <!-- Primary actions cluster — biggest, decisive buttons -->
           <div class="action-primary">
-            <!-- Stage 1: ÜZERİME AL — for new (assigned) txns -->
+            <!-- Stage 1: ISLEME AL — atanmis islerin baslatilmasi.
+                 "Üzerime Al" degil: is operatorun onune havuzdan gelmis
+                 olabilecegi gibi super admin tarafindan da atanmis
+                 olabilir; ikinci durumda "uzerime alma" yanlis okunuyor.
+                 Alma = sahiplik, isleme alma = calismaya baslama. -->
             <v-btn
               v-if="canLock(item)"
               size="small"
@@ -293,7 +297,7 @@
               :loading="actingId === item.id"
               prepend-icon="mdi-hand-extended"
             >
-              Üzerime Al
+              İşleme Al
             </v-btn>
 
             <!-- Stage 2 (<5k): direct Onayla -->
@@ -1156,7 +1160,7 @@ const visibleHeaders = computed(() => {
 })
 
 // Status display: "assigned" means routed to an operator's bank account
-// but no one has clicked Üzerime Al yet — visually the same as "pending"
+// but no one has clicked İşleme Al yet — visually the same as "pending"
 // for the operator (both = "do something"). Only "processing" (locked by
 // an operator) shows as Kontrolde.
 function statusColor(status) {
