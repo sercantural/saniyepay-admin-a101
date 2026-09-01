@@ -18,6 +18,8 @@ export const useTransactionStore = defineStore('transactions', () => {
   const poolCount = ref(0)
   // Havuz ekraninin kendini tazelemesi icin sayac.
   const poolUpdateTick = ref(0)
+  // Yonetici onayi bekleyen cekimler (yalnizca super admin icin dolar).
+  const adminReviewCount = ref(0)
   const pendingSettlementCount = ref(0)
   const settlementUpdateTick = ref(0)
   const pendingTeslimCount = ref(0)
@@ -43,6 +45,22 @@ export const useTransactionStore = defineStore('transactions', () => {
       api.get('/portal/transactions', { params: { type: 'deposit', status: 'assigned', sandbox: 'real' } }),
       api.get('/portal/transactions', { params: { type: 'withdrawal', status: 'pending', sandbox: 'real' } }),
       api.get('/portal/transactions', { params: { type: 'withdrawal', status: 'assigned', sandbox: 'real' } }),
+      /*
+       * Yonetici onayi bekleyen cekimler.
+       *
+       * Esigin ustundeki cekimler dekont yuklendikten sonra
+       * 'admin_review'e gecip super adminin kararini bekliyor ama bu
+       * is hicbir rozette gorunmuyordu -- yani yalnizca super adminin
+       * yapabilecegi is, sol menude hic haber vermiyordu.
+       *
+       * Yalnizca super admin icin sayiliyor: operator bu kayitlara
+       * mudahale edemiyor ("Yönetici onayı bekleniyor" yaziyor),
+       * onun rozetini sismek yaniltici olurdu.
+       */
+      auth.isSuperAdmin
+        ? api.get('/portal/transactions', { params: { type: 'withdrawal', status: 'admin_review', sandbox: 'real' } })
+            .catch(() => ({ data: { data: [] } }))
+        : Promise.resolve({ data: { data: [] } }),
       wantsSettlement
         ? api.get('/portal/settlements', { params: { status: 'assigned' } }).catch(() => ({ data: { data: [] } }))
         : Promise.resolve({ data: { data: [] } }),
@@ -56,12 +74,14 @@ export const useTransactionStore = defineStore('transactions', () => {
     ]
 
     try {
-      const [depRes, wdPendingRes, wdAssignedRes, stlRes, teslimRes, poolRes] = await Promise.all(requests)
+      const [depRes, wdPendingRes, wdAssignedRes, wdReviewRes, stlRes, teslimRes, poolRes] = await Promise.all(requests)
       poolCount.value = poolRes.data.total || 0
       pendingDepositCount.value = depRes.data.meta?.total || depRes.data.data?.length || 0
       const wdPending = wdPendingRes.data.meta?.total || wdPendingRes.data.data?.length || 0
       const wdAssigned = wdAssignedRes.data.meta?.total || wdAssignedRes.data.data?.length || 0
-      pendingWithdrawalCount.value = wdPending + wdAssigned
+      const wdReview = wdReviewRes.data.meta?.total || wdReviewRes.data.data?.length || 0
+      adminReviewCount.value = wdReview
+      pendingWithdrawalCount.value = wdPending + wdAssigned + wdReview
       pendingSettlementCount.value = stlRes.data.meta?.total || stlRes.data.data?.length || 0
       pendingTeslimCount.value = teslimRes.data.meta?.total || teslimRes.data.data?.length || 0
     } catch {
@@ -508,6 +528,7 @@ export const useTransactionStore = defineStore('transactions', () => {
     pendingWithdrawalCount,
     poolCount,
     poolUpdateTick,
+    adminReviewCount,
     pendingSettlementCount,
     settlementUpdateTick,
     pendingTeslimCount,
