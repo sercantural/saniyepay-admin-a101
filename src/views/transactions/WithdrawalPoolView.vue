@@ -1,13 +1,11 @@
 <template>
   <div class="pool-view">
-    <!-- Havuz kapaliysa listeyi hic gostermeyelim: bos tablo, "is yok"
-         gibi okunur ve yanlis izlenim birakir. -->
-    <v-alert v-if="!enabled" type="info" variant="tonal" density="comfortable" class="mb-4">
-      Çekim havuzu şu anda kapalı. Çekimler operatörlere sistem tarafından otomatik atanıyor.
-      <template v-if="auth.isSuperAdmin">
-        Havuzu <RouterLink :to="{ name: 'PlatformSettings' }">Platform Ayarları</RouterLink>
-        ekranından açabilirsiniz.
-      </template>
+    <!-- Havuz KAPALIYKEN operator icin liste yok; bos tablo "is yok"
+         gibi okunup yanlis izlenim birakirdi. Super admin ise listeyi
+         her durumda goruyor: cekimlerde otomatik atama olmadigi icin
+         havuz kapaliyken isi dagitacak olan tek kisi o. -->
+    <v-alert v-if="!enabled && !isSuperAdmin" type="info" variant="tonal" density="comfortable" class="mb-4">
+      Çekim havuzu şu anda kapalı. Çekimler yöneticiniz tarafından atanıyor.
     </v-alert>
 
     <template v-else>
@@ -33,8 +31,14 @@
            zaten hic gormuyor. -->
       <div v-if="isSuperAdmin" class="pool-limits">
         <v-icon size="14" class="mr-1">mdi-arrow-expand-vertical</v-icon>
-        Alt gruplar {{ limitText }} aralığındaki çekimleri görür.
-        Aralık dışındakiler yalnızca size görünür; elle atamanız gerekir.
+        <template v-if="enabled">
+          Alt gruplar {{ limitText }} aralığındaki çekimleri görür.
+          Aralık dışındakiler yalnızca size görünür; elle atamanız gerekir.
+        </template>
+        <template v-else>
+          Havuz kapalı: operatörler bu listeyi görmüyor, işleri siz atıyorsunuz.
+          Açmak için <RouterLink :to="{ name: 'PlatformSettings' }">Platform Ayarları</RouterLink>.
+        </template>
       </div>
 
       <v-alert
