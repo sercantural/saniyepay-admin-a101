@@ -87,16 +87,79 @@
           >
             Bana ata
           </v-btn>
-          <v-btn
-            v-else-if="auth.isSuperAdmin"
-            size="small" variant="tonal"
-            :to="{ name: 'TxnDetail', params: { id: item.id } }"
-          >
-            Detay / ata
-          </v-btn>
+          <div v-else-if="isSuperAdmin" class="row-actions">
+            <v-btn size="small" color="primary" variant="flat" @click="openAssign(item)">
+              Ata
+            </v-btn>
+            <v-btn
+              size="small" variant="text" icon="mdi-open-in-new"
+              :to="{ name: 'TxnDetail', params: { id: item.id } }"
+              title="İşlem detayı"
+            />
+          </div>
         </template>
       </v-data-table>
     </template>
+
+    <!-- Atama penceresi: super admin havuzdaki isi dogrudan buradan
+         bir operatore veriyor; islem detayina gitmek gerekmiyor. -->
+    <v-dialog v-model="assignDialog" max-width="520">
+      <v-card>
+        <v-card-title class="assign-head">
+          <div>
+            <div class="assign-title">Operatöre ata</div>
+            <div class="assign-sub" v-if="assignTarget">
+              {{ money(assignTarget.requested_amount) }} {{ assignTarget.currency }} ·
+              {{ assignTarget.player_account_holder || '—' }}
+            </div>
+          </div>
+        </v-card-title>
+
+        <v-card-text>
+          <v-alert
+            v-if="assignTarget && !withinLimits(assignTarget)"
+            type="info" variant="tonal" density="compact" class="mb-3"
+          >
+            Bu tutar alt grupların gördüğü aralığın dışında; havuzdan kimse alamaz.
+            Atamayı sizin yapmanız gerekiyor.
+          </v-alert>
+
+          <div v-if="operatorsLoading" class="text-center py-6">
+            <v-progress-circular indeterminate size="28" />
+          </div>
+          <v-alert v-else-if="!operators.length" type="warning" variant="tonal" density="compact">
+            Aktif banka hesabı olan operatör yok. Önce operatöre banka hesabı tanımlayın.
+          </v-alert>
+          <v-radio-group v-else v-model="assignOperatorId" hide-details>
+            <!-- Kasa bakiyesi bilgi amacli: cekimi odeyecek parayi
+                 hangi operatorun tuttugunu gostermek atamayi
+                 kolaylastiriyor. Engelleyici bir kosul degil. -->
+            <v-radio v-for="op in operators" :key="op.id" :value="op.id">
+              <template #label>
+                <div class="op-row">
+                  <span class="op-name">{{ op.name }}</span>
+                  <span class="op-bal" :class="op.available_balance < 0 ? 'neg' : ''">
+                    kasa: {{ money(op.available_balance) }} TRY
+                  </span>
+                </div>
+              </template>
+            </v-radio>
+          </v-radio-group>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="assignDialog = false">Vazgeç</v-btn>
+          <v-btn
+            color="primary" variant="flat"
+            :disabled="!assignOperatorId" :loading="assigning"
+            @click="confirmAssign"
+          >
+            Ata
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-snackbar v-model="snackbar" :color="snackColor" timeout="3500">{{ snackText }}</v-snackbar>
   </div>
@@ -133,6 +196,14 @@ const isSuperAdmin = ref(false)
 const limits = ref({ min: 0, max: null })
 const loading = ref(false)
 const claiming = ref(null)
+
+// Atama (yalnizca super admin)
+const assignDialog = ref(false)
+const assignTarget = ref(null)
+const assignOperatorId = ref(null)
+const assigning = ref(false)
+const operators = ref([])
+const operatorsLoading = ref(false)
 
 const snackbar = ref(false)
 const snackText = ref('')
@@ -212,6 +283,47 @@ async function load() {
     snack(e.response?.data?.message || 'Havuz yüklenemedi.', 'error')
   } finally {
     loading.value = false
+  }
+}
+
+// Tutar, alt gruplarin gordugu aralikta mi? Yalnizca super adminin
+// penceresinde bilgi amacli gosteriliyor.
+function withinLimits(item) {
+  const a = Number(item?.requested_amount || 0)
+  const { min, max } = limits.value
+  return a >= (min || 0) && (max == null || a <= max)
+}
+
+async function openAssign(item) {
+  assignTarget.value = item
+  assignOperatorId.value = null
+  assignDialog.value = true
+
+  operatorsLoading.value = true
+  try {
+    const { data } = await api.get('/portal/transactions/withdrawal-operators')
+    operators.value = data || []
+  } catch {
+    operators.value = []
+  } finally {
+    operatorsLoading.value = false
+  }
+}
+
+async function confirmAssign() {
+  if (!assignTarget.value || !assignOperatorId.value) return
+  assigning.value = true
+  try {
+    await api.post(`/portal/transactions/${assignTarget.value.id}/assign`, {
+      operator_id: assignOperatorId.value,
+    })
+    snack('İşlem operatöre atandı.')
+    assignDialog.value = false
+    await load()
+  } catch (e) {
+    snack(e.response?.data?.message || 'Atama yapılamadı.', 'error')
+  } finally {
+    assigning.value = false
   }
 }
 
@@ -303,4 +415,19 @@ onUnmounted(() => clearInterval(ticker))
 .muted { color: var(--sp-text-muted); font-size: 11px; }
 .waited { font-size: 11px; color: var(--sp-text-muted); }
 .amount { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+
+.assign-head { padding: 16px 20px 8px; }
+.assign-title { font-size: 15px; font-weight: 700; }
+.assign-sub { font-size: 12px; color: var(--sp-text-muted); }
+.op-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+}
+.op-name { font-weight: 600; }
+.op-bal { font-size: 11.5px; color: var(--sp-text-muted); font-variant-numeric: tabular-nums; }
+.op-bal.neg { color: #ff8e82; }
 </style>
