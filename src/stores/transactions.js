@@ -16,6 +16,8 @@ export const useTransactionStore = defineStore('transactions', () => {
   const pendingWithdrawalCount = ref(0)
   // Havuzda bekleyen (sahipsiz) cekim sayisi — menu rozeti.
   const poolCount = ref(0)
+  // Havuz ekraninin kendini tazelemesi icin sayac.
+  const poolUpdateTick = ref(0)
   const pendingSettlementCount = ref(0)
   const settlementUpdateTick = ref(0)
   const pendingTeslimCount = ref(0)
@@ -152,6 +154,16 @@ export const useTransactionStore = defineStore('transactions', () => {
 
     const isManager = auth.user?.roles?.some?.(r => r?.name === 'grup_yoneticisi')
 
+    /*
+     * Cekim havuzu ORTAK kanal.
+     *
+     * Havuzdaki cekimin sahibi ve alt grubu olmadigi icin kisiye ozel
+     * kanallardan duyurulamiyor; bu kanal olmadan operatorun havuzu
+     * sayfa yenilenene kadar guncellenmiyordu. Yetkisi olmayana sunucu
+     * zaten kanal acmiyor, o yuzden herkes icin baglaniyoruz.
+     */
+    attach('private:withdrawal.pool')
+
     if (auth.isSuperAdmin) {
       attach('private:admin.super')
     } else if (isManager && auth.user?.sub_group_id) {
@@ -169,6 +181,14 @@ export const useTransactionStore = defineStore('transactions', () => {
     function handleMessage(message) {
       const eventName = message.name
       const data = message.data
+
+      // Havuz kanalindan gelen mesajlar ayni olay adlarini tasiyor.
+      // Cekimle ilgili her hareket havuzu tazeliyor: yeni dustu ya da
+      // birileri aldi -- ikisinde de listenin degismesi gerekiyor.
+      if (message.channel === 'private:withdrawal.pool'
+          || data?.transaction?.type === 'withdrawal') {
+        poolUpdateTick.value++
+      }
 
       if (eventName === 'App\\Events\\TransactionCreated') {
         handleCreated(data)
@@ -465,6 +485,7 @@ export const useTransactionStore = defineStore('transactions', () => {
     pendingDepositCount,
     pendingWithdrawalCount,
     poolCount,
+    poolUpdateTick,
     pendingSettlementCount,
     settlementUpdateTick,
     pendingTeslimCount,

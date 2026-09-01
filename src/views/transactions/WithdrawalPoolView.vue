@@ -114,7 +114,7 @@
  * azaltmaz. Bakiyesi sifir olan operator tam da cekim yaparak yatirim
  * alabilir hale gelir.
  */
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import api from '@/plugins/axios'
 import { useAuthStore } from '@/stores/auth'
@@ -244,6 +244,10 @@ function snack(text, color = 'success') {
   snackColor.value = color
   snackbar.value = true
 }
+
+// Havuza yeni cekim dustugunde ya da birini biri aldiginda liste
+// kendiliginden tazelensin -- sayfa yenilemek gerekmesin.
+watch(() => txnStore.poolUpdateTick, () => load())
 
 onMounted(() => {
   load()
