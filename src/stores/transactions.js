@@ -213,14 +213,33 @@ export const useTransactionStore = defineStore('transactions', () => {
     // SA is the only role that gets noise filtered: they're subscribed
     // to admin.super (which receives every txn event) but only WANT
     // toasts for things needing admin intervention.
-    function shouldNotifyOperator(txn) {
+    function isRelevantToUser(txn) {
       if (auth.isSuperAdmin) {
         // SA: only exceptional cases need a toast — others are silent
         // (data still updates for live dashboards).
         return !txn?.bank_account_id || txn?.status === 'admin_review'
       }
-      // Operator / manager: trust server routing — always notify.
+      // Operator / manager: trust server routing — always relevant.
       return true
+    }
+
+    /*
+     * CEKIMLER icin bildirim CIKMIYOR.
+     *
+     * Ne havuza dusenler ne de dogrudan atananlar uyari uretiyor;
+     * listeler ve sayaclar anlik guncelleniyor, o kadar. Cekim hacmi
+     * yuksek oldugu icin her biri icin toast cikarmak ekrani
+     * kullanilmaz hale getiriyordu.
+     *
+     * "Ilgili mi" ile "bildirim ciksin mi" ayri tutuluyor: sayaclar
+     * ilkine bakiyor, dolayisiyla bildirim kapali olsa da yeni-kayit
+     * sayaclari dogru isliyor.
+     */
+    function shouldNotifyOperator(txn) {
+      if (txn?.type === 'withdrawal') {
+        return false
+      }
+      return isRelevantToUser(txn)
     }
 
     // ── Handler: New transaction created ──
@@ -295,10 +314,13 @@ export const useTransactionStore = defineStore('transactions', () => {
       //  - Auto-assigner picks B and the txn was previously unassigned
       // Other transitions (processing, approved, rejected, etc.) don't
       // fire notifications — they're either user-initiated or terminal.
-      if (e.to_status === 'assigned' && shouldNotifyOperator(txn)) {
+      if (e.to_status === 'assigned' && isRelevantToUser(txn)) {
         if (txn.type === 'deposit') newDepositCount.value++
         else if (txn.type === 'withdrawal') newWithdrawalCount.value++
         newCount.value++
+
+        // Sayaclar yukarida guncellendi; bildirim ayri karar.
+        if (!shouldNotifyOperator(txn)) return
 
         const amount = new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(txn.requested_amount)
         notifs.addNotification({

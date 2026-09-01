@@ -63,8 +63,10 @@
         </template>
 
         <template #item.player="{ item }">
-          <div>{{ item.player_account_holder || playerName(item) || '—' }}</div>
-          <div class="muted mono">{{ item.customer?.external_id || '' }}</div>
+          <!-- Operatorde ad soyad maskeli gelir (sunucuda maskeleniyor);
+               isi tanimak icin kullanici adi yeterli. -->
+          <div class="mono">{{ item.customer?.external_id || '—' }}</div>
+          <div class="muted">{{ item.player_account_holder || playerName(item) || '' }}</div>
         </template>
 
         <template #item.player_iban="{ item }">
@@ -218,7 +220,11 @@ const headers = computed(() => [
   { title: 'Talep', key: 'created_at', sortable: false, width: 160 },
   ...(isSuperAdmin.value ? [{ title: 'Bayi', key: 'merchant', sortable: false }] : []),
   { title: 'Oyuncu', key: 'player', sortable: false },
-  { title: 'IBAN', key: 'player_iban', sortable: false },
+  // IBAN yalnizca super admin'de. Operator isi ustlenmeden IBAN
+  // gorurse yanlislikla once odeme yapip karisiklik cikarabiliyor;
+  // atamadan sonra islem ekranindan zaten gorunuyor. Sunucu da bu
+  // alani non-SA yanitindan tamamen cikariyor.
+  ...(isSuperAdmin.value ? [{ title: 'IBAN', key: 'player_iban', sortable: false }] : []),
   { title: 'Tutar', key: 'requested_amount', sortable: false, align: 'end' },
   { title: '', key: 'actions', sortable: false, align: 'end', width: 120 },
 ])
