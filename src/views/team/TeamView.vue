@@ -33,7 +33,7 @@
             size="small"
             class="mr-1"
           >
-            {{ roleName(role.name) }}
+            {{ role.display_name || role.name }}
           </v-chip>
         </template>
         <template v-slot:item.is_active="{ item }">
@@ -151,6 +151,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { roleLabel } from '@/utils/roles'
 import api from '@/plugins/axios'
 
 const auth = useAuthStore()
@@ -163,27 +164,12 @@ const showPw = ref(false)
 const errorMsg = ref('')
 const fieldErrors = reactive({ name: '', email: '', password: '' })
 
-const roleLabels = {
-  super_admin: 'Süper Yönetici',
-  grup_yoneticisi: 'Grup Yöneticisi',
-  islem_sorumlusu: 'İşlem Sorumlusu',
-  yatirim_sorumlusu: 'Yatırım Sorumlusu',
-  cekim_sorumlusu: 'Çekim Sorumlusu',
-  muhasebe: 'Muhasebe',
-  izleyici: 'İzleyici',
-  sub_group_manager: 'Grup Yöneticisi',
-  deposit_operator: 'Yatırım Operatörü',
-  withdrawal_operator: 'Çekim Operatörü',
-  bank_checker: 'Banka Kontrol',
-  viewer: 'İzleyici',
-}
-
 function roleName(role) {
-  return roleLabels[role] || role
+  return roleLabel(role)
 }
 
 const inheritedRole = computed(() => auth.user?.roles?.[0]?.name || '')
-const inheritedRoleLabel = computed(() => roleName(inheritedRole.value) || '—')
+const inheritedRoleLabel = computed(() => roleLabel(auth.user?.roles?.[0] || null))
 
 // Ekip uyesi ekleme artik ayri bir izin. Onceden yalnizca "super admin
 // degilsin ve devralinacak bir rolun var" kosuluna bakiliyordu, yani

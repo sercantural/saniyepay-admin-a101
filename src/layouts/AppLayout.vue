@@ -175,6 +175,7 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { roleLabel } from '@/utils/roles'
 import { useTransactionStore } from '@/stores/transactions'
 import { useNotificationStore } from '@/stores/notifications'
 import api from '@/plugins/axios'
@@ -274,15 +275,7 @@ const initials = computed(() =>
   (auth.user?.name || '').split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) || '—'
 )
 
-function roleName(role) {
-  return {
-    super_admin: 'Süper Yönetici', grup_yoneticisi: 'Grup Yöneticisi',
-    yatirim_sorumlusu: 'Yatırım Sorumlusu', cekim_sorumlusu: 'Çekim Sorumlusu',
-    muhasebe: 'Muhasebe', izleyici: 'İzleyici', sub_group_manager: 'Grup Yöneticisi',
-    deposit_operator: 'Yatırım Operatörü', withdrawal_operator: 'Çekim Operatörü',
-    bank_checker: 'Banka Kontrol', viewer: 'İzleyici',
-  }[role] || role || '—'
-}
+const roleName = roleLabel
 
 // Mesai girisi bekleyen kullanici yalnizca profil ve mesai sayfalarini gorebilir
 const blockedByClockIn = computed(

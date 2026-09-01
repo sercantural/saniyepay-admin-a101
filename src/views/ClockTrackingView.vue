@@ -193,6 +193,7 @@
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { roleLabel } from '@/utils/roles'
 import api from '@/plugins/axios'
 
 const auth = useAuthStore()
@@ -218,15 +219,7 @@ const filters = reactive({
 
 const onlineCount = computed(() => liveUsers.value.filter(u => u.is_clocked_in).length)
 
-const roleLabels = {
-  super_admin: 'Süper Yönetici', grup_yoneticisi: 'Grup Yöneticisi',
-  yatirim_sorumlusu: 'Yatırım Sorumlusu', cekim_sorumlusu: 'Çekim Sorumlusu',
-  muhasebe: 'Muhasebe', izleyici: 'İzleyici',
-  sub_group_manager: 'Grup Yöneticisi', deposit_operator: 'Yatırım Op.',
-  withdrawal_operator: 'Çekim Op.', bank_checker: 'Banka Kontrol', viewer: 'İzleyici',
-}
-
-function roleLabel(role) { return roleLabels[role] || role }
+// Etiket rolun kendisinden geliyor; bkz. utils/roles.js
 
 function formatMinutes(mins) {
   if (!mins) return '0dk'

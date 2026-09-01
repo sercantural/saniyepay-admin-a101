@@ -356,10 +356,14 @@ import api from '@/plugins/axios'
 
 const auth = useAuthStore()
 
-// Role checks
+/*
+ * Rol ADINA degil izne bakiyoruz. Eskiden burada 'grup_yoneticisi' ve
+ * 'muhasebe' aranıyordu; panelden olusturulan yeni bir rol -- izinleri
+ * ne olursa olsun -- bu sekmeleri hic goremiyordu.
+ */
 const isSuperAdmin = computed(() => auth.isSuperAdmin)
-const isGrupYoneticisi = computed(() => auth.user?.roles?.some(r => ['grup_yoneticisi', 'sub_group_manager'].includes(r.name)))
-const isMuhasebe = computed(() => auth.user?.roles?.some(r => r.name === 'muhasebe'))
+const isGrupYoneticisi = computed(() => auth.can('scope.sub_group'))
+const isMuhasebe = computed(() => auth.can('scope.sub_group'))
 
 // Filters
 const now = new Date()

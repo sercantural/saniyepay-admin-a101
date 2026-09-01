@@ -212,6 +212,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { roleLabel } from '@/utils/roles'
 import { useTransactionStore } from '@/stores/transactions'
 import api from '@/plugins/axios'
 
@@ -602,21 +603,7 @@ const greeting = computed(() => {
   return 'İyi akşamlar'
 })
 
-const roleName = computed(() => {
-  const roles = {
-    super_admin: 'Süper Yönetici',
-    grup_yoneticisi: 'Grup Yöneticisi',
-    sub_group_manager: 'Grup Yöneticisi',
-    deposit_operator: 'Yatırım Operatörü',
-    withdrawal_operator: 'Çekim Operatörü',
-    yatirim_sorumlusu: 'Yatırım Sorumlusu',
-    cekim_sorumlusu: 'Çekim Sorumlusu',
-    muhasebe: 'Muhasebe',
-    izleyici: 'İzleyici',
-  }
-  const r = auth.user?.roles?.[0]?.name
-  return roles[r] || r || ''
-})
+const roleName = computed(() => roleLabel(auth.user?.roles?.[0] || null))
 
 function formatTime(ts) {
   if (!ts) return '--'

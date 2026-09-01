@@ -13,7 +13,7 @@
       <v-data-table :headers="headers" :items="users" :loading="loading" density="compact" no-data-text="Kullanıcı bulunamadı" loading-text="Yükleniyor...">
         <template v-slot:item.roles="{ item }">
           <v-chip v-for="role in item.roles" :key="role.id" size="small" class="mr-1">
-            {{ roleName(role.name) }}
+            {{ role.display_name || role.name }}
           </v-chip>
         </template>
         <template v-slot:item.is_active="{ item }">
@@ -73,6 +73,8 @@
             variant="outlined"
             density="compact"
             class="mb-2"
+            :hint="selectedRoleHint"
+            persistent-hint
           />
           <v-select
             v-if="auth.isSuperAdmin"
@@ -101,49 +103,39 @@
             </v-chip>
           </div>
 
-          <div class="text-caption font-weight-bold mb-1 text-medium-emphasis">İşlem Yetkileri</div>
-          <v-row dense>
-            <v-col cols="12" sm="6" v-for="p in txnPermissions" :key="p.value">
-              <v-checkbox
-                :model-value="isPermChecked(p.value)"
-                @update:model-value="toggleDirectPerm(p.value, $event)"
-                :label="p.label"
-                :color="isFromRole(p.value) ? 'grey' : p.color"
-                :disabled="isFromRole(p.value)"
-                density="compact"
-                hide-details
-              >
-                <template v-slot:label>
-                  <span :class="isFromRole(p.value) ? 'text-medium-emphasis' : ''">
-                    {{ p.label }}
-                    <v-icon v-if="isFromRole(p.value)" size="12" class="ml-1" color="grey">mdi-lock</v-icon>
-                  </span>
-                </template>
-              </v-checkbox>
-            </v-col>
-          </v-row>
+          <div v-if="loadingPerms" class="text-center py-4">
+            <v-progress-circular indeterminate size="22" />
+          </div>
 
-          <div class="text-caption font-weight-bold mt-3 mb-1 text-medium-emphasis">Banka Hesap Yetkileri</div>
-          <v-row dense>
-            <v-col cols="12" sm="6" v-for="p in bankPermissions" :key="p.value">
-              <v-checkbox
-                :model-value="isPermChecked(p.value)"
-                @update:model-value="toggleDirectPerm(p.value, $event)"
-                :label="p.label"
-                :color="isFromRole(p.value) ? 'grey' : 'primary'"
-                :disabled="isFromRole(p.value)"
-                density="compact"
-                hide-details
-              >
-                <template v-slot:label>
-                  <span :class="isFromRole(p.value) ? 'text-medium-emphasis' : ''">
-                    {{ p.label }}
-                    <v-icon v-if="isFromRole(p.value)" size="12" class="ml-1" color="grey">mdi-lock</v-icon>
-                  </span>
-                </template>
-              </v-checkbox>
-            </v-col>
-          </v-row>
+          <div v-else v-for="group in permissionGroups" :key="group.key" class="perm-group">
+            <div class="perm-group-head">
+              <v-icon v-if="group.icon" size="14" class="mr-1">{{ group.icon }}</v-icon>
+              {{ group.label }}
+              <span class="perm-group-count">{{ selectedIn(group) }}/{{ group.permissions.length }}</span>
+            </div>
+            <label
+              v-for="p in group.permissions"
+              :key="p.name"
+              class="perm-item"
+              :class="{ locked: isFromRole(p.name) }"
+            >
+              <input
+                type="checkbox"
+                :checked="isPermChecked(p.name)"
+                :disabled="isFromRole(p.name)"
+                @change="toggleDirectPerm(p.name, $event.target.checked)"
+              />
+              <span>
+                <span class="perm-title">
+                  <b>{{ p.label }}</b>
+                  <v-icon v-if="isFromRole(p.name)" size="11" color="grey">mdi-lock</v-icon>
+                  <em class="perm-level" :class="'lv-' + p.level">{{ levels[p.level] || p.level }}</em>
+                </span>
+                <span class="perm-desc">{{ p.description }}</span>
+              </span>
+            </label>
+          </div>
+
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -173,124 +165,61 @@ const saving = ref(false)
 const editing = ref(false)
 const editingId = ref(null)
 
-// All role display names
-const allRoleLabels = {
-  super_admin: 'Süper Yönetici',
-  grup_yoneticisi: 'Grup Yöneticisi',
-  islem_sorumlusu: 'İşlem Sorumlusu',
-  yatirim_sorumlusu: 'Yatırım Sorumlusu',
-  cekim_sorumlusu: 'Çekim Sorumlusu',
-  muhasebe: 'Muhasebe',
-  izleyici: 'İzleyici',
-  // Legacy (for existing users not yet migrated)
-  sub_group_manager: 'Grup Yöneticisi (Eski)',
-  deposit_operator: 'Yatırım Operatörü (Eski)',
-  withdrawal_operator: 'Çekim Operatörü (Eski)',
-  bank_checker: 'Banka Kontrol (Eski)',
-  viewer: 'İzleyici (Eski)',
-}
-
-// Dynamic role options based on what the backend says this user can assign
-const availableRoleOptions = computed(() => {
-  return (auth.assignableRoles || []).map(role => ({
-    text: allRoleLabels[role] || role,
-    value: role,
+/*
+ * Rol listesi ve her rolun tasidigi izinler sunucudan geliyor
+ * (/portal/me -> assignable_roles). Burada eskiden elle tutulan bir
+ * kopya vardi: seeder degistiginde bu ekran sessizce yanlis bilgi
+ * gosteriyordu ve panelden olusturulan yeni roller hic gorunmuyordu.
+ */
+const availableRoleOptions = computed(() =>
+  (auth.assignableRoles || []).map(r => ({
+    text: r.display_name || r.name,
+    value: r.name,
   }))
-})
+)
 
-function roleName(role) {
-  return allRoleLabels[role] || role
-}
+const selectedRole = computed(() =>
+  (auth.assignableRoles || []).find(r => r.name === form.role) || null
+)
+
+const selectedRoleHint = computed(() => {
+  if (!selectedRole.value) return ''
+  if (selectedRole.value.locked) return 'Tüm izinlere sahiptir.'
+  const n = (selectedRole.value.permissions || []).length
+  return n ? `Bu rol ${n} izin taşıyor — aşağıda kilitli görünüyorlar.` : 'Bu role henüz izin atanmamış.'
+})
 
 const form = reactive({ name: '', email: '', password: '', role: '', sub_group_id: null, is_active: true, direct_permissions: [] })
 
-// Permissions each role provides (mirrors backend seeder)
-const rolePermissions = {
-  super_admin: [], // super admin bypasses all checks — has everything
-  grup_yoneticisi: [
-    'transactions.view.deposit', 'transactions.view.withdrawal',
-    'transactions.approve.deposit', 'transactions.approve.withdrawal',
-    'transactions.reject.deposit', 'transactions.reject.withdrawal',
-    'transactions.lock', 'transactions.add_note',
-    'bank_accounts.view', 'bank_accounts.create', 'bank_accounts.edit', 'bank_accounts.toggle',
-    'users.view', 'users.create', 'users.edit', 'reports.view',
-  ],
-  islem_sorumlusu: [
-    'transactions.view.deposit', 'transactions.view.withdrawal',
-    'transactions.approve.deposit', 'transactions.approve.withdrawal',
-    'transactions.reject.deposit', 'transactions.reject.withdrawal',
-    'transactions.lock', 'transactions.add_note',
-    'bank_accounts.view',
-  ],
-  yatirim_sorumlusu: [
-    'transactions.view.deposit',
-    'transactions.approve.deposit', 'transactions.reject.deposit',
-    'transactions.lock', 'transactions.add_note',
-    'bank_accounts.view',
-  ],
-  cekim_sorumlusu: [
-    'transactions.view.withdrawal',
-    'transactions.approve.withdrawal', 'transactions.reject.withdrawal',
-    'transactions.lock', 'transactions.add_note',
-    'bank_accounts.view',
-  ],
-  muhasebe: [
-    'transactions.view.deposit', 'transactions.view.withdrawal',
-    'transactions.add_note',
-    'bank_accounts.view',
-    'reports.view',
-  ],
-  izleyici: [
-    'transactions.view.deposit', 'transactions.view.withdrawal',
-    'bank_accounts.view', 'reports.view',
-  ],
-  // Legacy mappings (for users not yet migrated)
-  sub_group_manager: [
-    'transactions.view.deposit', 'transactions.view.withdrawal',
-    'transactions.approve.deposit', 'transactions.approve.withdrawal',
-    'transactions.reject.deposit', 'transactions.reject.withdrawal',
-    'transactions.lock', 'transactions.add_note',
-    'bank_accounts.view', 'bank_accounts.create', 'bank_accounts.edit', 'bank_accounts.toggle',
-    'users.view', 'users.create', 'users.edit', 'reports.view',
-  ],
-  deposit_operator: [
-    'transactions.view.deposit', 'transactions.approve.deposit', 'transactions.reject.deposit',
-    'transactions.lock', 'transactions.add_note', 'bank_accounts.view',
-  ],
-  withdrawal_operator: [
-    'transactions.view.withdrawal', 'transactions.approve.withdrawal', 'transactions.reject.withdrawal',
-    'transactions.lock', 'transactions.add_note', 'bank_accounts.view',
-  ],
-  bank_checker: [
-    'transactions.view.deposit', 'transactions.add_note', 'bank_accounts.view',
-  ],
-  viewer: [
-    'transactions.view.deposit', 'transactions.view.withdrawal', 'bank_accounts.view', 'reports.view',
-  ],
+// Izin katalogu — rol ekraniyla ayni kaynak.
+const permissionGroups = ref([])
+const levels = ref({})
+const loadingPerms = ref(false)
+
+async function loadPermissionCatalog() {
+  loadingPerms.value = true
+  try {
+    const { data } = await api.get('/portal/permissions')
+    permissionGroups.value = data.groups || []
+    levels.value = data.levels || {}
+  } catch {
+    permissionGroups.value = []
+  } finally {
+    loadingPerms.value = false
+  }
 }
 
-const txnPermissions = [
-  { value: 'transactions.view.deposit', label: 'Yatırımları Görebilir', color: 'primary' },
-  { value: 'transactions.view.withdrawal', label: 'Çekimleri Görebilir', color: 'primary' },
-  { value: 'transactions.approve.deposit', label: 'Yatırım Onaylayabilir', color: 'success' },
-  { value: 'transactions.approve.withdrawal', label: 'Çekim Onaylayabilir', color: 'success' },
-  { value: 'transactions.reject.deposit', label: 'Yatırım Reddedebilir', color: 'error' },
-  { value: 'transactions.reject.withdrawal', label: 'Çekim Reddedebilir', color: 'error' },
-  { value: 'transactions.lock', label: 'İşleme Alabilir', color: 'warning' },
-]
-
-const bankPermissions = [
-  { value: 'bank_accounts.view', label: 'Hesapları Görebilir' },
-  { value: 'bank_accounts.create', label: 'Hesap Ekleyebilir' },
-  { value: 'bank_accounts.edit', label: 'Hesap Düzenleyebilir' },
-  { value: 'bank_accounts.toggle', label: 'Hesap Açıp Kapatabilir' },
-]
+function selectedIn(group) {
+  return group.permissions.filter(p => isPermChecked(p.name)).length
+}
 
 // Check if a permission comes from the selected role
 function isFromRole(perm) {
-  const role = form.role
-  if (role === 'super_admin') return true // super admin has everything
-  return (rolePermissions[role] || []).includes(perm)
+  const role = selectedRole.value
+  if (!role) return false
+  // Kilitli rol (super_admin) Gate::before ile her izni geciyor.
+  if (role.locked) return true
+  return (role.permissions || []).includes(perm)
 }
 
 // Check if permission is active (from role OR direct)
@@ -363,12 +292,63 @@ async function disableUserTwoFactor(user) {
 async function loadUsers() { loading.value = true; const { data } = await api.get('/portal/users'); users.value = data; loading.value = false }
 
 onMounted(async () => {
-  await loadUsers()
+  await Promise.all([loadUsers(), loadPermissionCatalog()])
   if (auth.isSuperAdmin) { const { data } = await api.get('/portal/sub-groups'); subGroups.value = data }
 })
 </script>
 
 <style scoped>
+/* ── Izin katalogu ── */
+.perm-group { margin-bottom: 10px; }
+.perm-group-head {
+  display: flex;
+  align-items: center;
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--v-theme-primary));
+  padding: 6px 0 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.perm-group-count {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.42);
+}
+.perm-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 7px 4px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.perm-item:hover { background: rgba(255, 255, 255, 0.03); }
+/* Rolden gelen izin: kapatilamaz, o yuzden tiklanabilir gorunmesin. */
+.perm-item.locked { cursor: default; opacity: 0.62; }
+.perm-item input { margin-top: 3px; accent-color: rgb(var(--v-theme-primary)); }
+.perm-title { display: flex; align-items: center; gap: 6px; }
+.perm-item b { font-size: 12.5px; font-weight: 600; }
+.perm-level {
+  font-style: normal;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+.perm-level.lv-admin { color: #ff9c88; border-color: rgba(255, 156, 136, 0.35); }
+.perm-level.lv-manager { color: #f0a35e; border-color: rgba(240, 163, 94, 0.35); }
+.perm-level.lv-operator { color: rgb(var(--v-theme-primary)); border-color: rgba(102, 241, 189, 0.3); }
+.perm-desc {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 /* ── Responsive ── */
 @media (max-width: 960px) {
   :deep(.v-data-table) {

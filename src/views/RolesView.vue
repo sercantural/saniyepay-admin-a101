@@ -25,7 +25,8 @@
       <div v-for="role in roles" :key="role.id" class="role-card" :class="{ locked: role.locked }">
         <div class="role-card-head">
           <div>
-            <div class="role-name">{{ role.name }}</div>
+            <div class="role-name">{{ role.display_name || role.name }}</div>
+            <div class="role-slug">{{ role.name }}</div>
             <div class="role-meta">
               {{ role.users_count }} kullanıcı ·
               <span v-if="role.locked">tüm izinler</span>
@@ -73,18 +74,19 @@
       <v-card>
         <v-card-title class="dlg-head">
           <div>
-            <div class="dlg-title">{{ editing ? 'İzinleri düzenle' : 'Yeni rol' }}</div>
+            <div class="dlg-title">{{ editing ? 'Rolü düzenle' : 'Yeni rol' }}</div>
             <div class="dlg-sub" v-if="editing">{{ form.name }}</div>
           </div>
           <div class="dlg-count">{{ form.permissions.length }} izin seçili</div>
         </v-card-title>
 
         <v-card-text>
+          <!-- Ad serbest metin ve sonradan degistirilebilir. Makine adi
+               (slug) sabit kaliyor; kullanici atamalarinda referans. -->
           <v-text-field
-            v-if="!editing"
-            v-model="form.name"
+            v-model="form.display_name"
             label="Rol adı"
-            hint="Küçük harf, rakam ve alt çizgi. Örn: destek_ekibi"
+            :hint="editing ? `Kod adı: ${form.name} (değişmez)` : 'İstediğiniz gibi yazın. Örn: Grup Yöneticisi'"
             persistent-hint
             variant="outlined" density="compact"
             class="mb-4"
@@ -149,7 +151,7 @@
       <v-card>
         <v-card-title class="pa-4">Rolü sil</v-card-title>
         <v-card-text>
-          <strong>{{ deleteTarget?.name }}</strong> rolü silinecek.
+          <strong>{{ deleteTarget?.display_name || deleteTarget?.name }}</strong> rolü silinecek.
           <v-alert type="warning" variant="tonal" density="compact" class="mt-3">
             Bu işlem geri alınamaz. Role atanmış kullanıcı varsa silinemez;
             önce onları başka bir role taşıyın.
@@ -194,7 +196,7 @@ const search = ref('')
 const dialog = ref(false)
 const editing = ref(false)
 const editingId = ref(null)
-const form = ref({ name: '', permissions: [] })
+const form = ref({ name: '', display_name: '', permissions: [] })
 const nameError = ref('')
 
 const deleteDialog = ref(false)
@@ -270,7 +272,7 @@ function openCreate() {
   editingId.value = null
   nameError.value = ''
   search.value = ''
-  form.value = { name: '', permissions: [] }
+  form.value = { name: '', display_name: '', permissions: [] }
   dialog.value = true
 }
 
@@ -279,24 +281,26 @@ function openEdit(role) {
   editingId.value = role.id
   nameError.value = ''
   search.value = ''
-  form.value = { name: role.name, permissions: [...role.permissions] }
+  form.value = { name: role.name, display_name: role.display_name || role.name, permissions: [...role.permissions] }
   dialog.value = true
 }
 
 async function save() {
   nameError.value = ''
-  if (!editing.value && !/^[a-z][a-z0-9_]*$/.test(form.value.name || '')) {
-    nameError.value = 'Küçük harfle başlamalı; yalnızca küçük harf, rakam ve alt çizgi.'
+  const ad = (form.value.display_name || '').trim()
+  if (!ad) {
+    nameError.value = 'Rol adı gerekli.'
     return
   }
   saving.value = true
   try {
+    const govde = { display_name: ad, permissions: form.value.permissions }
     if (editing.value) {
-      await api.put(`/portal/roles/${editingId.value}`, { permissions: form.value.permissions })
+      await api.put(`/portal/roles/${editingId.value}`, govde)
     } else {
-      await api.post('/portal/roles', { name: form.value.name, permissions: form.value.permissions })
+      await api.post('/portal/roles', govde)
     }
-    snack(editing.value ? 'İzinler güncellendi.' : 'Rol oluşturuldu.')
+    snack(editing.value ? 'Rol güncellendi.' : 'Rol oluşturuldu.')
     dialog.value = false
     await load()
   } catch (e) {
@@ -384,6 +388,12 @@ onMounted(load)
 .role-card.locked { border-top-color: var(--sp-primary); }
 
 .role-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.role-slug {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--sp-text-muted);
+  margin-top: 1px;
+}
 .role-name { font-weight: 700; font-size: 14px; }
 .role-meta { font-size: 11.5px; color: var(--sp-text-muted); }
 

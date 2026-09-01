@@ -172,7 +172,8 @@ export const useTransactionStore = defineStore('transactions', () => {
       return ch
     }
 
-    const isManager = auth.user?.roles?.some?.(r => r?.name === 'grup_yoneticisi')
+    // Yonetici kanali rol adina degil izne bagli (bkz. scope.sub_group).
+    const isManager = auth.isSuperAdmin || auth.can('scope.sub_group')
 
     /*
      * Cekim havuzu ORTAK kanal.
