@@ -117,8 +117,14 @@
                   :checked="form.permissions.includes(p.name)"
                   @change="togglePerm(p.name, $event.target.checked)"
                 />
-                <span>
-                  <b>{{ p.label }}</b>
+                <span class="perm-body">
+                  <span class="perm-title">
+                    <b>{{ p.label }}</b>
+                    <em class="perm-level" :class="'lv-' + p.level">{{ levels[p.level] || p.level }}</em>
+                  </span>
+                  <!-- Ne yapar / ne yapmaz. Rolu kuran kisi izin adina
+                       bakarak tahmin etmek zorunda kalmasin. -->
+                  <span class="perm-desc">{{ p.description }}</span>
                   <small>{{ p.name }}</small>
                 </span>
               </label>
@@ -178,6 +184,8 @@ const auth = useAuthStore()
 
 const roles = ref([])
 const groups = ref([])
+// Seviye etiketleri sunucudan (config/permissions.php).
+const levels = ref({})
 const loading = ref(true)
 const saving = ref(false)
 const deleting = ref(false)
@@ -211,7 +219,9 @@ const visibleGroups = computed(() => {
     .map(g => ({
       ...g,
       permissions: g.permissions.filter(
-        p => p.label.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
+        p => p.label.toLowerCase().includes(q)
+          || p.name.toLowerCase().includes(q)
+          || (p.description || '').toLowerCase().includes(q)
       ),
     }))
     .filter(g => g.permissions.length)
@@ -331,7 +341,8 @@ async function load() {
       api.get('/portal/permissions'),
     ])
     roles.value = r.data
-    groups.value = p.data
+    groups.value = p.data.groups || []
+    levels.value = p.data.levels || {}
   } catch (e) {
     snack(e.response?.data?.message || 'Yüklenemedi.', 'error')
   } finally {
@@ -420,7 +431,7 @@ onMounted(load)
 
 .perm-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 2px;
   padding: 8px;
 }
@@ -433,7 +444,28 @@ onMounted(load)
 }
 .perm-item:hover { background: rgba(255, 255, 255, 0.03); }
 .perm-item input { margin-top: 3px; accent-color: var(--sp-primary); cursor: pointer; }
-.perm-item b { display: block; font-size: 12.5px; font-weight: 500; }
+.perm-body { display: block; }
+.perm-title { display: flex; align-items: center; gap: 8px; }
+.perm-item b { font-size: 12.5px; font-weight: 600; }
+.perm-level {
+  font-style: normal;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  padding: 1px 5px;
+  border: 1px solid var(--sp-border);
+  color: var(--sp-text-muted);
+  white-space: nowrap;
+}
+.perm-level.lv-admin { color: #ff9c88; border-color: rgba(255,156,136,0.35); }
+.perm-level.lv-manager { color: #f0a35e; border-color: rgba(240,163,94,0.35); }
+.perm-level.lv-operator { color: var(--sp-primary); border-color: rgba(102,241,189,0.3); }
+.perm-desc {
+  display: block;
+  margin: 3px 0 2px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--sp-text-muted);
+}
 .perm-item small {
   display: block;
   font-size: 10px;
