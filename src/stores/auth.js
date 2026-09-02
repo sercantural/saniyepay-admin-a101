@@ -8,6 +8,13 @@ export const useAuthStore = defineStore('auth', () => {
   const assignableRoles = ref([])
   const twoFactorEnabled = ref(false)
 
+  // Bildirim tercihleri sunucudan geliyor (/portal/me ve /portal/login).
+  // Burada tutuluyor cunku tercih kullaniciya ait ve oturum acilir acilmaz
+  // gerekiyor: notifications store'u ilk bildirimde bunu okuyor, dolayisiyla
+  // ayri bir istek beklemeye vakit yok. Varsayilan ikisi de acik -- sunucu
+  // alani hic gondermezse (eski surum) bildirimler susmasin.
+  const notificationPreferences = ref({ sound: true, toast: true })
+
   // 2FA challenge state
   const twoFactorRequired = ref(false)
   const challengeToken = ref(null)
@@ -93,6 +100,18 @@ export const useAuthStore = defineStore('auth', () => {
     twoFactorEnabled.value = data.two_factor_enabled || false
     isClockedIn.value = data.is_clocked_in ?? false
     clockInAt.value = data.clock_in_at ?? null
+    setNotificationPreferences(data.notification_preferences)
+  }
+
+  // Tercihleri tek yerden yaziyoruz ki hem oturum yaniti hem de profil
+  // ekranindaki PUT sonrasi ayni normalizasyondan gecsin. Eksik/bozuk alan
+  // "acik" kabul ediliyor: bildirimlerin sessizce kaybolmasi, gereksiz
+  // bildirim gormekten cok daha pahali bir hata.
+  function setNotificationPreferences(prefs) {
+    notificationPreferences.value = {
+      sound: prefs?.sound ?? true,
+      toast: prefs?.toast ?? true,
+    }
   }
 
   function clearAuth() {
@@ -104,12 +123,14 @@ export const useAuthStore = defineStore('auth', () => {
     challengeToken.value = null
     isClockedIn.value = false
     clockInAt.value = null
+    notificationPreferences.value = { sound: true, toast: true }
   }
 
   return {
     user, permissions, assignableRoles, twoFactorEnabled,
     twoFactorRequired, challengeToken,
     isClockedIn, clockInAt, needsClockIn,
+    notificationPreferences, setNotificationPreferences,
     isLoggedIn, isSuperAdmin,
     can, login, verifyTwoFactor, fetchMe, logout,
     clockIn, clockOut,

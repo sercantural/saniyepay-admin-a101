@@ -17,6 +17,10 @@ const canReview = computed(() => auth.isSuperAdmin || auth.can('teslim.review'))
 const canCreateTeslim = computed(() => auth.isSuperAdmin || auth.can('teslim.create'))
 const canApprove = computed(() => auth.isSuperAdmin || auth.can('teslim.approve'))
 const canRejectTeslim = computed(() => auth.isSuperAdmin || auth.can('teslim.reject'))
+// Onaylanmis teslimi geri alma yetkisi. Red'den ayri bir izin cunku
+// iptal, kredisi coktan harcanmis olabilecek bir operatorun kasasini
+// eksiye dusurebiliyor -- reddetmekten cok daha agir bir islem.
+const canCancelTeslim = computed(() => auth.isSuperAdmin || auth.can('teslim.cancel'))
 
 const items = ref([])
 const operators = ref([])
@@ -54,25 +58,35 @@ const createForm = ref({
   notes: '',
 })
 
+/*
+ * Sutun duzeni sistem admininin istedigi sirada:
+ * ID | GRUP | KRIPTO | KUR | TXID | TRY | DURUM | ISLEM
+ *
+ * Ayri "Tarih" sutunu kaldirildi; tarih ID hucresinin altina kucuk
+ * satir olarak tasindi. Boyle yapildi cunku TXID sutunu genis ve
+ * sekiz sutunla tablo 1400px kabuga sigmiyordu -- tarih hem az
+ * okunan hem de ID ile ayni "kimlik" grubuna ait bir bilgi.
+ *
+ * Operator kendi alt grubunda tek basina calistigi icin GRUP sutunu
+ * yalnizca inceleyen (admin) gorunumunde var.
+ */
 const operatorHeaders = [
-  { title: 'ID', key: 'id', width: '72px' },
-  { title: 'Tarih', key: 'created_at' },
-  { title: 'TRY', key: 'amount_try' },
+  { title: 'ID', key: 'id', width: '104px' },
   { title: 'Kripto', key: 'crypto_summary' },
   { title: 'Kur', key: 'conversion_rate' },
-  { title: 'TX Hash', key: 'crypto_hash', sortable: false },
+  { title: 'TXID', key: 'crypto_hash', sortable: false },
+  { title: 'TRY', key: 'amount_try' },
   { title: 'Durum', key: 'status' },
   { title: '', key: 'actions', sortable: false, align: 'end' },
 ]
 
 const adminHeaders = [
-  { title: 'ID', key: 'id', width: '72px' },
-  { title: 'Tarih', key: 'created_at' },
-  { title: 'Operatör', key: 'operator' },
-  { title: 'TRY', key: 'amount_try' },
+  { title: 'ID', key: 'id', width: '104px' },
+  { title: 'Grup', key: 'group', sortable: false },
   { title: 'Kripto', key: 'crypto_summary' },
   { title: 'Kur', key: 'conversion_rate' },
-  { title: 'TX Hash', key: 'crypto_hash', sortable: false },
+  { title: 'TXID', key: 'crypto_hash', sortable: false },
+  { title: 'TRY', key: 'amount_try' },
   { title: 'Durum', key: 'status' },
   { title: 'İşlem', key: 'actions', sortable: false, align: 'end' },
 ]
@@ -84,6 +98,7 @@ const statusOptions = [
   { title: 'İşlemde', value: 'pending' },
   { title: 'Onaylandı', value: 'approved' },
   { title: 'Reddedildi', value: 'rejected' },
+  { title: 'İptal Edildi', value: 'cancelled' },
 ]
 
 /*
@@ -302,6 +317,15 @@ function onHashChange() {
 function shortenAddr(addr) {
   if (!addr || addr.length < 14) return addr
   return addr.slice(0, 6) + '…' + addr.slice(-6)
+}
+
+// TXID icin ayri kisaltma: bas 8 + son 6. Adres kisaltmasindan (6+6)
+// daha uzun tutuluyor cunku "0x" onekli EVM hash'lerinde ilk iki
+// karakter bilgi tasimiyor; 8 karakter iki farkli hash'i ayirt etmeye
+// yetiyor. Tam hali tooltip'te ve kopyala dugmesinde duruyor.
+function shortenTxid(hash) {
+  if (!hash || hash.length <= 16) return hash
+  return hash.slice(0, 8) + '…' + hash.slice(-6)
 }
 
 async function verifyHash() {
@@ -625,16 +649,96 @@ async function handleReject() {
   }
 }
 
+// ── Onaylanmis teslimi iptal etme ──────────────────────────────────
+//
+// Iptal, onay aninda operatore yuklenen krediyi geri aliyor. Operator
+// o krediyle coktan yatirim kabul etmis olabilecegi icin kasa EKSIYE
+// dusebiliyor -- geri alinamayan tek adim bu. Bu yuzden:
+//  1) onay dialogunda eksiye dusme ihtimali acikca yaziliyor,
+//  2) neden zorunlu (sunucu da zorunlu tutuyor, 255 karakter),
+//  3) islem sonrasi credit_before / credit_after ekranda gosteriliyor
+//     ki yonetici kasayi eksiye dusurdugunu ANINDA gorsun; sadece
+//     "basarili" demek bu bilgiyi gizlerdi.
+const CANCEL_REASON_MAX = 255
+const cancelDialog = ref(false)
+const cancelReason = ref('')
+const cancelError = ref('')
+const cancelResultDialog = ref(false)
+const cancelResult = ref(null)
+
+const cancelReasonRules = [
+  (v) => !!(v || '').trim() || 'İptal nedeni zorunludur',
+  (v) => (v || '').length <= CANCEL_REASON_MAX || `En fazla ${CANCEL_REASON_MAX} karakter`,
+]
+
+const canSubmitCancel = computed(() => {
+  const r = (cancelReason.value || '').trim()
+  return r.length > 0 && cancelReason.value.length <= CANCEL_REASON_MAX
+})
+
+function openCancel(item) {
+  if (!item || item.status !== 'approved') return
+  selectedItem.value = item
+  cancelReason.value = ''
+  cancelError.value = ''
+  cancelDialog.value = true
+}
+
+function cancelFromDetail() {
+  const item = detailItem.value
+  detailDialog.value = false
+  if (item) openCancel(item)
+}
+
+async function handleCancel() {
+  if (!selectedItem.value || !canSubmitCancel.value) return
+  acting.value = true
+  cancelError.value = ''
+  try {
+    const { data } = await api.post(`/portal/teslimler/${selectedItem.value.id}/cancel`, {
+      reason: cancelReason.value.trim(),
+    })
+    cancelResult.value = {
+      teslim: data?.teslim || selectedItem.value,
+      creditBefore: Number(data?.credit_before ?? 0),
+      creditAfter: Number(data?.credit_after ?? 0),
+    }
+    cancelDialog.value = false
+    cancelResultDialog.value = true
+    await Promise.all([loadList(), loadBalance()])
+  } catch (e) {
+    cancelError.value = e?.response?.data?.message || 'Teslim iptal edilemedi'
+  } finally {
+    acting.value = false
+  }
+}
+
+// Kasa eksiye dustu mu? Sonuc ekranindaki kirmizi uyari bunun uzerinden
+// aciliyor. Ham sayiyi da gosteriyoruz -- fmtCredit sifira kirpiyor,
+// burada eksinin kendisi tam olarak gorulmesi gereken sey.
+const cancelWentNegative = computed(() => (cancelResult.value?.creditAfter ?? 0) < 0)
+
+// "cancelled" icin dogrudan mercan (coral) hex donuyoruz: temada ayri bir
+// coral rengi yok ve 'error' zaten "Reddedildi"nin rengi. Iki durumu ayni
+// kirmiziya boyamak, geri alinmis bir teslimi hic kabul edilmemis gibi
+// gosterirdi -- muhasebe acisindan bambaska iki sey.
+const CANCELLED_CORAL = '#FF9C88'
+
 function statusColor(s) {
-  return { pending: 'warning', approved: 'success', rejected: 'error' }[s] || 'grey'
+  return { pending: 'warning', approved: 'success', rejected: 'error', cancelled: CANCELLED_CORAL }[s] || 'grey'
 }
 
 function statusLabel(s) {
-  return { pending: 'İşlemde', approved: 'Onaylandı', rejected: 'Reddedildi' }[s] || s
+  return { pending: 'İşlemde', approved: 'Onaylandı', rejected: 'Reddedildi', cancelled: 'İptal Edildi' }[s] || s
 }
 
 function statusIcon(s) {
-  return { pending: 'mdi-clock-outline', approved: 'mdi-check-circle', rejected: 'mdi-close-circle' }[s] || 'mdi-help-circle-outline'
+  return {
+    pending: 'mdi-clock-outline',
+    approved: 'mdi-check-circle',
+    rejected: 'mdi-close-circle',
+    cancelled: 'mdi-undo-variant',
+  }[s] || 'mdi-help-circle-outline'
 }
 
 function rowProps({ item }) {
@@ -642,6 +746,7 @@ function rowProps({ item }) {
   const base = canReview.value ? { style: 'cursor: pointer' } : {}
   if (item.status === 'approved') return { ...base, class: 'row-approved' }
   if (item.status === 'rejected') return { ...base, class: 'row-rejected' }
+  if (item.status === 'cancelled') return { ...base, class: 'row-cancelled' }
   if (item.status === 'pending') return { ...base, class: 'row-in-progress' }
   return base
 }
@@ -650,14 +755,19 @@ function fmtAmount(n) {
   return n != null ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(n) : '--'
 }
 
-// Always show the absolute value — the sign meaning is conveyed by the
-// label/color/template state above (Kredi Bakiyen / Limit Dolu / Kazandığın
-// Komisyon). Operators read minus signs as "I owe money" which is wrong.
+/*
+ * Eksi kasa artik gizlenmiyor.
+ *
+ * Onceden negatif deger 0'a kirpiliyordu; gerekcesi "operator eksiyi
+ * 'borcum var' diye okuyor, bu yanlis" idi. Yanlis onaylanmis teslimin
+ * iptali geldikten sonra artik yanlis degil: sistem admini "DIREKT KASASI
+ * EKSIYE DUSECEK" dedi ve bunun gorulmesi gerekiyor. Kirpma, kasasi
+ * eksiye dusmus operatore "0,00 / Limit Doldu" gosterip neden limitinin
+ * dolu oldugunu saklardi.
+ */
 function fmtCredit(n) {
   if (n == null) return '--'
-  // Credit is a single non-negative balance — display directly. Clamp to 0
-  // for the rare over-extended case (admin override).
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.max(0, Number(n) || 0))
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Number(n) || 0)
 }
 
 function fmtDate(d) {
@@ -696,8 +806,68 @@ async function loadOperators() {
   }
 }
 
+/*
+ * Grup grup ozet.
+ *
+ * Butun gruplari goren kullanici bu ekranda GENEL hacmi gormuyor; sistem
+ * admini net yazdi: "Teslim ekranina ilk bastiginda ... 0 yazmalidir.
+ * GENEL HACMI GOREMEZ. FILTRELEME YAPARAK GRUP GRUP GOREBILIR."
+ *
+ * Sifir kilidi burada degil backend'de: grup secilmeden /home/widgets
+ * sifirli yanit donuyor. Panel yalnizca secimi gonderiyor, boylece kural
+ * tek yerde duruyor ve ucu dogrudan cagiran biri de ayni cevabi aliyor.
+ */
+const seesAllGroups = computed(() => auth.isSuperAdmin || auth.can('scope.all_groups'))
+const ozetGrupId = ref(null)
+const subGroups = ref([])
+const ozet = ref(null)
+const ozetLoading = ref(false)
+
+const ozetKartlari = computed(() => {
+  const o = ozet.value
+  const komisyon = o
+    ? Number(o.deposit_commission || 0) + Number(o.withdraw_commission || 0) + Number(o.teslim_commission || 0)
+    : 0
+  return [
+    { key: 'devir', label: 'Devir', value: o?.devir_try ?? 0 },
+    { key: 'yatirim', label: 'Yatırım', value: o?.deposit?.volume ?? 0 },
+    { key: 'cekim', label: 'Çekim', value: o?.withdraw?.volume ?? 0 },
+    { key: 'teslim', label: 'Teslim', value: o?.teslim?.volume ?? 0 },
+    { key: 'komisyon', label: 'Komisyon', value: komisyon },
+    { key: 'ek', label: 'Ek İşlemler', value: o?.ek_islemler?.total ?? 0 },
+    { key: 'kredi', label: 'Kredi', value: o?.credit_try ?? 0, vurgu: true },
+  ]
+})
+
+async function loadSubGroups() {
+  if (!seesAllGroups.value) return
+  try {
+    const { data } = await api.get('/portal/sub-groups')
+    subGroups.value = data || []
+  } catch {
+    subGroups.value = []
+  }
+}
+
+async function loadOzet() {
+  if (!seesAllGroups.value) return
+  ozetLoading.value = true
+  try {
+    const params = {}
+    if (ozetGrupId.value) params.sub_group_id = ozetGrupId.value
+    const { data } = await api.get('/portal/home/widgets', { params })
+    ozet.value = data
+  } catch {
+    ozet.value = null
+  } finally {
+    ozetLoading.value = false
+  }
+}
+
+watch(ozetGrupId, loadOzet)
+
 onMounted(async () => {
-  await Promise.all([loadList(), loadBalance(), loadWallets(), loadOperators()])
+  await Promise.all([loadList(), loadBalance(), loadWallets(), loadOperators(), loadSubGroups(), loadOzet()])
 })
 </script>
 
@@ -730,20 +900,56 @@ onMounted(async () => {
     <v-card v-if="auth.user?.sub_group_id" class="op-credit-card mb-4" :class="balance.credit_try > 0 ? 'op-credit-card--good' : 'op-credit-card--warn'">
       <div class="d-flex align-center justify-space-between flex-wrap ga-3">
         <div>
-          <div class="op-credit-label">{{ balance.credit_try > 0 ? 'Mevcut Krediniz' : 'Limit Doldu' }}</div>
+          <div class="op-credit-label">
+            {{ balance.credit_try > 0 ? 'Mevcut Krediniz' : (balance.credit_try < 0 ? 'Kasanız Ekside' : 'Limit Doldu') }}
+          </div>
           <div class="op-credit-amount">
             {{ fmtCredit(balance.credit_try) }}
             <span class="op-credit-cur">TRY</span>
           </div>
           <div class="op-credit-hint">
-            {{ balance.credit_try > 0
-              ? '✅ Bu tutar kadar yatırım kabul edebilirsin'
-              : '⚠ Yeni teslim yap ya da bekleyen çekimi tamamla' }}
+            <template v-if="balance.credit_try > 0">✅ Bu tutar kadar yatırım kabul edebilirsin</template>
+            <template v-else-if="balance.credit_try < 0">⚠ Bu tutarı kapatana kadar yatırım kabul edemezsin</template>
+            <template v-else>⚠ Yeni teslim yap ya da bekleyen çekimi tamamla</template>
           </div>
         </div>
         <v-icon size="80" :color="balance.credit_try > 0 ? 'var(--sp-accent-success-bright)' : 'var(--sp-accent-amber)'" style="opacity: 0.22">
           mdi-wallet-outline
         </v-icon>
+      </div>
+    </v-card>
+
+    <!-- Grup grup ozet: genel hacim yok, secim yapilinca doluyor. -->
+    <v-card v-if="seesAllGroups" class="mb-3 pa-3 ozet-card">
+      <div class="d-flex align-center flex-wrap ga-3 mb-3">
+        <v-autocomplete
+          v-model="ozetGrupId"
+          :items="subGroups"
+          item-title="name"
+          item-value="id"
+          label="Özet için grup seç"
+          variant="outlined"
+          density="compact"
+          hide-details
+          clearable
+          prepend-inner-icon="mdi-account-group"
+          style="max-width: 320px"
+        />
+        <span v-if="!ozetGrupId" class="ozet-hint">
+          Genel toplam gösterilmez. Rakamları görmek için bir grup seçin.
+        </span>
+        <v-progress-circular v-if="ozetLoading" indeterminate size="18" width="2" color="primary" />
+      </div>
+      <div class="ozet-strip">
+        <div
+          v-for="k in ozetKartlari"
+          :key="k.key"
+          class="ozet-cell"
+          :class="{ 'ozet-cell--accent': k.vurgu }"
+        >
+          <div class="ozet-label">{{ k.label }}</div>
+          <div class="ozet-value">{{ fmtAmount(k.value) }}</div>
+        </div>
       </div>
     </v-card>
 
@@ -778,13 +984,16 @@ onMounted(async () => {
         @click:row="onRowClick"
       >
         <template #item.id="{ item }">
-          <span class="cell-id">#{{ item.id }}</span>
+          <div class="cell-ident">
+            <span class="cell-id">#{{ item.id }}</span>
+            <span class="cell-date">{{ fmtDate(item.created_at) }}</span>
+          </div>
         </template>
-        <template #item.created_at="{ item }">
-          <span class="cell-date">{{ fmtDate(item.created_at) }}</span>
-        </template>
-        <template #item.operator="{ item }">
-          <span class="font-weight-bold">{{ item.operator?.name || '—' }}</span>
+        <template #item.group="{ item }">
+          <div class="cell-group">
+            <div class="cell-group-name">{{ item.subGroup?.name || item.sub_group?.name || item.operator?.sub_group?.name || '—' }}</div>
+            <div class="cell-group-op">{{ item.operator?.name || '—' }}</div>
+          </div>
         </template>
         <template #item.amount_try="{ item }">
           <div class="cell-try">
@@ -809,7 +1018,7 @@ onMounted(async () => {
             <template v-if="item.crypto_hash">
               <v-tooltip :text="item.crypto_hash" location="top">
                 <template #activator="{ props }">
-                  <span v-bind="props" class="cell-hash-text">{{ shortenAddr(item.crypto_hash) }}</span>
+                  <span v-bind="props" class="cell-hash-text">{{ shortenTxid(item.crypto_hash) }}</span>
                 </template>
               </v-tooltip>
               <v-tooltip :text="copiedHashId === item.id ? 'Kopyalandı' : 'Hash kopyala'" location="top">
@@ -839,6 +1048,19 @@ onMounted(async () => {
               <v-btn size="small" variant="flat" color="success" prepend-icon="mdi-check" @click.stop="openDetailFor(item)">Onayla</v-btn>
               <v-btn size="small" variant="flat" color="error" prepend-icon="mdi-close" @click.stop="openReject(item)">Reddet</v-btn>
             </template>
+            <!-- Iptal yalnizca ONAYLANMIS satirda ve teslim.cancel izniyle
+                 gorunur. Outline birakildi (dolu degil) ki onay satirinda
+                 yanlislikla tiklanacak kadar one cikmasin. -->
+            <v-btn
+              v-if="canCancelTeslim && item.status === 'approved'"
+              size="small"
+              variant="outlined"
+              color="error"
+              prepend-icon="mdi-undo-variant"
+              @click.stop="openCancel(item)"
+            >
+              İptal Et
+            </v-btn>
           </div>
         </template>
       </v-data-table>
@@ -1245,6 +1467,12 @@ onMounted(async () => {
               <div class="detail-section-label mt-3" style="color: var(--sp-accent-rose)">Red Nedeni</div>
               <div class="detail-note detail-note--reject">{{ detailItem.rejection_reason }}</div>
             </template>
+            <template v-if="detailItem.status === 'cancelled'">
+              <div class="detail-section-label mt-3" style="color: var(--sp-accent-rose)">İptal Nedeni</div>
+              <div class="detail-note detail-note--reject">
+                {{ detailItem.cancellation_reason || detailItem.cancel_reason || 'Neden kaydedilmemiş.' }}
+              </div>
+            </template>
 
             <!-- Reviewer trail -->
             <template v-if="detailItem.reviewer">
@@ -1268,6 +1496,17 @@ onMounted(async () => {
             <v-btn v-if="canRejectTeslim" variant="tonal" color="error" size="large" prepend-icon="mdi-close-thick" @click="rejectFromDetail" class="flex-grow-1">Reddet</v-btn>
             <v-btn v-if="canApprove" variant="flat" color="success" size="large" prepend-icon="mdi-check-bold" @click="approveFromDetail" class="flex-grow-1">Onayla</v-btn>
           </template>
+          <v-btn
+            v-if="canCancelTeslim && detailItem.status === 'approved'"
+            variant="outlined"
+            color="error"
+            size="large"
+            prepend-icon="mdi-undo-variant"
+            @click="cancelFromDetail"
+            class="flex-grow-1"
+          >
+            İptal Et
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -1288,10 +1527,142 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Onaylanmis teslimi iptal etme onayi. Krediyi geri aldigi ve kasayi
+         eksiye dusurebilecegi acikca yaziyor; onaysiz gecilemiyor. -->
+    <v-dialog v-model="cancelDialog" max-width="540" persistent>
+      <v-card v-if="selectedItem">
+        <v-card-title class="d-flex align-center">
+          <v-icon start color="error">mdi-alert-octagon</v-icon> Teslimi İptal Et
+        </v-card-title>
+        <v-card-text>
+          <v-alert type="error" variant="tonal" density="compact" class="mb-3">
+            <div class="font-weight-bold mb-1">Bu işlem operatörün kredisini geri alır.</div>
+            Operatör bu krediyle yatırım kabul etmiş olabilir. İptal sonrası
+            <strong>kasası eksiye düşebilir</strong> ve bu tutarı kapatana kadar
+            yeni yatırım kabul edemez. İşlem geri alınamaz.
+          </v-alert>
+
+          <div class="cancel-summary mb-3">
+            <div class="cancel-summary-row">
+              <span class="cancel-summary-label">Teslim</span>
+              <span class="cancel-summary-val">#{{ selectedItem.id }}</span>
+            </div>
+            <div class="cancel-summary-row">
+              <span class="cancel-summary-label">Operatör</span>
+              <span class="cancel-summary-val">{{ selectedItem.operator?.name || '—' }}</span>
+            </div>
+            <div class="cancel-summary-row">
+              <span class="cancel-summary-label">Geri alınacak tutar</span>
+              <span class="cancel-summary-val cancel-summary-val--danger">
+                −{{ fmtAmount(selectedItem.amount_try) }} TRY
+              </span>
+            </div>
+          </div>
+
+          <v-alert v-if="cancelError" type="error" density="compact" class="mb-3">{{ cancelError }}</v-alert>
+
+          <v-textarea
+            v-model="cancelReason"
+            label="İptal Nedeni (zorunlu)"
+            variant="outlined"
+            density="compact"
+            rows="3"
+            :counter="CANCEL_REASON_MAX"
+            :maxlength="CANCEL_REASON_MAX"
+            :rules="cancelReasonRules"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" :disabled="acting" @click="cancelDialog = false">Vazgeç</v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            :loading="acting"
+            :disabled="!canSubmitCancel"
+            prepend-icon="mdi-undo-variant"
+            @click="handleCancel"
+          >
+            Evet, İptal Et
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Iptal sonucu: kredinin oncesi/sonrasi. Kasa eksiye dustuyse
+         yonetici bunu kapatmadan ekrandan gecemesin diye ayri modal. -->
+    <v-dialog v-model="cancelResultDialog" max-width="480">
+      <v-card v-if="cancelResult">
+        <v-card-title class="d-flex align-center">
+          <v-icon start :color="cancelWentNegative ? 'error' : 'success'">
+            {{ cancelWentNegative ? 'mdi-alert-octagon' : 'mdi-check-circle' }}
+          </v-icon>
+          Teslim İptal Edildi
+        </v-card-title>
+        <v-card-text>
+          <div class="credit-delta">
+            <div class="credit-delta-box">
+              <div class="credit-delta-label">İptal Öncesi Kredi</div>
+              <div class="credit-delta-val">{{ fmtAmount(cancelResult.creditBefore) }} TRY</div>
+            </div>
+            <v-icon size="20" color="var(--sp-text-muted)">mdi-arrow-right</v-icon>
+            <div class="credit-delta-box">
+              <div class="credit-delta-label">İptal Sonrası Kredi</div>
+              <div class="credit-delta-val" :class="{ 'credit-delta-val--negative': cancelWentNegative }">
+                {{ fmtAmount(cancelResult.creditAfter) }} TRY
+              </div>
+            </div>
+          </div>
+
+          <v-alert v-if="cancelWentNegative" type="error" variant="tonal" density="compact" class="mt-3">
+            <div class="font-weight-bold mb-1">Operatörün kasası eksiye düştü.</div>
+            Bu operatör, eksi bakiyeyi kapatan yeni bir teslim yapana kadar
+            yatırım kabul edemez. Operatörü bilgilendirin.
+          </v-alert>
+          <v-alert v-else type="success" variant="tonal" density="compact" class="mt-3">
+            Kredi geri alındı, operatörün kasası artıda kaldı.
+          </v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="flat" color="primary" @click="cancelResultDialog = false">Anladım</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <style scoped>
+/* Grup ozet seridi — Signal dili: sifir radius, 1px hairline. */
+.ozet-hint { font-size: 12px; color: var(--sp-text-muted); }
+.ozet-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  border: 1px solid var(--sp-border);
+}
+.ozet-cell {
+  padding: 10px 12px;
+  border-right: 1px solid var(--sp-border);
+}
+.ozet-cell:last-child { border-right: none; }
+.ozet-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--sp-text-muted);
+}
+.ozet-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sp-text);
+  margin-top: 2px;
+}
+.ozet-cell--accent .ozet-value { color: var(--sp-accent-success-bright); }
+
 .teslim-page { max-width: 1400px; margin: 0 auto; }
 
 /* Page header */
@@ -1387,6 +1758,26 @@ onMounted(async () => {
   letter-spacing: 0.3px;
   font-variant-numeric: tabular-nums;
 }
+
+/* ID + tarih tek hucrede: ayri "Tarih" sutunu kaldirildigi icin tarih
+   buraya, ikincil satir olarak indi. */
+.cell-ident { line-height: 1.3; }
+.cell-ident .cell-date { display: block; font-size: 11px; margin-top: 1px; }
+
+/* GRUP hucresi: alt grup adi birincil, operator adi ikincil satir --
+   admin once "hangi ekip", sonra "kim" diye okuyor. */
+.cell-group { line-height: 1.3; }
+.cell-group-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--sp-text);
+}
+.cell-group-op {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sp-text-muted);
+  margin-top: 1px;
+}
 .cell-try { display: inline-flex; align-items: baseline; gap: 4px; }
 .cell-try-amount { font-size: 15px; font-weight: 800; color: var(--sp-text); font-variant-numeric: tabular-nums; }
 .cell-try-cur { font-size: 11px; font-weight: 600; color: var(--sp-text-muted); }
@@ -1445,6 +1836,60 @@ onMounted(async () => {
   background: rgba(102,241,189, 0.20);
   color: var(--sp-accent-success-bright);
 }
+
+/* ── Iptal dialogu ── */
+.cancel-summary {
+  border: 1px solid rgba(255, 156, 136, 0.28);
+  background: rgba(255, 156, 136, 0.06);
+  padding: 10px 12px;
+}
+.cancel-summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+}
+.cancel-summary-label { font-size: 12px; color: var(--sp-text-muted); }
+.cancel-summary-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+.cancel-summary-val--danger { color: var(--sp-accent-error); }
+
+/* Kredi oncesi/sonrasi karsilastirmasi. Sonuc eksiyse rakam kirmiziya
+   doner -- yonetici tek bakista kasayi eksiye dusurdugunu gorsun. */
+.credit-delta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.credit-delta-box {
+  flex: 1;
+  border: 1px solid var(--sp-card-border);
+  padding: 10px 12px;
+  text-align: center;
+}
+.credit-delta-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--sp-text-muted);
+  margin-bottom: 4px;
+}
+.credit-delta-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--sp-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.credit-delta-val--negative { color: var(--sp-accent-error); }
 
 /* Stable counter (rate dialog) */
 .rate-age-hint {
@@ -1975,4 +2420,17 @@ onMounted(async () => {
   cursor: pointer;
 }
 .teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-rejected > td:first-child { box-shadow: inset 3px 0 0 var(--sp-accent-error); }
+
+/* Iptal edilen satir mercan (coral) tonda ve ustu cizili tutuluyor:
+   reddedilenle ayni kirmiziya boyanirsa "hic kabul edilmedi" ile
+   "kabul edildi sonra geri alindi" ayirt edilemez hale gelir. */
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-cancelled,
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-cancelled > td       { background: rgba(255,156,136, 0.09) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-cancelled:hover,
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-cancelled:hover > td { background: rgba(255,156,136, 0.20) !important; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-cancelled > td:first-child { box-shadow: inset 3px 0 0 #FF9C88; }
+.teslim-table-card .v-table > .v-table__wrapper > table > tbody > tr.row-cancelled .cell-try-amount {
+  text-decoration: line-through;
+  opacity: 0.72;
+}
 </style>

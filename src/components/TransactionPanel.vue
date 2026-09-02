@@ -184,7 +184,7 @@
         </div>
 
         <!-- Manual Assignment (SA only, unassigned withdrawals) -->
-        <div v-if="isSuperAdmin && txn.type === 'withdrawal' && ['pending', 'assigned'].includes(txn.status)" class="mt-3">
+        <div v-if="canAssign && txn.type === 'withdrawal' && ['pending', 'assigned'].includes(txn.status)" class="mt-3">
           <div class="section-divider mb-2" />
           <div class="detail-label mb-1">OPERATÖRE ATA</div>
           <v-select
@@ -591,6 +591,11 @@ watch(rejectDialog, (open) => {
 onUnmounted(stopCooldownTimer)
 
 const isSuperAdmin = computed(() => auth.isSuperAdmin)
+
+// Operatore atama artik role degil izne bagli; backend de ayni izne
+// (transactions.assign) bakiyor.
+const canAssign = computed(() => auth.isSuperAdmin || auth.can('transactions.assign'))
+
 const txnType = computed(() => txn.value?.type)
 
 const canAct = computed(() => txn.value && ['pending', 'assigned', 'processing'].includes(txn.value.status))
@@ -650,8 +655,8 @@ async function loadTxn(id) {
   try {
     const { data } = await api.get(`/portal/transactions/${id}`)
     txn.value = data
-    // Load withdrawal operators for SA assignment
-    if (isSuperAdmin.value && data.type === 'withdrawal' && ['pending', 'assigned'].includes(data.status)) {
+    // Atama listesi yalnizca atama izni olana yuklensin.
+    if (canAssign.value && data.type === 'withdrawal' && ['pending', 'assigned'].includes(data.status)) {
       loadWithdrawalOperators()
     }
   } finally {

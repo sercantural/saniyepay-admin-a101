@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 export const useNotificationStore = defineStore('notifications', () => {
   const notifications = ref([])
@@ -24,16 +25,29 @@ export const useNotificationStore = defineStore('notifications', () => {
       extra: extra || null,
     }
 
+    // Kayit HER ZAMAN listeye dusuyor. Tercihler yalnizca "dikkat cekme"
+    // kanallarini (ekran karti + ses) kapatiyor; gecmisi de kapatsaydi
+    // operator sesi kapattigi an gelen isi bir daha goremezdi. Zil
+    // simgesindeki okunmamis sayaci da bu sayede calismaya devam ediyor.
     notifications.value.unshift(notification)
 
     if (notifications.value.length > maxNotifications) {
       notifications.value = notifications.value.slice(0, maxNotifications)
     }
 
-    toastData.value = notification
-    showToast.value = true
+    // Auth store'a burada erisiyoruz (modul tepesinde degil): Pinia store'lari
+    // ancak app kurulduktan sonra ornekleniyor, cagri aninda okumak dongusel
+    // bagimlilik riskini de ortadan kaldiriyor.
+    const prefs = useAuthStore().notificationPreferences
 
-    playAlertSound()
+    if (prefs?.toast !== false) {
+      toastData.value = notification
+      showToast.value = true
+    }
+
+    if (prefs?.sound !== false) {
+      playAlertSound()
+    }
   }
 
   function markAllRead() {

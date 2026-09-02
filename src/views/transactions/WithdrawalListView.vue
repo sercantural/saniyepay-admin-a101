@@ -4,6 +4,19 @@
       <v-icon start color="info">mdi-minus-circle</v-icon>
       Çekimler
       <v-spacer />
+      <!-- Parca cekim: buyuk bir talep gruplara bolunerek elle giriliyor.
+           Yalnizca ic firmalara islenir, backend de bunu dogruluyor. -->
+      <v-btn
+        v-if="canCreateManual"
+        color="primary"
+        variant="outlined"
+        density="comfortable"
+        prepend-icon="mdi-call-split"
+        class="mr-2"
+        @click="openManual()"
+      >
+        Parça Çekim
+      </v-btn>
       <v-text-field
         v-model="search"
         prepend-inner-icon="mdi-magnify"
@@ -31,6 +44,21 @@
           @click="setStatusQuick(opt.value)"
         >
           <v-icon size="13" class="mr-1">{{ opt.icon }}</v-icon>{{ opt.text }}
+        </button>
+      </div>
+
+      <!-- "Benim islemlerim" — kendi uzerine aldiklarini suzer.
+           Destek panelinde ozellikle istendi: "SADECE KENDINE AIT GECMIS
+           ISLEMLERI gorebilir." Kendine daraltmak kapsam genisletmesi
+           olmadigi icin herkese acik. -->
+      <div class="filter-row filter-mine-row">
+        <button
+          class="status-pill"
+          :class="{ 'is-active': sadeceBenim }"
+          type="button"
+          @click="sadeceBenim = !sadeceBenim; page = 1; loadData()"
+        >
+          <v-icon size="13" class="mr-1">mdi-account-check-outline</v-icon>Benim İşlemlerim
         </button>
       </div>
 
@@ -139,8 +167,11 @@
                 @click:clear="amountMax = null; loadData()"
               />
             </v-col>
-            <v-col v-if="auth.isSuperAdmin" cols="12" md="6">
-              <v-autocomplete v-model="merchantFilter" :items="merchants" item-title="name" item-value="id" label="Bayi" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-store" @update:model-value="loadData" />
+            <v-col v-if="seesAllGroups" cols="12" md="6">
+              <v-autocomplete v-model="subGroupFilter" :items="subGroups" item-title="name" item-value="id" label="Grup" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-account-group" @update:model-value="loadData" />
+            </v-col>
+            <v-col v-if="seesFinancials" cols="12" md="6">
+              <v-autocomplete v-model="merchantFilter" :items="merchants" item-title="name" item-value="id" label="Site" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-store" @update:model-value="loadData" />
             </v-col>
             <v-col v-if="auth.isSuperAdmin" cols="12" md="6">
               <v-autocomplete v-model="lockerFilter" :items="operatorOptions" item-title="name" item-value="id" label="İşlemi Yapan Operatör" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-account-hard-hat" @update:model-value="loadData" />
@@ -157,7 +188,22 @@
       </v-expand-transition>
     </div>
 
+    <!-- Toplu atama seridi: yalnizca secim varken cikiyor ki normal
+         kullanimda tablonun ustunu kaplamasin. -->
+    <div v-if="canAssign && selectedIds.length" class="bulk-bar">
+      <v-icon size="16" class="mr-2">mdi-checkbox-multiple-marked-outline</v-icon>
+      <span class="bulk-count">{{ selectedIds.length }} çekim seçildi</span>
+      <v-spacer />
+      <v-btn size="small" variant="text" @click="selectedIds = []">Seçimi Bırak</v-btn>
+      <v-btn size="small" color="primary" variant="flat" prepend-icon="mdi-account-group" @click="openBulkAssign()">
+        Gruba İlet
+      </v-btn>
+    </div>
+
     <v-data-table-server
+      v-model="selectedIds"
+      :show-select="canAssign"
+      item-value="id"
       :headers="visibleHeaders"
       :items="txnStore.items"
       :items-length="txnStore.pagination?.total || 0"
@@ -199,6 +245,11 @@
             <v-icon start size="16">{{ statusIcon(item.status) }}</v-icon>
             {{ statusText(item.status) }}
           </v-chip>
+          <!-- Onaylayan/reddeden kisi rozetin altinda. Ayri sutun yerine
+               burada: "kim onayladi" sorusu durumun devami. -->
+          <div v-if="item.approver" class="approver-line">
+            <v-icon size="10" class="mr-1">mdi-account-check-outline</v-icon>{{ item.approver.name }}
+          </div>
           <!-- Operator finalization time — locked → resolved. Surfaces
                who-took-how-long at a glance for SA throughput review. -->
           <v-tooltip
@@ -259,6 +310,8 @@
       <!-- Saat: created + approved/resolved times stacked. -->
       <template v-slot:item.created_at="{ item }">
         <div class="time-cell">
+          <!-- Gun ve saat tek sutunda: ayri "Tarih" sutunu kaldirildi. -->
+          <div class="date-cell">{{ formatDateOnly(item.created_at) }}</div>
           <div class="time-row">
             <v-icon size="11" color="grey">mdi-clock-plus-outline</v-icon>
             <span class="time-val">{{ formatTimeOnly(item.created_at) }}</span>
@@ -359,7 +412,7 @@
 
             <!-- Admin overflow: reassign + cancel collapsed into a 3-dot menu
                  so they never compete with primary actions for space. -->
-            <v-menu v-if="auth.isSuperAdmin && hasAdminOverflow(item)" location="bottom end">
+            <v-menu v-if="hasAdminOverflow(item)" location="bottom end">
               <template v-slot:activator="{ props }">
                 <v-tooltip text="Diğer işlemler" location="top">
                   <template v-slot:activator="{ props: tipProps }">
@@ -371,14 +424,21 @@
               </template>
               <v-list density="compact">
                 <v-list-item
-                  v-if="!['approved','rejected','expired','cancelled'].includes(item.status)"
+                  v-if="canAssign && !['approved','rejected','expired','cancelled'].includes(item.status)"
                   prepend-icon="mdi-account-switch"
                   @click="openAssign(item)"
                 >
                   <v-list-item-title>Operatöre Ata</v-list-item-title>
                 </v-list-item>
                 <v-list-item
-                  v-if="item.status === 'approved'"
+                  v-if="canTransferGroup && item.status === 'approved'"
+                  prepend-icon="mdi-swap-horizontal-bold"
+                  @click="openTransfer(item)"
+                >
+                  <v-list-item-title>Başka Gruba Aktar</v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  v-if="canCancel && item.status === 'approved'"
                   prepend-icon="mdi-cancel"
                   @click="openCancel(item)"
                 >
@@ -718,6 +778,159 @@
     </v-dialog>
 
     <!-- Assign dialog (super admin) — reassign to any operator -->
+    <!-- Toplu atama: cekler secilir, tek grup secilir, iletilir.
+         Arada baska biri bir cekimi almissa o cek atlanir ve sonuc
+         listesinde sebebiyle gosterilir. -->
+    <v-dialog v-model="bulkDialog" max-width="560">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon size="28" color="primary" class="mr-2">mdi-account-group</v-icon>
+          Seçili Çekimleri Gruba İlet
+        </v-card-title>
+        <v-card-text>
+          <v-alert type="info" variant="tonal" density="compact" class="mb-3">
+            {{ selectedIds.length }} çekim seçili. Bu sırada başka biri bir çekimi işleme aldıysa o çek atlanır.
+          </v-alert>
+          <v-autocomplete
+            v-model="bulkSubGroupId"
+            :items="subGroups"
+            item-value="id"
+            item-title="name"
+            label="Hedef Grup"
+            variant="outlined"
+            density="compact"
+            hide-details
+          />
+          <v-alert v-if="bulkError" type="error" density="compact" class="mt-3">{{ bulkError }}</v-alert>
+          <div v-if="bulkResult" class="mt-3">
+            <div class="text-body-2 font-weight-bold mb-1">{{ bulkResult.message }}</div>
+            <v-list v-if="bulkResult.skipped?.length" density="compact" class="bulk-skip-list">
+              <v-list-item v-for="sk in bulkResult.skipped" :key="sk.id" density="compact">
+                <v-list-item-title class="text-caption">#{{ sk.id }} — {{ sk.sebep }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="bulkDialog = false">Kapat</v-btn>
+          <v-btn color="primary" variant="flat" :loading="bulkLoading" :disabled="!bulkSubGroupId" @click="confirmBulkAssign">
+            İlet
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Parca cekim / elle islem girisi -->
+    <v-dialog v-model="manualDialog" max-width="560">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon size="28" color="primary" class="mr-2">mdi-call-split</v-icon>
+          Elle Çekim Gir
+        </v-card-title>
+        <v-card-text>
+          <v-alert type="info" variant="tonal" density="compact" class="mb-3">
+            Bayinin onaylanmış büyük talebini parçalara bölmek için kullanılır. Yalnızca iç firmalara işlenir.
+          </v-alert>
+          <v-autocomplete
+            v-model="manualForm.merchant_id"
+            :items="internalMerchants"
+            item-value="id"
+            item-title="name"
+            label="Firma"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            hide-details
+            no-data-text="Tanımlı iç firma yok"
+          />
+          <v-text-field
+            :model-value="formatAmountInput(manualForm.amount)"
+            @update:model-value="v => { manualForm.amount = parseAmountInput(v) }"
+            label="Tutar"
+            type="text"
+            inputmode="numeric"
+            suffix="TRY"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            hide-details
+          />
+          <v-autocomplete
+            v-model="manualForm.bank_account_id"
+            :items="manualAccounts"
+            item-value="id"
+            :item-title="accountLabel"
+            label="Hedef Hesap (boş bırakılırsa havuzda kalır)"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            clearable
+            hide-details
+            :loading="manualAccountsLoading"
+          />
+          <v-text-field v-model="manualForm.player_account_holder" label="Alıcı Ad Soyad" variant="outlined" density="compact" class="mb-3" hide-details />
+          <v-text-field v-model="manualForm.player_iban" label="Alıcı IBAN" variant="outlined" density="compact" class="mb-3" hide-details />
+          <v-textarea v-model="manualForm.notes" label="Not" variant="outlined" density="compact" rows="2" hide-details />
+          <v-alert v-if="manualError" type="error" density="compact" class="mt-3">{{ manualError }}</v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="manualDialog = false">Vazgeç</v-btn>
+          <v-btn color="primary" variant="flat" :loading="manualLoading" :disabled="!manualForm.merchant_id || !manualForm.amount" @click="submitManual">
+            Oluştur
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Gruplar arasi aktarim: kredi eski gruptan dusulup yenisine yaziliyor -->
+    <v-dialog v-model="transferDialog" max-width="520">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon size="28" color="warning" class="mr-2">mdi-swap-horizontal-bold</v-icon>
+          Başka Gruba Aktar
+        </v-card-title>
+        <v-card-text v-if="selectedTxn">
+          <v-alert type="warning" variant="tonal" density="compact" class="mb-3">
+            Kredi eski gruptan düşülüp yeni gruba yazılır. Ödediğini söyleyip ödememiş grup için kullanılır.
+          </v-alert>
+          <div class="text-body-2 mb-3">
+            <strong>#{{ selectedTxn.internal_id }}</strong> — {{ formatCurrency(selectedTxn.requested_amount) }} {{ selectedTxn.currency }}
+            <div class="text-caption text-medium-emphasis mt-1">Mevcut grup: {{ selectedTxn.sub_group?.name || '—' }}</div>
+          </div>
+          <v-autocomplete
+            v-model="transferSubGroupId"
+            :items="subGroups"
+            item-value="id"
+            item-title="name"
+            label="Yeni Grup"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            hide-details
+          />
+          <v-textarea
+            v-model="transferReason"
+            label="Gerekçe (zorunlu)"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            counter="255"
+            maxlength="255"
+          />
+          <v-alert v-if="transferError" type="error" density="compact">{{ transferError }}</v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="transferDialog = false">Vazgeç</v-btn>
+          <v-btn color="warning" variant="flat" :loading="transferLoading" :disabled="!transferSubGroupId || !transferReason.trim()" @click="confirmTransfer">
+            Aktar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-dialog v-model="assignDialog" max-width="500">
       <v-card>
         <v-card-title class="d-flex align-center">
@@ -873,6 +1086,26 @@ const notifications = useNotificationStore()
 const route = useRoute()
 const router = useRouter()
 
+/*
+ * Yonetim eylemleri: rol degil izin.
+ *
+ * auth.can() super admin'i de kapsiyor (backend /portal/me yanitinda
+ * super admin'in tum izinlerini donduruyor), bu yuzden ayrica
+ * isSuperAdmin sormaya gerek yok. Backend ayni izinlere bakiyor.
+ */
+const canAssign = computed(() => auth.isSuperAdmin || auth.can('transactions.assign'))
+// Firma adini gorenler Site sutununu, butun gruplari gorenler Grup
+// sutununu ve grup suzgecini gorur. Destek ikisini de goruyor.
+const seesFinancials = computed(() =>
+  auth.isSuperAdmin || auth.can('scope.merchant_identity') || auth.can('scope.commissions')
+)
+const seesAllGroups = computed(() =>
+  auth.isSuperAdmin || auth.can('scope.all_groups')
+)
+const canCreateManual = computed(() => auth.isSuperAdmin || auth.can('transactions.create_manual'))
+const canTransferGroup = computed(() => auth.isSuperAdmin || auth.can('transactions.transfer_group'))
+const canCancel = computed(() => auth.isSuperAdmin || auth.can('transactions.cancel'))
+
 // Notification → highlight the row (mirrors DepositListView).
 const highlightId = ref(route.query.highlight ? String(route.query.highlight) : null)
 let highlightClearTimer = null
@@ -936,6 +1169,9 @@ const page = ref(1)
 const showFilters = ref(false)
 
 const merchantFilter = ref(null)
+const subGroups = ref([])
+const subGroupFilter = ref(null)
+const sadeceBenim = ref(false)
 const customerFilter = ref('')
 const lockerFilter = ref(null)
 const amountMin = ref(null)
@@ -1011,6 +1247,37 @@ const assignOperatorId = ref(null)
 const assignableOperators = ref([])
 const assignLoading = ref(false)
 
+// Toplu atama: cekler secilir, tek grup secilir, iletilir.
+const selectedIds = ref([])
+const bulkDialog = ref(false)
+const bulkSubGroupId = ref(null)
+const bulkLoading = ref(false)
+const bulkError = ref('')
+const bulkResult = ref(null)
+
+// Elle cekim (parca cekim) formu.
+const manualDialog = ref(false)
+const manualLoading = ref(false)
+const manualError = ref('')
+const internalMerchants = ref([])
+const manualAccounts = ref([])
+const manualAccountsLoading = ref(false)
+const manualForm = ref({
+  merchant_id: null,
+  amount: null,
+  bank_account_id: null,
+  player_account_holder: '',
+  player_iban: '',
+  notes: '',
+})
+
+// Gruplar arasi aktarim.
+const transferDialog = ref(false)
+const transferSubGroupId = ref(null)
+const transferReason = ref('')
+const transferLoading = ref(false)
+const transferError = ref('')
+
 const activeFilterCount = computed(() => activeFilterChips.value.length)
 
 // Status options used by the quick-pill row above the table. Includes
@@ -1083,7 +1350,8 @@ const activeFilterChips = computed(() => {
   if (customerFilter.value) chips.push({ key: 'customer', label: 'Oyuncu', value: customerFilter.value })
   if (amountMin.value != null) chips.push({ key: 'amountMin', label: 'Min', value: formatCurrency(amountMin.value) + ' TRY' })
   if (amountMax.value != null) chips.push({ key: 'amountMax', label: 'Max', value: formatCurrency(amountMax.value) + ' TRY' })
-  if (merchantFilter.value) chips.push({ key: 'merchant', label: 'Bayi', value: (merchants.value.find(m => m.id === merchantFilter.value)?.name) || '#' + merchantFilter.value })
+  if (merchantFilter.value) chips.push({ key: 'merchant', label: 'Site', value: (merchants.value.find(m => m.id === merchantFilter.value)?.name) || '#' + merchantFilter.value })
+  if (subGroupFilter.value) chips.push({ key: 'sub_group', label: 'Grup', value: (subGroups.value.find(g => g.id === subGroupFilter.value)?.name) || '#' + subGroupFilter.value })
   if (lockerFilter.value)   chips.push({ key: 'locker', label: 'Operatör', value: (operatorOptions.value.find(o => o.id === lockerFilter.value)?.name) || '#' + lockerFilter.value })
   return chips
 })
@@ -1098,6 +1366,7 @@ function clearFilter(key) {
     case 'amountMin': amountMin.value = null; break
     case 'amountMax': amountMax.value = null; break
     case 'merchant':  merchantFilter.value = null; break
+    case 'sub_group': subGroupFilter.value = null; break
     case 'locker':    lockerFilter.value = null; break
   }
   loadData()
@@ -1134,29 +1403,34 @@ const sandboxOptions = [
 ]
 
 const allHeaders = [
-  { title: 'No', key: 'internal_id', width: '70px' },
-  { title: 'Tarih', key: 'date_only', sortable: false, width: '90px' },
-  { title: 'Kullanıcı', key: 'customer', sortable: false },
+  { title: 'ID', key: 'internal_id', width: '70px' },
   // value getter resolves the nested name so the cell renders the string
   // even without a v-slot (Vuetify 3's default-cell renderer JSON-stringifies
   // raw objects). Slot still wins when present.
-  { title: 'Bayi', key: 'merchant', value: (item) => item.merchant?.name || '—', sortable: false },
+  { title: 'Site', key: 'merchant', value: (item) => item.merchant?.name || '—', sortable: false },
+  { title: 'Grup', key: 'sub_group', sortable: false, width: '120px' },
+  { title: 'İsim', key: 'customer', sortable: false },
+  { title: 'Hedef Hesap', key: 'player_bank', sortable: false },
   { title: 'Tutar', key: 'requested_amount' },
-  { title: 'Banka / IBAN', key: 'player_bank', sortable: false },
   { title: 'Durum', key: 'status' },
-  { title: 'Onaylayan', key: 'approver', sortable: false },
-  { title: 'Saat', key: 'created_at', sortable: false },
+  { title: 'Tarih', key: 'created_at', sortable: false, width: '130px' },
+  { title: 'Ortam', key: 'environment', sortable: false },
   { title: 'İşlem', key: 'actions', sortable: false, align: 'end' },
 ]
 
+/*
+ * Sutun gorunurlugu izne bagli, role degil.
+ *
+ * Onceden tek isSuperAdmin kontrolu vardi ve destek ekibi, firmayla
+ * iletisime gecmesi gerektigi halde Site sutununu goremiyordu.
+ * Onaylayan ayri bir sutun degil artik; durum rozetinin altinda.
+ */
 const visibleHeaders = computed(() => {
-  let headers = allHeaders
-  if (!auth.isSuperAdmin) {
-    // Operators don't need merchant or "approved by" — saves horizontal
-    // space so the action cluster stays on-screen without scrolling.
-    headers = headers.filter(h => !['merchant', 'approver'].includes(h.key))
-  }
-  return headers
+  const gizli = []
+  if (!seesFinancials.value) gizli.push('merchant')
+  if (!seesAllGroups.value) gizli.push('sub_group')
+  if (!auth.isSuperAdmin) gizli.push('environment')
+  return allHeaders.filter(h => !gizli.includes(h.key))
 })
 
 // Status display: "assigned" means routed to an operator's bank account
@@ -1301,11 +1575,19 @@ function canRelease(_item) {
 
 // Whether the SA's overflow menu has any items for this row. Avoids
 // rendering an empty 3-dot menu on terminal-but-not-approved rows.
+/*
+ * Menude gosterilecek bir sey var mi?
+ *
+ * Eskiden kosul "auth.isSuperAdmin" idi: atama ve iptal izinleri
+ * katalogda oldugu halde yalnizca super admin bu menuye ulasabiliyordu.
+ * Artik iki maddenin kendi izni belirliyor -- backend de ayni izinlere
+ * bakiyor (transactions.assign / transactions.cancel).
+ */
 function hasAdminOverflow(item) {
-  if (!auth.isSuperAdmin) return false
-  const canReassign = !['approved', 'rejected', 'expired', 'cancelled'].includes(item.status)
-  const canCancel = item.status === 'approved'
-  return canReassign || canCancel
+  const atanabilir = canAssign.value && !['approved', 'rejected', 'expired', 'cancelled'].includes(item.status)
+  const iptalEdilebilir = canCancel.value && item.status === 'approved'
+
+  return atanabilir || iptalEdilebilir
 }
 
 async function handleLock(item) {
@@ -1571,6 +1853,141 @@ async function confirmRelease() {
   }
 }
 
+/*
+ * Toplu atama.
+ *
+ * Backend her cekimi tek tek kosullu guncelliyor: arada baska biri
+ * isleme aldiysa o satir etkilenmiyor ve "atlanan" listesine dusuyor.
+ * Bu yuzden burada onceden filtreleme yapmiyoruz, sonucu gosteriyoruz.
+ */
+function openBulkAssign() {
+  bulkError.value = ''
+  bulkResult.value = null
+  bulkSubGroupId.value = null
+  bulkDialog.value = true
+}
+
+async function confirmBulkAssign() {
+  if (!bulkSubGroupId.value || !selectedIds.value.length) return
+  bulkError.value = ''
+  bulkResult.value = null
+  bulkLoading.value = true
+  try {
+    const { data } = await api.post('/portal/transactions/bulk-assign', {
+      transaction_ids: selectedIds.value,
+      sub_group_id: bulkSubGroupId.value,
+    })
+    bulkResult.value = data
+    // Atananlari secimden dusuruyoruz; atlananlar secili kaliyor ki
+    // kullanici tekrar deneyebilsin.
+    const atanan = new Set(data.assigned || [])
+    selectedIds.value = selectedIds.value.filter(id => !atanan.has(id))
+    notifications.addNotification({ type: 'success', title: 'Toplu Atama', message: data.message })
+    loadData()
+  } catch (e) {
+    bulkError.value = e?.response?.data?.message || 'Toplu atama başarısız.'
+  } finally {
+    bulkLoading.value = false
+  }
+}
+
+// --- Elle cekim girisi (parca cekim) ---
+function accountLabel(a) {
+  const grup = a.sub_group?.name || a.sub_group_name || ''
+  return grup ? `${grup} — ${a.account_holder || a.bank_name}` : (a.account_holder || a.bank_name || `#${a.id}`)
+}
+
+async function openManual() {
+  manualError.value = ''
+  manualForm.value = {
+    merchant_id: null,
+    amount: null,
+    bank_account_id: null,
+    player_account_holder: '',
+    player_iban: '',
+    notes: '',
+  }
+  manualDialog.value = true
+  if (!internalMerchants.value.length || !manualAccounts.value.length) {
+    manualAccountsLoading.value = true
+    try {
+      const [{ data: ms }, { data: accs }] = await Promise.all([
+        api.get('/portal/merchants', { params: { internal: 1 } }),
+        api.get('/portal/bank-accounts'),
+      ])
+      // Ic firma isareti backend'den geliyor; gelmezse listeyi
+      // daraltmiyoruz, backend zaten disaridakini reddediyor.
+      const icOlanlar = (ms || []).filter(m => m.is_internal)
+      internalMerchants.value = icOlanlar.length ? icOlanlar : (ms || [])
+      manualAccounts.value = (accs || []).filter(a => a.is_active !== false)
+    } catch (e) {
+      manualError.value = e?.response?.data?.message || 'Firma ve hesap listesi alınamadı.'
+    } finally {
+      manualAccountsLoading.value = false
+    }
+  }
+}
+
+async function submitManual() {
+  manualError.value = ''
+  manualLoading.value = true
+  try {
+    const { data } = await api.post('/portal/transactions/manual', {
+      merchant_id: manualForm.value.merchant_id,
+      type: 'withdrawal',
+      amount: manualForm.value.amount,
+      bank_account_id: manualForm.value.bank_account_id || null,
+      player_account_holder: manualForm.value.player_account_holder || null,
+      player_iban: manualForm.value.player_iban || null,
+      notes: manualForm.value.notes || null,
+    })
+    manualDialog.value = false
+    notifications.addNotification({
+      type: 'success',
+      title: 'Çekim Oluşturuldu',
+      message: data?.message || 'Elle çekim kaydı oluşturuldu.',
+    })
+    loadData()
+  } catch (e) {
+    manualError.value = e?.response?.data?.message || 'Çekim oluşturulamadı.'
+  } finally {
+    manualLoading.value = false
+  }
+}
+
+// --- Gruplar arasi aktarim ---
+function openTransfer(item) {
+  selectedTxn.value = item
+  transferError.value = ''
+  transferSubGroupId.value = null
+  transferReason.value = ''
+  transferDialog.value = true
+}
+
+async function confirmTransfer() {
+  if (!selectedTxn.value) return
+  transferError.value = ''
+  transferLoading.value = true
+  try {
+    const { data } = await api.post(`/portal/transactions/${selectedTxn.value.id}/transfer-group`, {
+      sub_group_id: transferSubGroupId.value,
+      reason: transferReason.value.trim(),
+    })
+    transferDialog.value = false
+    selectedTxn.value = null
+    notifications.addNotification({
+      type: 'success',
+      title: 'Aktarıldı',
+      message: data?.message || 'Çekim yeni gruba aktarıldı.',
+    })
+    loadData()
+  } catch (e) {
+    transferError.value = e?.response?.data?.message || 'Aktarım başarısız.'
+  } finally {
+    transferLoading.value = false
+  }
+}
+
 // --- Assign / reassign (SA only) ---
 async function openAssign(item) {
   selectedTxn.value = item
@@ -1650,6 +2067,7 @@ function clearFilters() {
   dateTo.value = ''
   search.value = ''
   merchantFilter.value = null
+  subGroupFilter.value = null
   customerFilter.value = ''
   lockerFilter.value = null
   amountMin.value = null
@@ -1676,6 +2094,8 @@ function loadData() {
     if (dateTo.value)   params.date_to   = dateTo.value
   }
   if (merchantFilter.value) params.merchant_id = merchantFilter.value
+  if (subGroupFilter.value) params.sub_group_id = subGroupFilter.value
+  if (sadeceBenim.value && auth.user?.id) params.locker_id = auth.user.id
   if (customerFilter.value) params.customer = customerFilter.value
   if (lockerFilter.value) params.locker_id = lockerFilter.value
   if (amountMin.value != null) params.amount_min = amountMin.value
@@ -1688,6 +2108,17 @@ function loadData() {
 
 async function loadFilterOptions() {
   try {
+    // Site listesi artik firma adini gorebilen herkese yukleniyor:
+    // destek de bu suzgeci kullaniyor. Grup listesi yalnizca butun
+    // gruplari gorene, cunku tek grupluya secenek sunmak anlamsiz.
+    if (seesFinancials.value && !auth.isSuperAdmin) {
+      const { data: m } = await api.get('/portal/merchants')
+      merchants.value = m
+    }
+    if (seesAllGroups.value) {
+      const { data: sg } = await api.get('/portal/sub-groups')
+      subGroups.value = sg
+    }
     if (auth.isSuperAdmin) {
       const [{ data: m }, ops] = await Promise.all([
         api.get('/portal/merchants'),
@@ -1806,6 +2237,26 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
+/* Toplu atama seridi — tablonun hemen ustunde, hairline cerceveli. */
+.bulk-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--sp-border);
+  border-bottom: 1px solid var(--sp-border);
+  background: var(--sp-surface-2, rgba(102, 241, 189, 0.06));
+}
+.bulk-count { font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+.bulk-skip-list { max-height: 180px; overflow-y: auto; }
+
+/* Onaylayan satiri — durum rozetinin altinda, kucuk ve sessiz. */
+.approver-line {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 700;
+  color: var(--sp-text-muted);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
 /* Saat cell — two-row stack (created + approved/resolved). */
 .time-cell { display: flex; flex-direction: column; gap: 2px; line-height: 1.1; }
 .time-row { display: flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
@@ -1839,6 +2290,7 @@ onUnmounted(() => {
   margin-bottom: 6px;
 }
 .filter-row:last-child { margin-bottom: 0; }
+.filter-mine-row { gap: 6px; margin-top: 4px; }
 .filter-status-row { gap: 6px; }
 .filter-date-row {
   margin-top: 4px;

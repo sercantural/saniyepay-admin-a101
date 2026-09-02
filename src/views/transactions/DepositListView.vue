@@ -33,6 +33,21 @@
         </button>
       </div>
 
+      <!-- "Benim islemlerim" — kendi uzerine aldiklarini suzer.
+           Destek panelinde ozellikle istendi: "SADECE KENDINE AIT GECMIS
+           ISLEMLERI gorebilir." Kendine daraltmak kapsam genisletmesi
+           olmadigi icin herkese acik. -->
+      <div class="filter-row filter-mine-row">
+        <button
+          class="status-pill"
+          :class="{ 'is-active': sadeceBenim }"
+          type="button"
+          @click="sadeceBenim = !sadeceBenim; page = 1; loadData()"
+        >
+          <v-icon size="13" class="mr-1">mdi-account-check-outline</v-icon>Benim İşlemlerim
+        </button>
+      </div>
+
       <!-- Date preset chips -->
       <div class="filter-row filter-date-row">
         <button
@@ -153,8 +168,11 @@
                 @click:clear="amountMax = null; loadData()"
               />
             </v-col>
-            <v-col v-if="auth.isSuperAdmin" cols="12" md="6">
-              <v-autocomplete v-model="merchantFilter" :items="merchants" item-title="name" item-value="id" label="Bayi" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-store" @update:model-value="loadData" />
+            <v-col v-if="seesAllGroups" cols="12" md="6">
+              <v-autocomplete v-model="subGroupFilter" :items="subGroups" item-title="name" item-value="id" label="Grup" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-account-group" @update:model-value="loadData" />
+            </v-col>
+            <v-col v-if="seesFinancials" cols="12" md="6">
+              <v-autocomplete v-model="merchantFilter" :items="merchants" item-title="name" item-value="id" label="Site" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-store" @update:model-value="loadData" />
             </v-col>
             <v-col v-if="auth.isSuperAdmin" cols="12" md="6">
               <v-select v-model="sandboxFilter" :items="sandboxOptions" item-title="text" item-value="value" label="Ortam" variant="outlined" density="compact" hide-details prepend-inner-icon="mdi-test-tube" @update:model-value="loadData" />
@@ -219,6 +237,12 @@
                 </v-chip>
               </template>
             </v-tooltip>
+          </div>
+          <!-- Onaylayan/reddeden kisi rozetin hemen altinda. Ayri sutun
+               yerine burada duruyor: "kim onayladi" sorusu her zaman
+               durumun devami olarak soruluyor. -->
+          <div v-if="item.approver" class="approver-line">
+            <v-icon size="10" class="mr-1">mdi-account-check-outline</v-icon>{{ item.approver.name }}
           </div>
           <!-- Operator finalization time — locked → resolved. Same badge
                as the withdrawal page so SA can review throughput across
@@ -294,6 +318,9 @@
            prefix on the resolved row is kept for the rare midnight cross. -->
       <template v-slot:item.created_at="{ item }">
         <div class="time-cell">
+          <!-- Gun ve saat tek sutunda: ayri "Tarih" sutunu kaldirildi,
+               ikisi yan yana okununca satir daha az yer kapliyor. -->
+          <div class="date-cell">{{ formatDateOnly(item.created_at) }}</div>
           <div class="time-row">
             <v-icon size="11" color="grey">mdi-clock-plus-outline</v-icon>
             <span class="time-val">{{ formatTimeOnly(item.created_at) }}</span>
@@ -565,6 +592,25 @@ import TransactionDetailsDrawer from '@/components/TransactionDetailsDrawer.vue'
 
 const txnStore = useTransactionStore()
 const auth = useAuthStore()
+
+/*
+ * Bayi filtresi firma kimligine bagli: rol degil izin belirliyor.
+ * Backend de ayni izne bakiyor, dolayisiyla izni olmayan zaten firma
+ * alanlarini iceren bir yanit almiyor. Komisyon ayri bir izin.
+ */
+const subGroups = ref([])
+const subGroupFilter = ref(null)
+const sadeceBenim = ref(false)
+
+const seesFinancials = computed(() =>
+  auth.isSuperAdmin || auth.can('scope.merchant_identity') || auth.can('scope.commissions')
+)
+
+// Butun gruplari goren kullanici grup suzgecini ve GRUP sutununu gorur.
+// Kendi grubuyla sinirli olanda tek grup oldugu icin ikisi de anlamsiz.
+const seesAllGroups = computed(() =>
+  auth.isSuperAdmin || auth.can('scope.all_groups')
+)
 const notifications = useNotificationStore()
 const route = useRoute()
 const router = useRouter()
@@ -804,28 +850,35 @@ const sandboxOptions = [
 
 const allHeaders = [
   { title: 'ID', key: 'internal_id', width: '80px' },
-  { title: 'Tarih', key: 'date_only', sortable: false, width: '90px' },
-  { title: 'Kullanıcı Ad Soyad', key: 'customer', sortable: false },
-  { title: 'Ortam', key: 'environment', sortable: false },
-  { title: 'Bayi', key: 'merchant', value: (item) => item.merchant?.name || '—', sortable: false },
+  { title: 'Site', key: 'merchant', value: (item) => item.merchant?.name || '—', sortable: false },
+  { title: 'Grup', key: 'sub_group', sortable: false, width: '120px' },
+  { title: 'İsim', key: 'customer', sortable: false },
+  { title: 'Hedef Banka', key: 'bank_account', sortable: false },
   { title: 'Tutar', key: 'requested_amount' },
-  { title: 'Hedef Hesap', key: 'bank_account', sortable: false },
   { title: 'Durum', key: 'status' },
-  { title: 'Onaylayan', key: 'approver', sortable: false },
-  { title: 'Saat', key: 'created_at', sortable: false },
+  { title: 'Tarih', key: 'created_at', sortable: false, width: '130px' },
+  { title: 'Ortam', key: 'environment', sortable: false },
   { title: 'İşlem', key: 'actions', sortable: false, align: 'end' },
 ]
 
+/*
+ * Sutun gorunurlugu izne bagli, role degil.
+ *
+ * Onceden tek bir isSuperAdmin kontrolu vardi; destek ekibi firma adini
+ * gormesi gerektigi halde Site sutununu goremiyordu. Artik her sutun
+ * kendi iznine bakiyor:
+ *   Site  -> scope.merchant_identity (destekte var)
+ *   Grup  -> scope.all_groups (tek grupluya gostermenin anlami yok)
+ *   Ortam -> sandbox ayrimini yalnizca yonetim gorur
+ *
+ * Onaylayan artik ayri bir sutun degil, durum rozetinin altinda yaziyor.
+ */
 const visibleHeaders = computed(() => {
-  let headers = allHeaders
-  if (!auth.isSuperAdmin) {
-    // Operators see a lean view: drop the merchant/environment columns
-    // (admin-only context) and the "Onaylayan" column (only useful for
-    // post-hoc review, not for taking action). What's left is everything
-    // they need to act: who sent it, how much, where, when, what to do.
-    headers = headers.filter(h => !['merchant', 'environment', 'approver'].includes(h.key))
-  }
-  return headers
+  const gizli = []
+  if (!seesFinancials.value) gizli.push('merchant')
+  if (!seesAllGroups.value) gizli.push('sub_group')
+  if (!auth.isSuperAdmin) gizli.push('environment')
+  return allHeaders.filter(h => !gizli.includes(h.key))
 })
 
 function statusColor(status) {
@@ -1135,6 +1188,8 @@ function loadData() {
     if (dateTo.value)   params.date_to   = dateTo.value
   }
   if (merchantFilter.value) params.merchant_id = merchantFilter.value
+  if (subGroupFilter.value) params.sub_group_id = subGroupFilter.value
+  if (sadeceBenim.value && auth.user?.id) params.locker_id = auth.user.id
   if (customerFilter.value) params.customer = customerFilter.value
   if (amountMin.value != null) params.amount_min = amountMin.value
   if (amountMax.value != null) params.amount_max = amountMax.value
@@ -1144,12 +1199,16 @@ function loadData() {
 
 async function loadFilterOptions() {
   try {
-    if (auth.isSuperAdmin) {
+    if (seesFinancials.value) {
       const { data } = await api.get('/portal/merchants')
       merchants.value = data
     }
     const { data: ba } = await api.get('/portal/bank-accounts')
     bankAccounts.value = ba
+    if (seesAllGroups.value) {
+      const { data: sg } = await api.get('/portal/sub-groups')
+      subGroups.value = sg
+    }
   } catch { /* silent */ }
 }
 
@@ -1184,6 +1243,16 @@ onUnmounted(() => {
   color: var(--sp-text);
   letter-spacing: 0.3px;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Onaylayan satiri — durum rozetinin altinda, kucuk ve sessiz.
+   Ayri sutun kadar yer kaplamasin ama okunabilsin diye 11px. */
+.approver-line {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 700;
+  color: var(--sp-text-muted);
+  letter-spacing: 0.2px;
   white-space: nowrap;
 }
 
@@ -1286,6 +1355,7 @@ onUnmounted(() => {
   margin-bottom: 6px;
 }
 .filter-row:last-child { margin-bottom: 0; }
+.filter-mine-row { gap: 6px; margin-top: 4px; }
 .filter-status-row { gap: 6px; }
 .filter-date-row {
   margin-top: 4px;
