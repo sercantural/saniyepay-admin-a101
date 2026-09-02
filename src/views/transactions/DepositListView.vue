@@ -153,7 +153,7 @@
                 @click:clear="amountMax = null; loadData()"
               />
             </v-col>
-            <v-col v-if="auth.isSuperAdmin" cols="12" md="6">
+            <v-col v-if="seesFinancials" cols="12" md="6">
               <v-autocomplete v-model="merchantFilter" :items="merchants" item-title="name" item-value="id" label="Bayi" variant="outlined" density="compact" hide-details clearable prepend-inner-icon="mdi-store" @update:model-value="loadData" />
             </v-col>
             <v-col v-if="auth.isSuperAdmin" cols="12" md="6">
@@ -565,6 +565,13 @@ import TransactionDetailsDrawer from '@/components/TransactionDetailsDrawer.vue'
 
 const txnStore = useTransactionStore()
 const auth = useAuthStore()
+
+/*
+ * Bayi filtresi ticari bilgidir: rol degil izin belirliyor.
+ * Backend de ayni izne (scope.financials) bakiyor, dolayisiyla izni
+ * olmayan zaten bayi alanlarini iceren bir yanit almiyor.
+ */
+const seesFinancials = computed(() => auth.isSuperAdmin || auth.can('scope.financials'))
 const notifications = useNotificationStore()
 const route = useRoute()
 const router = useRouter()
@@ -1144,7 +1151,7 @@ function loadData() {
 
 async function loadFilterOptions() {
   try {
-    if (auth.isSuperAdmin) {
+    if (seesFinancials.value) {
       const { data } = await api.get('/portal/merchants')
       merchants.value = data
     }

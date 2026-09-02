@@ -359,7 +359,7 @@
 
             <!-- Admin overflow: reassign + cancel collapsed into a 3-dot menu
                  so they never compete with primary actions for space. -->
-            <v-menu v-if="auth.isSuperAdmin && hasAdminOverflow(item)" location="bottom end">
+            <v-menu v-if="hasAdminOverflow(item)" location="bottom end">
               <template v-slot:activator="{ props }">
                 <v-tooltip text="Diğer işlemler" location="top">
                   <template v-slot:activator="{ props: tipProps }">
@@ -371,14 +371,14 @@
               </template>
               <v-list density="compact">
                 <v-list-item
-                  v-if="!['approved','rejected','expired','cancelled'].includes(item.status)"
+                  v-if="canAssign && !['approved','rejected','expired','cancelled'].includes(item.status)"
                   prepend-icon="mdi-account-switch"
                   @click="openAssign(item)"
                 >
                   <v-list-item-title>Operatöre Ata</v-list-item-title>
                 </v-list-item>
                 <v-list-item
-                  v-if="item.status === 'approved'"
+                  v-if="canCancel && item.status === 'approved'"
                   prepend-icon="mdi-cancel"
                   @click="openCancel(item)"
                 >
@@ -873,6 +873,16 @@ const notifications = useNotificationStore()
 const route = useRoute()
 const router = useRouter()
 
+/*
+ * Yonetim eylemleri: rol degil izin.
+ *
+ * auth.can() super admin'i de kapsiyor (backend /portal/me yanitinda
+ * super admin'in tum izinlerini donduruyor), bu yuzden ayrica
+ * isSuperAdmin sormaya gerek yok. Backend ayni izinlere bakiyor.
+ */
+const canAssign = computed(() => auth.isSuperAdmin || auth.can('transactions.assign'))
+const canCancel = computed(() => auth.isSuperAdmin || auth.can('transactions.cancel'))
+
 // Notification → highlight the row (mirrors DepositListView).
 const highlightId = ref(route.query.highlight ? String(route.query.highlight) : null)
 let highlightClearTimer = null
@@ -1301,11 +1311,19 @@ function canRelease(_item) {
 
 // Whether the SA's overflow menu has any items for this row. Avoids
 // rendering an empty 3-dot menu on terminal-but-not-approved rows.
+/*
+ * Menude gosterilecek bir sey var mi?
+ *
+ * Eskiden kosul "auth.isSuperAdmin" idi: atama ve iptal izinleri
+ * katalogda oldugu halde yalnizca super admin bu menuye ulasabiliyordu.
+ * Artik iki maddenin kendi izni belirliyor -- backend de ayni izinlere
+ * bakiyor (transactions.assign / transactions.cancel).
+ */
 function hasAdminOverflow(item) {
-  if (!auth.isSuperAdmin) return false
-  const canReassign = !['approved', 'rejected', 'expired', 'cancelled'].includes(item.status)
-  const canCancel = item.status === 'approved'
-  return canReassign || canCancel
+  const atanabilir = canAssign.value && !['approved', 'rejected', 'expired', 'cancelled'].includes(item.status)
+  const iptalEdilebilir = canCancel.value && item.status === 'approved'
+
+  return atanabilir || iptalEdilebilir
 }
 
 async function handleLock(item) {
