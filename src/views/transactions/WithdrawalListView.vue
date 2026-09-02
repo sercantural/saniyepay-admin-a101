@@ -47,6 +47,21 @@
         </button>
       </div>
 
+      <!-- "Benim islemlerim" — kendi uzerine aldiklarini suzer.
+           Destek panelinde ozellikle istendi: "SADECE KENDINE AIT GECMIS
+           ISLEMLERI gorebilir." Kendine daraltmak kapsam genisletmesi
+           olmadigi icin herkese acik. -->
+      <div class="filter-row filter-mine-row">
+        <button
+          class="status-pill"
+          :class="{ 'is-active': sadeceBenim }"
+          type="button"
+          @click="sadeceBenim = !sadeceBenim; page = 1; loadData()"
+        >
+          <v-icon size="13" class="mr-1">mdi-account-check-outline</v-icon>Benim İşlemlerim
+        </button>
+      </div>
+
       <!-- Date preset chips + custom open -->
       <div class="filter-row filter-date-row">
         <button
@@ -1156,6 +1171,7 @@ const showFilters = ref(false)
 const merchantFilter = ref(null)
 const subGroups = ref([])
 const subGroupFilter = ref(null)
+const sadeceBenim = ref(false)
 const customerFilter = ref('')
 const lockerFilter = ref(null)
 const amountMin = ref(null)
@@ -2079,6 +2095,7 @@ function loadData() {
   }
   if (merchantFilter.value) params.merchant_id = merchantFilter.value
   if (subGroupFilter.value) params.sub_group_id = subGroupFilter.value
+  if (sadeceBenim.value && auth.user?.id) params.locker_id = auth.user.id
   if (customerFilter.value) params.customer = customerFilter.value
   if (lockerFilter.value) params.locker_id = lockerFilter.value
   if (amountMin.value != null) params.amount_min = amountMin.value
@@ -2273,6 +2290,7 @@ onUnmounted(() => {
   margin-bottom: 6px;
 }
 .filter-row:last-child { margin-bottom: 0; }
+.filter-mine-row { gap: 6px; margin-top: 4px; }
 .filter-status-row { gap: 6px; }
 .filter-date-row {
   margin-top: 4px;

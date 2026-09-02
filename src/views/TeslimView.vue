@@ -755,14 +755,19 @@ function fmtAmount(n) {
   return n != null ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(n) : '--'
 }
 
-// Always show the absolute value — the sign meaning is conveyed by the
-// label/color/template state above (Kredi Bakiyen / Limit Dolu / Kazandığın
-// Komisyon). Operators read minus signs as "I owe money" which is wrong.
+/*
+ * Eksi kasa artik gizlenmiyor.
+ *
+ * Onceden negatif deger 0'a kirpiliyordu; gerekcesi "operator eksiyi
+ * 'borcum var' diye okuyor, bu yanlis" idi. Yanlis onaylanmis teslimin
+ * iptali geldikten sonra artik yanlis degil: sistem admini "DIREKT KASASI
+ * EKSIYE DUSECEK" dedi ve bunun gorulmesi gerekiyor. Kirpma, kasasi
+ * eksiye dusmus operatore "0,00 / Limit Doldu" gosterip neden limitinin
+ * dolu oldugunu saklardi.
+ */
 function fmtCredit(n) {
   if (n == null) return '--'
-  // Credit is a single non-negative balance — display directly. Clamp to 0
-  // for the rare over-extended case (admin override).
-  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Math.max(0, Number(n) || 0))
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(Number(n) || 0)
 }
 
 function fmtDate(d) {
@@ -801,8 +806,68 @@ async function loadOperators() {
   }
 }
 
+/*
+ * Grup grup ozet.
+ *
+ * Butun gruplari goren kullanici bu ekranda GENEL hacmi gormuyor; sistem
+ * admini net yazdi: "Teslim ekranina ilk bastiginda ... 0 yazmalidir.
+ * GENEL HACMI GOREMEZ. FILTRELEME YAPARAK GRUP GRUP GOREBILIR."
+ *
+ * Sifir kilidi burada degil backend'de: grup secilmeden /home/widgets
+ * sifirli yanit donuyor. Panel yalnizca secimi gonderiyor, boylece kural
+ * tek yerde duruyor ve ucu dogrudan cagiran biri de ayni cevabi aliyor.
+ */
+const seesAllGroups = computed(() => auth.isSuperAdmin || auth.can('scope.all_groups'))
+const ozetGrupId = ref(null)
+const subGroups = ref([])
+const ozet = ref(null)
+const ozetLoading = ref(false)
+
+const ozetKartlari = computed(() => {
+  const o = ozet.value
+  const komisyon = o
+    ? Number(o.deposit_commission || 0) + Number(o.withdraw_commission || 0) + Number(o.teslim_commission || 0)
+    : 0
+  return [
+    { key: 'devir', label: 'Devir', value: o?.devir_try ?? 0 },
+    { key: 'yatirim', label: 'Yatırım', value: o?.deposit?.volume ?? 0 },
+    { key: 'cekim', label: 'Çekim', value: o?.withdraw?.volume ?? 0 },
+    { key: 'teslim', label: 'Teslim', value: o?.teslim?.volume ?? 0 },
+    { key: 'komisyon', label: 'Komisyon', value: komisyon },
+    { key: 'ek', label: 'Ek İşlemler', value: o?.ek_islemler?.total ?? 0 },
+    { key: 'kredi', label: 'Kredi', value: o?.credit_try ?? 0, vurgu: true },
+  ]
+})
+
+async function loadSubGroups() {
+  if (!seesAllGroups.value) return
+  try {
+    const { data } = await api.get('/portal/sub-groups')
+    subGroups.value = data || []
+  } catch {
+    subGroups.value = []
+  }
+}
+
+async function loadOzet() {
+  if (!seesAllGroups.value) return
+  ozetLoading.value = true
+  try {
+    const params = {}
+    if (ozetGrupId.value) params.sub_group_id = ozetGrupId.value
+    const { data } = await api.get('/portal/home/widgets', { params })
+    ozet.value = data
+  } catch {
+    ozet.value = null
+  } finally {
+    ozetLoading.value = false
+  }
+}
+
+watch(ozetGrupId, loadOzet)
+
 onMounted(async () => {
-  await Promise.all([loadList(), loadBalance(), loadWallets(), loadOperators()])
+  await Promise.all([loadList(), loadBalance(), loadWallets(), loadOperators(), loadSubGroups(), loadOzet()])
 })
 </script>
 
@@ -835,20 +900,56 @@ onMounted(async () => {
     <v-card v-if="auth.user?.sub_group_id" class="op-credit-card mb-4" :class="balance.credit_try > 0 ? 'op-credit-card--good' : 'op-credit-card--warn'">
       <div class="d-flex align-center justify-space-between flex-wrap ga-3">
         <div>
-          <div class="op-credit-label">{{ balance.credit_try > 0 ? 'Mevcut Krediniz' : 'Limit Doldu' }}</div>
+          <div class="op-credit-label">
+            {{ balance.credit_try > 0 ? 'Mevcut Krediniz' : (balance.credit_try < 0 ? 'Kasanız Ekside' : 'Limit Doldu') }}
+          </div>
           <div class="op-credit-amount">
             {{ fmtCredit(balance.credit_try) }}
             <span class="op-credit-cur">TRY</span>
           </div>
           <div class="op-credit-hint">
-            {{ balance.credit_try > 0
-              ? '✅ Bu tutar kadar yatırım kabul edebilirsin'
-              : '⚠ Yeni teslim yap ya da bekleyen çekimi tamamla' }}
+            <template v-if="balance.credit_try > 0">✅ Bu tutar kadar yatırım kabul edebilirsin</template>
+            <template v-else-if="balance.credit_try < 0">⚠ Bu tutarı kapatana kadar yatırım kabul edemezsin</template>
+            <template v-else>⚠ Yeni teslim yap ya da bekleyen çekimi tamamla</template>
           </div>
         </div>
         <v-icon size="80" :color="balance.credit_try > 0 ? 'var(--sp-accent-success-bright)' : 'var(--sp-accent-amber)'" style="opacity: 0.22">
           mdi-wallet-outline
         </v-icon>
+      </div>
+    </v-card>
+
+    <!-- Grup grup ozet: genel hacim yok, secim yapilinca doluyor. -->
+    <v-card v-if="seesAllGroups" class="mb-3 pa-3 ozet-card">
+      <div class="d-flex align-center flex-wrap ga-3 mb-3">
+        <v-autocomplete
+          v-model="ozetGrupId"
+          :items="subGroups"
+          item-title="name"
+          item-value="id"
+          label="Özet için grup seç"
+          variant="outlined"
+          density="compact"
+          hide-details
+          clearable
+          prepend-inner-icon="mdi-account-group"
+          style="max-width: 320px"
+        />
+        <span v-if="!ozetGrupId" class="ozet-hint">
+          Genel toplam gösterilmez. Rakamları görmek için bir grup seçin.
+        </span>
+        <v-progress-circular v-if="ozetLoading" indeterminate size="18" width="2" color="primary" />
+      </div>
+      <div class="ozet-strip">
+        <div
+          v-for="k in ozetKartlari"
+          :key="k.key"
+          class="ozet-cell"
+          :class="{ 'ozet-cell--accent': k.vurgu }"
+        >
+          <div class="ozet-label">{{ k.label }}</div>
+          <div class="ozet-value">{{ fmtAmount(k.value) }}</div>
+        </div>
       </div>
     </v-card>
 
@@ -1533,6 +1634,35 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* Grup ozet seridi — Signal dili: sifir radius, 1px hairline. */
+.ozet-hint { font-size: 12px; color: var(--sp-text-muted); }
+.ozet-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  border: 1px solid var(--sp-border);
+}
+.ozet-cell {
+  padding: 10px 12px;
+  border-right: 1px solid var(--sp-border);
+}
+.ozet-cell:last-child { border-right: none; }
+.ozet-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--sp-text-muted);
+}
+.ozet-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--sp-text);
+  margin-top: 2px;
+}
+.ozet-cell--accent .ozet-value { color: var(--sp-accent-success-bright); }
+
 .teslim-page { max-width: 1400px; margin: 0 auto; }
 
 /* Page header */
