@@ -13,7 +13,7 @@
           <v-col cols="6" sm="4" md="2" v-if="isSuperAdmin">
             <v-select v-model="filters.merchant_id" :items="merchants" item-title="name" item-value="id" label="Bayi" clearable density="compact" />
           </v-col>
-          <v-col cols="6" sm="4" md="2" v-if="isSuperAdmin">
+          <v-col cols="6" sm="4" md="2" v-if="seesAllGroups">
             <v-select v-model="filters.sub_group_id" :items="subGroups" item-title="name" item-value="id" label="Alt Grup" clearable density="compact" />
           </v-col>
           <v-col cols="6" sm="4" md="2">
@@ -364,6 +364,17 @@ const auth = useAuthStore()
 const isSuperAdmin = computed(() => auth.isSuperAdmin)
 const isGrupYoneticisi = computed(() => auth.can('scope.sub_group'))
 const isMuhasebe = computed(() => auth.can('scope.sub_group'))
+
+/*
+ * Butun gruplari gorenler: super admin ve destek ekibi.
+ *
+ * Alt grup filtresi eskiden yalnizca super admine aciktı. Destek rolu
+ * scope.all_groups ile butun gruplarin verisini goruyor, dolayisiyla tek
+ * bir gruba daraltabilmesi gerekiyor -- yoksa karisik bir listeye bakip
+ * gruba gore ayirmasi mumkun olmuyor. Bayi filtresi bilerek super admine
+ * ozel kaldi: bayi kimligi destege kapali.
+ */
+const seesAllGroups = computed(() => auth.isSuperAdmin || auth.can('scope.all_groups'))
 
 // Filters
 const now = new Date()
