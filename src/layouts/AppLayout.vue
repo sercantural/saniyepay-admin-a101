@@ -9,7 +9,7 @@
              duruyor ve bir marka tasimasi icin sebep yok. -->
         <router-link :to="{ name: 'Home' }" class="portal-brand">
           <i class="brand-mark" aria-hidden="true"></i>
-          <strong>YÖNETİM</strong>
+          <strong>{{ panelAdi }}</strong>
           <span>PANELİ</span>
         </router-link>
         <button class="portal-mobile-close" @click="drawer = false" aria-label="Menüyü kapat">
@@ -89,11 +89,11 @@
       <header class="portal-topbar">
         <div class="portal-mobile-brand">
           <button @click="drawer = true" aria-label="Menüyü aç"><v-icon size="17">mdi-menu</v-icon></button>
-          <strong>YÖNETİM</strong>
+          <strong>{{ panelAdi }}</strong>
         </div>
 
         <div class="portal-breadcrumb">
-          <span>YÖNETİM PANELİ</span>
+          <span>{{ panelAdi }} PANELİ</span>
           <i>/</i>
           <strong>{{ pageTitle }}</strong>
         </div>
@@ -203,6 +203,21 @@ const year = computed(() => new Date().getFullYear())
  * gostermiyoruz. Yetki kontrolu asil olarak backend'de.
  * -------------------------------------------------------- */
 const can = (p) => auth.can(p) || auth.isSuperAdmin
+
+/*
+ * Panel adi role gore degisiyor.
+ *
+ * Ayni kod tabani iki farkli kitleye hizmet ediyor: sahada calisan
+ * taseron ve merkezdeki yonetim. Baslikta "YÖNETİM" yazmasi taserona
+ * yanlis geliyordu.
+ *
+ * Olcut rol adi degil yetenek: butun gruplari goren merkezdedir, gormeyen
+ * sahadadir. Boylece yeni bir rol eklendiginde burayi guncellemek
+ * gerekmiyor.
+ */
+const panelAdi = computed(() =>
+  auth.isSuperAdmin || auth.can('scope.all_groups') ? 'YÖNETİM' : 'TAŞERON'
+)
 
 const menu = computed(() => {
   const groups = [

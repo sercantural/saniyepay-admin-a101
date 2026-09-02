@@ -567,11 +567,13 @@ const txnStore = useTransactionStore()
 const auth = useAuthStore()
 
 /*
- * Bayi filtresi ticari bilgidir: rol degil izin belirliyor.
- * Backend de ayni izne (scope.financials) bakiyor, dolayisiyla izni
- * olmayan zaten bayi alanlarini iceren bir yanit almiyor.
+ * Bayi filtresi firma kimligine bagli: rol degil izin belirliyor.
+ * Backend de ayni izne bakiyor, dolayisiyla izni olmayan zaten firma
+ * alanlarini iceren bir yanit almiyor. Komisyon ayri bir izin.
  */
-const seesFinancials = computed(() => auth.isSuperAdmin || auth.can('scope.financials'))
+const seesFinancials = computed(() =>
+  auth.isSuperAdmin || auth.can('scope.merchant_identity') || auth.can('scope.commissions')
+)
 const notifications = useNotificationStore()
 const route = useRoute()
 const router = useRouter()
