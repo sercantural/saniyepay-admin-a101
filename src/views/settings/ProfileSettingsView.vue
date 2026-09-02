@@ -129,6 +129,47 @@
           </v-card-text>
         </v-card>
       </v-col>
+
+      <!-- Bildirim Tercihleri -->
+      <v-col cols="12" md="6">
+        <v-card>
+          <v-card-title>
+            <v-icon start>mdi-bell-cog</v-icon> Bildirim Tercihleri
+          </v-card-title>
+          <v-card-text>
+            <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+              Bildirimler kapatılsa bile zil simgesindeki listeye düşmeye devam eder.
+              Kapattığınız yalnızca sesli uyarı ve ekrandaki karttır.
+            </v-alert>
+
+            <v-switch
+              v-model="notificationPrefs.sound"
+              color="primary"
+              density="compact"
+              hide-details
+              :disabled="notificationLoading"
+              label="Bildirim sesi"
+              @update:model-value="saveNotificationPrefs"
+            />
+            <div class="text-caption text-medium-emphasis mb-3 ml-1">
+              Yeni işlem geldiğinde sesli uyarı çalar.
+            </div>
+
+            <v-switch
+              v-model="notificationPrefs.toast"
+              color="primary"
+              density="compact"
+              hide-details
+              :disabled="notificationLoading"
+              label="Ekranda bildirim kartı"
+              @update:model-value="saveNotificationPrefs"
+            />
+            <div class="text-caption text-medium-emphasis ml-1">
+              Yeni işlem geldiğinde ekranın köşesinde kart belirir.
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-row>
 
     <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
@@ -138,7 +179,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/plugins/axios'
 
@@ -157,6 +198,42 @@ const setupSecret = ref('')
 const qrCodeDataUrl = ref('')
 const confirmCode = ref('')
 const recoveryCodes = ref([])
+
+// Bildirim tercihleri. Store'daki nesneyi dogrudan v-model'e baglamiyoruz;
+// yerel kopya uzerinden gidiyoruz ki istek basarisiz olursa anahtari eski
+// haline geri alabilelim -- yoksa kullanici kapali sandigi bildirimin
+// calmaya devam ettigini fark etmezdi.
+const notificationPrefs = ref({ ...auth.notificationPreferences })
+const notificationLoading = ref(false)
+
+// Store disaridan degisebilir (login, fetchMe) -- ekran acikken tazelenirse
+// anahtarlar da guncel kalsin.
+watch(() => auth.notificationPreferences, (prefs) => {
+  if (!notificationLoading.value) notificationPrefs.value = { ...prefs }
+}, { deep: true })
+
+async function saveNotificationPrefs() {
+  // Sunucu iki alani da bekliyor; tek anahtar degisse bile ikisini
+  // birden gonderiyoruz.
+  const payload = {
+    sound: !!notificationPrefs.value.sound,
+    toast: !!notificationPrefs.value.toast,
+  }
+  const previous = { ...auth.notificationPreferences }
+  notificationLoading.value = true
+  try {
+    const { data } = await api.put('/portal/profile/notifications', payload)
+    auth.setNotificationPreferences(data?.notification_preferences ?? payload)
+    notificationPrefs.value = { ...auth.notificationPreferences }
+    showSnack(data?.message || 'Bildirim tercihleri kaydedildi')
+  } catch (e) {
+    // Geri al: ekrandaki anahtar her zaman gercek durumu gostermeli.
+    notificationPrefs.value = { ...previous }
+    showSnack(e.response?.data?.message || 'Bildirim tercihleri kaydedilemedi', 'error')
+  } finally {
+    notificationLoading.value = false
+  }
+}
 
 // Snackbar
 const snackbar = ref(false)

@@ -1,236 +1,279 @@
 <template>
   <div class="bank-page">
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- OVERVIEW STATS — modern hero-card grid       -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div v-if="!auth.isSuperAdmin && accounts.length" class="bank-stats mb-5">
-      <div class="bank-stat-card stat-deposit">
-        <div class="stat-icon-wrap">
-          <v-icon size="22" color="white">mdi-arrow-down-bold</v-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Toplam Yatırım</div>
-          <div class="stat-value">{{ formatCurrency(totalStats.deposits) }}</div>
-          <div class="stat-sub"><span class="stat-count">{{ totalStats.depositCount }}</span> işlem</div>
-        </div>
-      </div>
-
-      <div class="bank-stat-card stat-withdrawal">
-        <div class="stat-icon-wrap">
-          <v-icon size="22" color="white">mdi-arrow-up-bold</v-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Toplam Çekim</div>
-          <div class="stat-value">{{ formatCurrency(totalStats.withdrawals) }}</div>
-          <div class="stat-sub"><span class="stat-count">{{ totalStats.withdrawalCount }}</span> işlem</div>
-        </div>
-      </div>
-
-      <div class="bank-stat-card stat-teslim">
-        <div class="stat-icon-wrap">
-          <v-icon size="22" color="white">mdi-handshake</v-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Toplam Teslim</div>
-          <div class="stat-value">{{ formatCurrency(totalStats.teslim) }}</div>
-          <div class="stat-sub"><span class="stat-count">{{ totalStats.teslimCount }}</span> teslim</div>
-        </div>
-      </div>
-
-      <div class="bank-stat-card stat-commission">
-        <div class="stat-icon-wrap">
-          <v-icon size="22" color="white">mdi-percent</v-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-label">Toplam Komisyon</div>
-          <div class="stat-value">{{ formatCurrency(totalStats.commission) }}</div>
-          <div class="stat-sub">Yatırım + Çekim + Teslim</div>
-        </div>
-      </div>
+    <!-- Sekme seridi. "Silinmis Hesaplar" ayri bir ekran degil cunku ayni
+         veriye bakiyoruz; sadece yumusak silinmis kayitlar. Sekme yalnizca
+         izni olana ciziliyor, izin yoksa serit hic basilmiyor ve ekran
+         eskisi gibi tek listeden ibaret kaliyor. -->
+    <div v-if="canViewDeleted" class="bank-tabs">
+      <button
+        type="button"
+        class="bank-tab"
+        :class="{ 'is-active': tab === 'accounts' }"
+        @click="tab = 'accounts'"
+      >
+        <v-icon size="14" class="mr-2">mdi-bank</v-icon>Hesaplar
+        <span class="tab-count">{{ accounts.length }}</span>
+      </button>
+      <button
+        type="button"
+        class="bank-tab"
+        :class="{ 'is-active': tab === 'deleted' }"
+        @click="openDeletedTab"
+      >
+        <v-icon size="14" class="mr-2">mdi-delete-clock-outline</v-icon>Silinmiş Hesaplar
+        <span v-if="deletedLoaded" class="tab-count">{{ deletedAccounts.length }}</span>
+      </button>
     </div>
 
-    <!-- ═══════════════════════════════════════════ -->
-    <!-- TABLE CARD — glassed, modern header          -->
-    <!-- ═══════════════════════════════════════════ -->
-    <div class="bank-table-card">
-      <div class="bank-table-header">
-        <div class="bank-table-title">
-          <div class="bank-table-icon">
-            <v-icon size="18" color="white">mdi-bank</v-icon>
-          </div>
-          <div>
-            <div class="bank-table-heading">Banka Hesapları</div>
-            <div class="bank-table-sub">{{ accounts.length }} hesap</div>
-          </div>
+    <!-- ══════════════ HESAPLAR ══════════════ -->
+    <template v-if="tab === 'accounts'">
+      <!-- Sade sayac. Eskiden burada yatirim/cekim/teslim/komisyon hacim
+           kartlari vardi; sistem admini bu ekranda para verisi istemedi,
+           yalnizca "kac IBAN aktif, kac pasif" bilgisini istedi. -->
+      <div class="bank-counters mb-4">
+        <div class="counter-cell">
+          <div class="counter-label">Toplam IBAN</div>
+          <div class="counter-value">{{ accounts.length }}</div>
         </div>
-        <v-btn
-          v-if="auth.can('bank_accounts.create') || auth.isSuperAdmin"
-          color="primary"
-          variant="flat"
-          class="bank-add-btn"
-          prepend-icon="mdi-plus"
-          @click="openCreate"
-        >
-          Hesap Ekle
-        </v-btn>
+        <div class="counter-cell is-active">
+          <div class="counter-label">Aktif</div>
+          <div class="counter-value">{{ activeCount }}</div>
+        </div>
+        <div class="counter-cell is-passive">
+          <div class="counter-label">Pasif</div>
+          <div class="counter-value">{{ passiveCount }}</div>
+        </div>
       </div>
 
-      <v-data-table
-        :headers="visibleHeaders"
-        :items="accounts"
-        :loading="loading"
-        density="compact"
-        no-data-text="Banka hesabı bulunamadı"
-        loading-text="Yükleniyor..."
-        class="bank-table"
-      >
-        <!-- Hesap: avatar + holder + bank + IBAN (mono, smaller).
-             IBAN is folded in here so we don't need a separate column. -->
-        <template v-slot:item.account_holder="{ item }">
-          <div class="account-cell">
-            <div class="account-avatar"><v-icon size="14" color="white">mdi-bank</v-icon></div>
-            <div class="account-text">
-              <div class="account-holder">{{ item.account_holder }}</div>
-              <div class="account-bank">{{ item.bank_name }}</div>
-              <div class="account-iban">{{ formatIban(item.iban) }}</div>
+      <div class="bank-table-card">
+        <div class="bank-table-header">
+          <div class="bank-table-title">
+            <div class="bank-table-icon">
+              <v-icon size="18" color="white">mdi-bank</v-icon>
+            </div>
+            <div>
+              <div class="bank-table-heading">Banka Hesapları</div>
+              <div class="bank-table-sub">{{ filteredAccounts.length }} / {{ accounts.length }} hesap</div>
             </div>
           </div>
-        </template>
+          <v-btn
+            v-if="auth.can('bank_accounts.create') || auth.isSuperAdmin"
+            color="primary"
+            variant="flat"
+            class="bank-add-btn"
+            prepend-icon="mdi-plus"
+            @click="openCreate"
+          >
+            Hesap Ekle
+          </v-btn>
+        </div>
 
-        <!-- Status — pill with status dot + label -->
-        <template v-slot:item.is_active="{ item }">
-          <span class="status-pill" :class="item.is_active ? 'is-active' : 'is-inactive'">
-            <span class="status-dot"></span>
-            {{ item.is_active ? 'Aktif' : 'Pasif' }}
-          </span>
-        </template>
+        <!-- Aktif/pasif filtresi. Backend zaten hepsini donduruyor, bu yuzden
+             filtre istemci tarafinda; ekstra istek atmaya gerek yok. -->
+        <div class="filter-shell">
+          <button
+            v-for="opt in statusOptions"
+            :key="opt.value"
+            type="button"
+            class="filter-pill"
+            :class="[opt.tone, { 'is-active': statusFilter === opt.value }]"
+            @click="statusFilter = opt.value"
+          >
+            <v-icon size="13" class="mr-1">{{ opt.icon }}</v-icon>{{ opt.label }}
+            <span class="pill-count">{{ opt.count }}</span>
+          </button>
+        </div>
 
-        <!-- Bugün: daily volume + daily count usage stacked. Each row
-             shows "used / limit" with red/amber/green threshold colour. -->
-        <template v-slot:item.daily_used="{ item }">
-          <div class="daily-cell">
-            <div class="daily-row">
-              <v-icon size="11" color="grey">mdi-cash</v-icon>
-              <template v-if="item.daily_limit">
-                <span :class="dailyLimitClass(item)" class="daily-used">{{ formatCurrency(item.stats?.today_deposits || 0) }}</span>
-                <span class="daily-cap">/ {{ formatCurrency(item.daily_limit) }}</span>
-              </template>
-              <span v-else class="daily-unlimited">{{ formatCurrency(item.stats?.today_deposits || 0) }}</span>
-            </div>
-            <div class="daily-row">
-              <v-icon size="11" color="grey">mdi-counter</v-icon>
-              <template v-if="item.daily_deposit_count_limit">
-                <span :class="dailyCountClass(item)" class="daily-used">{{ item.stats?.today_deposit_count || 0 }}</span>
-                <span class="daily-cap">/ {{ item.daily_deposit_count_limit }}</span>
-              </template>
-              <span v-else class="daily-unlimited">{{ item.stats?.today_deposit_count || 0 }} işlem</span>
-            </div>
-          </div>
-        </template>
-
-        <!-- Per-deposit range -->
-        <template v-slot:item.deposit_range="{ item }">
-          <div v-if="item.min_deposit_amount || item.max_deposit_amount" class="range-cell">
-            <div v-if="item.min_deposit_amount" class="range-row">
-              <span class="range-tag tag-min">Min</span>
-              <span class="range-value">{{ formatCurrency(item.min_deposit_amount) }}</span>
-            </div>
-            <div v-if="item.max_deposit_amount" class="range-row">
-              <span class="range-tag tag-max">Max</span>
-              <span class="range-value">{{ formatCurrency(item.max_deposit_amount) }}</span>
-            </div>
-          </div>
-          <span v-else class="text-medium-emphasis" style="font-size: 11px">—</span>
-        </template>
-
-        <!-- Hareket: lifetime deposits + commission stacked.
-             Withdrawals dropped — withdrawal routing isn't pinned to a
-             single account anymore, so per-account Ç volume is no longer
-             actionable on this page. -->
-        <template v-slot:item.activity="{ item }">
-          <div v-if="item.stats" class="activity-cell">
-            <div class="activity-row act-dep">
-              <span class="act-tag">Y</span>
-              <span class="act-value">{{ formatCurrency(item.stats.total_deposits) }}</span>
-              <span class="act-count">· {{ item.stats.deposit_count }}</span>
-            </div>
-            <div class="activity-row act-com">
-              <span class="act-tag">K</span>
-              <span class="act-value">{{ formatCurrency(item.stats.total_commission) }}</span>
-              <v-tooltip v-if="item.stats.pending_count > 0" :text="`${item.stats.pending_count} bekleyen`" location="top">
+        <v-data-table
+          :headers="visibleHeaders"
+          :items="filteredAccounts"
+          :loading="loading"
+          density="compact"
+          no-data-text="Banka hesabı bulunamadı"
+          loading-text="Yükleniyor..."
+          class="bank-table"
+        >
+          <!-- GRUP. Sahip adi da buraya katlandi: ayri bir "Atama" sutunu
+               istenen duzeni bozardi, ama yoneticinin IBAN'in hangi
+               operatorde oldugunu gormesi gerekiyor. Nokta, operatorun
+               mesaide olup olmadigini gosteriyor. -->
+          <template v-slot:item.sub_group.name="{ item }">
+            <div class="group-cell">
+              <span v-if="item.sub_group" class="group-pill">{{ item.sub_group.name }}</span>
+              <span v-else class="empty-dash">—</span>
+              <v-tooltip
+                v-if="item.owner"
+                :text="item.owner_clocked_in ? 'Çevrimiçi (mesaide)' : 'Çevrimdışı'"
+                location="top"
+              >
                 <template v-slot:activator="{ props }">
-                  <v-icon v-bind="props" size="11" color="warning" class="ml-1">mdi-clock-outline</v-icon>
+                  <span v-bind="props" class="owner-line" :class="item.owner_clocked_in ? 'is-online' : 'is-offline'">
+                    <span class="presence-dot"></span>{{ item.owner.name }}
+                  </span>
                 </template>
               </v-tooltip>
             </div>
-          </div>
-          <span v-else class="text-medium-emphasis" style="font-size: 11px">—</span>
-        </template>
+          </template>
 
-        <!-- Atama: owner + sub-group stacked. The presence dot reflects
-             whether the operator is currently clocked in — withdrawals
-             route to clocked-in operators first, so this is the same
-             "active" signal the backend uses. -->
-        <template v-slot:item.assignment="{ item }">
-          <div class="assignment-cell">
-            <v-tooltip
-              v-if="item.owner"
-              :text="item.owner_clocked_in ? 'Çevrimiçi (giriş yapmış)' : 'Çevrimdışı'"
-              location="top"
-            >
-              <template v-slot:activator="{ props }">
-                <span v-bind="props" class="owner-pill" :class="item.owner_clocked_in ? 'is-online' : 'is-offline'">
-                  <span class="presence-dot"></span>
-                  <v-icon size="11" class="mr-1">mdi-account-circle</v-icon>{{ item.owner.name }}
+          <!-- İSİM: hesap sahibi, altinda banka adi. -->
+          <template v-slot:item.account_holder="{ item }">
+            <div class="account-cell">
+              <div class="account-holder">{{ item.account_holder }}</div>
+              <div class="account-bank">{{ item.bank_name }}</div>
+            </div>
+          </template>
+
+          <!-- İBAN -->
+          <template v-slot:item.iban="{ item }">
+            <span class="iban-text">{{ formatIban(item.iban) }}</span>
+          </template>
+
+          <!-- LİMİT: gunluk hacim + adet, altinda tek islem araligi.
+               Bugunku kullanim (hacim/adet) bilerek kaldirildi; burasi
+               ayarlanan limiti gosteriyor, gunluk raporu degil. -->
+          <template v-slot:item.limits="{ item }">
+            <div class="limit-cell">
+              <div class="limit-row">
+                <span class="limit-tag">GÜN</span>
+                <span v-if="item.daily_limit" class="limit-value">{{ formatCurrency(item.daily_limit) }}</span>
+                <span v-else class="limit-none">Limitsiz</span>
+                <span v-if="item.daily_deposit_count_limit" class="limit-sub">· {{ item.daily_deposit_count_limit }} işlem</span>
+              </div>
+              <div v-if="item.min_deposit_amount || item.max_deposit_amount" class="limit-row">
+                <span class="limit-tag tag-alt">İŞLEM</span>
+                <span class="limit-value">
+                  {{ item.min_deposit_amount ? formatCurrency(item.min_deposit_amount) : '—' }}
+                  –
+                  {{ item.max_deposit_amount ? formatCurrency(item.max_deposit_amount) : '—' }}
                 </span>
-              </template>
-            </v-tooltip>
-            <span v-if="auth.isSuperAdmin && item.sub_group" class="group-pill">{{ item.sub_group.name }}</span>
-            <span v-if="!item.owner && !item.sub_group" class="text-medium-emphasis" style="font-size: 11px">—</span>
+              </div>
+            </div>
+          </template>
+
+          <!-- KOMİSYON: yalnizca scope.commissions izni olana. -->
+          <template v-slot:item.commission="{ item }">
+            <span v-if="item.stats" class="commission-value">{{ formatCurrency(item.stats.total_commission || 0) }}</span>
+            <span v-else class="empty-dash">—</span>
+          </template>
+
+          <!-- DURUM -->
+          <template v-slot:item.is_active="{ item }">
+            <span class="status-pill" :class="item.is_active ? 'is-active' : 'is-inactive'">
+              <span class="status-dot"></span>
+              {{ item.is_active ? 'Aktif' : 'Pasif' }}
+            </span>
+          </template>
+
+          <template v-slot:item.actions="{ item }">
+            <div class="d-flex ga-1 justify-end">
+              <v-btn
+                v-if="auth.can('bank_accounts.edit') || auth.isSuperAdmin"
+                size="x-small"
+                variant="tonal"
+                color="primary"
+                icon
+                @click="openEdit(item)"
+                title="Düzenle"
+              >
+                <v-icon size="14">mdi-pencil</v-icon>
+              </v-btn>
+              <v-btn
+                v-if="auth.can('bank_accounts.toggle') || auth.isSuperAdmin"
+                size="x-small"
+                variant="tonal"
+                :color="item.is_active ? 'error' : 'success'"
+                icon
+                @click="toggleAccount(item.id)"
+                :title="item.is_active ? 'Devre Dışı Bırak' : 'Etkinleştir'"
+              >
+                <v-icon size="14">{{ item.is_active ? 'mdi-power-off' : 'mdi-power' }}</v-icon>
+              </v-btn>
+              <!-- Islem gormus hesap da artik silinebiliyor: kayit yumusak
+                   siliniyor, gecmis islemler ve operator kasasi bozulmuyor.
+                   Sunucu 422 ile "pasife alin" demiyor. -->
+              <v-btn
+                v-if="auth.can('bank_accounts.delete') || auth.isSuperAdmin"
+                size="x-small"
+                variant="tonal"
+                color="error"
+                icon
+                @click="askDelete(item)"
+                title="Sil"
+              >
+                <v-icon size="14">mdi-trash-can-outline</v-icon>
+              </v-btn>
+            </div>
+          </template>
+        </v-data-table>
+      </div>
+    </template>
+
+    <!-- ══════════════ SİLİNMİŞ HESAPLAR ══════════════ -->
+    <!-- Salt okunur havuz. Geri alma yok: kaydi geri getirmek IBAN'i tekrar
+         yonlendirmeye acardi, bu karar panelden verilmiyor. -->
+    <div v-else class="bank-table-card">
+      <div class="bank-table-header">
+        <div class="bank-table-title">
+          <div class="bank-table-icon is-muted">
+            <v-icon size="18" color="white">mdi-delete-clock-outline</v-icon>
+          </div>
+          <div>
+            <div class="bank-table-heading">Silinmiş Hesaplar</div>
+            <div class="bank-table-sub">Salt okunur kayıt · geçmiş işlemler korunuyor</div>
+          </div>
+        </div>
+        <v-btn
+          variant="text"
+          size="small"
+          :loading="deletedLoading"
+          prepend-icon="mdi-refresh"
+          @click="loadDeleted"
+        >
+          Yenile
+        </v-btn>
+      </div>
+
+      <v-alert v-if="deletedError" type="error" variant="tonal" density="compact" class="ma-4">
+        {{ deletedError }}
+      </v-alert>
+
+      <v-data-table
+        :headers="deletedHeaders"
+        :items="deletedAccounts"
+        :loading="deletedLoading"
+        density="compact"
+        no-data-text="Silinmiş hesap yok"
+        loading-text="Yükleniyor..."
+        class="bank-table"
+      >
+        <template v-slot:item.sub_group="{ item }">
+          <span v-if="item.sub_group" class="group-pill">{{ item.sub_group }}</span>
+          <span v-else class="empty-dash">—</span>
+        </template>
+
+        <template v-slot:item.owner="{ item }">
+          <span v-if="item.owner" class="owner-line is-offline"><span class="presence-dot"></span>{{ item.owner }}</span>
+          <span v-else class="empty-dash">—</span>
+        </template>
+
+        <template v-slot:item.account_holder="{ item }">
+          <div class="account-cell">
+            <div class="account-holder">{{ item.account_holder }}</div>
+            <div class="account-bank">{{ item.bank_name }}</div>
           </div>
         </template>
 
-        <!-- Actions -->
-        <template v-slot:item.actions="{ item }">
-          <div class="d-flex ga-1 justify-end">
-            <v-btn
-              v-if="auth.can('bank_accounts.edit') || auth.isSuperAdmin"
-              size="x-small"
-              variant="tonal"
-              color="primary"
-              icon
-              @click="openEdit(item)"
-              title="Düzenle"
-            >
-              <v-icon size="14">mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn
-              v-if="auth.can('bank_accounts.toggle') || auth.isSuperAdmin"
-              size="x-small"
-              variant="tonal"
-              :color="item.is_active ? 'error' : 'success'"
-              icon
-              @click="toggleAccount(item.id)"
-              :title="item.is_active ? 'Devre Dışı Bırak' : 'Etkinleştir'"
-            >
-              <v-icon size="14">{{ item.is_active ? 'mdi-power-off' : 'mdi-power' }}</v-icon>
-            </v-btn>
-            <!-- Silme yalnizca HIC KULLANILMAMIS hesaplar icin gecerli.
-                 Gecmisi olan hesabi silmek islemlerin hesap baglantisini
-                 kopariyor ve operator kredisini degistiriyor; sunucu bunu
-                 reddediyor, sebebini de yaziyor. -->
-            <v-btn
-              v-if="auth.can('bank_accounts.delete') || auth.isSuperAdmin"
-              size="x-small"
-              variant="tonal"
-              color="error"
-              icon
-              @click="askDelete(item)"
-              title="Sil"
-            >
-              <v-icon size="14">mdi-trash-can-outline</v-icon>
-            </v-btn>
-          </div>
+        <template v-slot:item.iban="{ item }">
+          <span class="iban-text">{{ formatIban(item.iban) }}</span>
+          <span v-if="item.currency && item.currency !== 'TRY'" class="currency-tag">{{ item.currency }}</span>
+        </template>
+
+        <template v-slot:item.transaction_count="{ item }">
+          <span class="txn-count" :class="{ 'has-history': item.transaction_count > 0 }">{{ item.transaction_count }}</span>
+        </template>
+
+        <template v-slot:item.deleted_at="{ item }">
+          <span class="deleted-at">{{ formatDateTime(item.deleted_at) }}</span>
         </template>
       </v-data-table>
     </div>
@@ -413,7 +456,8 @@
       </v-card>
     </v-dialog>
 
-    <!-- Silme onayi. Kalici bir islem, geri alinamiyor. -->
+    <!-- Silme onayi. Kayit yumusak siliniyor: listelerden kalkiyor ama
+         gecmis islemler ve operator kasasi bozulmuyor. -->
     <v-dialog v-model="deleteDialog" max-width="460">
       <v-card>
         <v-card-title class="pa-4">Hesabı sil</v-card-title>
@@ -423,8 +467,9 @@
             <span class="text-medium-emphasis">{{ deleteTarget.bank_name }} · {{ deleteTarget.iban }}</span>
           </div>
           <v-alert type="warning" variant="tonal" density="compact">
-            Bu işlem geri alınamaz. İşlem geçmişi olan hesaplar silinemez;
-            onları kullanımdan kaldırmak için pasife alın.
+            Hesap listelerden kaldırılacak ve bu hesaba yeni işlem yönlendirilmeyecek.
+            Geçmiş işlemler ve operatör kasa kayıtları korunur; kayıt
+            “Silinmiş Hesaplar” bölümünde saklanır. Bu işlem geri alınamaz.
           </v-alert>
         </v-card-text>
         <v-card-actions>
@@ -435,7 +480,7 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="4000">
       {{ snackbarText }}
     </v-snackbar>
   </div>
@@ -533,80 +578,71 @@ function formatIban(iban) {
   return iban.replace(/\s+/g, '').replace(/(.{4})/g, '$1 ').trim()
 }
 
-// Compact column set — merges related metrics into single cells so the
-// whole table fits within the typical content width (~1100px) without
-// horizontal scroll. IBAN moves into the account cell, daily limit +
-// count merge into "Bugün", lifetime stats merge into "Hareket", and
-// owner + sub-group merge into "Atama".
-const allHeaders = [
-  { title: 'Hesap', key: 'account_holder', minWidth: '260px' },
-  { title: 'Durum', key: 'is_active', minWidth: '80px', align: 'center' },
-  { title: 'Bugün', key: 'daily_used', minWidth: '140px', sortable: false },
-  { title: 'İşlem Aralığı', key: 'deposit_range', minWidth: '120px', sortable: false },
-  { title: 'Hareket', key: 'activity', minWidth: '140px', sortable: false },
-  { title: 'Atama', key: 'assignment', minWidth: '130px', sortable: false },
-  { title: '', key: 'actions', minWidth: '70px', sortable: false, align: 'end' },
-]
+function formatDateTime(value) {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
 
-const visibleHeaders = computed(() => allHeaders)
+/*
+ * Sekmeler. Silinmis havuzu ayri bir izne bagli; super yonetici gate
+ * bypass ile sunucuda zaten geciyor ama izin listesinde bu kayit
+ * bulunmadigi icin `can` false donuyor, o yuzden ayrica kontrol ediliyor.
+ */
+const tab = ref('accounts')
+const canViewDeleted = computed(() => auth.can('bank_accounts.view_deleted') || auth.isSuperAdmin)
 
-// Summary stats across all accounts. Teslim is per-OPERATOR — adding it
-// once per account would multiply by N (operator with 3 accounts → 3×).
-// We deduplicate by owner_id so each operator's teslim is only counted once.
-// Withdrawals are aggregated for the overview widget only — the table
-// itself no longer shows withdrawal volume per account since assignment
-// isn't pinned to a single account anymore.
-const totalStats = computed(() => {
-  let deposits = 0, withdrawals = 0, depositCount = 0, withdrawalCount = 0
-  let depositCommission = 0, withdrawalCommission = 0, teslimCommission = 0
-  let teslim = 0, teslimCount = 0
-  const seenOwners = new Set()
-  accounts.value.forEach(a => {
-    if (!a.stats) return
-    deposits += a.stats.total_deposits
-    withdrawals += a.stats.total_withdrawals
-    depositCount += a.stats.deposit_count
-    withdrawalCount += a.stats.withdrawal_count
-    depositCommission += a.stats.deposit_commission || 0
-    withdrawalCommission += a.stats.withdrawal_commission || 0
-    if (a.owner_id && !seenOwners.has(a.owner_id)) {
-      seenOwners.add(a.owner_id)
-      teslim += a.stats.total_teslim || 0
-      teslimCount += a.stats.teslim_count || 0
-      teslimCommission += a.stats.teslim_commission || 0
-    }
-  })
-  return {
-    deposits,
-    withdrawals,
-    teslim,
-    teslimCount,
-    commission: Math.round((depositCommission + withdrawalCommission + teslimCommission) * 100) / 100,
-    depositCount,
-    withdrawalCount,
-  }
+/*
+ * Sistem admini "kac IBAN aktif, kac pasif goreyim" dedi; sayaclar da
+ * filtre pillerindeki adetler de bu tek kaynaktan besleniyor.
+ */
+const activeCount = computed(() => accounts.value.filter(a => a.is_active).length)
+const passiveCount = computed(() => accounts.value.length - activeCount.value)
+
+const statusFilter = ref('all')
+const statusOptions = computed(() => [
+  { value: 'all', label: 'Tümü', icon: 'mdi-format-list-bulleted', tone: 'pill-neutral', count: accounts.value.length },
+  { value: 'active', label: 'Aktif', icon: 'mdi-check-circle-outline', tone: 'pill-success', count: activeCount.value },
+  { value: 'inactive', label: 'Pasif', icon: 'mdi-pause-circle-outline', tone: 'pill-muted', count: passiveCount.value },
+])
+
+// Filtre istemci tarafinda: liste zaten tek istekte tam geliyor.
+const filteredAccounts = computed(() => {
+  if (statusFilter.value === 'active') return accounts.value.filter(a => a.is_active)
+  if (statusFilter.value === 'inactive') return accounts.value.filter(a => !a.is_active)
+  return accounts.value
 })
 
+/*
+ * Sistem admininin istedigi duzen: GRUP | İSİM | İBAN | LİMİT | DURUM.
+ * Bugunku hacim, teslim ve hareket sutunlari kaldirildi. Komisyon
+ * yalnizca scope.commissions izni olana aciliyor; para verisi bu ekranin
+ * asil isi degil.
+ */
+const visibleHeaders = computed(() => {
+  const headers = [
+    { title: 'Grup', key: 'sub_group.name', minWidth: '150px' },
+    { title: 'İsim', key: 'account_holder', minWidth: '190px' },
+    { title: 'IBAN', key: 'iban', minWidth: '210px' },
+    { title: 'Limit', key: 'limits', minWidth: '190px', sortable: false },
+  ]
+  if (auth.can('scope.commissions') || auth.isSuperAdmin) {
+    headers.push({ title: 'Komisyon', key: 'commission', minWidth: '110px', sortable: false, align: 'end' })
+  }
+  headers.push({ title: 'Durum', key: 'is_active', minWidth: '90px', align: 'center' })
+  headers.push({ title: '', key: 'actions', minWidth: '110px', sortable: false, align: 'end' })
+  return headers
+})
 
-// Color-codes today's deposit volume vs the daily_limit.
-function dailyLimitClass(item) {
-  if (!item.daily_limit) return 'text-medium-emphasis'
-  const used = item.stats?.today_deposits || 0
-  const ratio = used / Number(item.daily_limit)
-  if (ratio >= 1) return 'text-error font-weight-bold'
-  if (ratio >= 0.85) return 'font-weight-bold'
-  return 'text-success font-weight-bold'
-}
-
-// Color-codes today's deposit count vs the daily_deposit_count_limit.
-function dailyCountClass(item) {
-  if (!item.daily_deposit_count_limit) return 'text-medium-emphasis'
-  const used = item.stats?.today_deposit_count || 0
-  const ratio = used / Number(item.daily_deposit_count_limit)
-  if (ratio >= 1) return 'text-error font-weight-bold'
-  if (ratio >= 0.85) return 'font-weight-bold'
-  return 'text-success font-weight-bold'
-}
+const deletedHeaders = [
+  { title: 'Grup', key: 'sub_group', minWidth: '140px' },
+  { title: 'Sahip', key: 'owner', minWidth: '140px' },
+  { title: 'İsim', key: 'account_holder', minWidth: '190px' },
+  { title: 'IBAN', key: 'iban', minWidth: '210px' },
+  { title: 'İşlem', key: 'transaction_count', minWidth: '80px', align: 'end' },
+  { title: 'Silinme', key: 'deleted_at', minWidth: '140px', align: 'end' },
+]
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(amount)
@@ -709,13 +745,18 @@ async function confirmDelete() {
   if (!deleteTarget.value) return
   deleting.value = true
   try {
-    await api.delete(`/portal/bank-accounts/${deleteTarget.value.id}`)
-    showSnack('Hesap silindi')
+    /*
+     * Islem gormus hesap artik 422 ile geri cevrilmiyor; sunucu kaydi
+     * yumusak silip kac islem/teslim etkilendigini yaziyor. Mesaji oldugu
+     * gibi gosteriyoruz, cunku sonucu en dogru o anlatiyor.
+     */
+    const { data } = await api.delete(`/portal/bank-accounts/${deleteTarget.value.id}`)
+    showSnack(data?.message || 'Hesap silindi')
     deleteDialog.value = false
     await loadAccounts()
+    // Havuz daha once acildiysa taze tut, yoksa silinen kayit orada cikmaz.
+    if (deletedLoaded.value) await loadDeleted()
   } catch (e) {
-    // Sunucu "islem gecmisi var" derse mesaji oldugu gibi gosteriyoruz:
-    // ne yapilmasi gerektigini (pasife alma) o soyluyor.
     showSnack(e.response?.data?.message || 'Hesap silinemedi', 'error')
   } finally {
     deleting.value = false
@@ -734,9 +775,39 @@ async function toggleAccount(id) {
 
 async function loadAccounts() {
   loading.value = true
-  const { data } = await api.get('/portal/bank-accounts')
-  accounts.value = data
-  loading.value = false
+  try {
+    const { data } = await api.get('/portal/bank-accounts')
+    accounts.value = data
+  } finally {
+    loading.value = false
+  }
+}
+
+// ── Silinmis hesap havuzu ──
+const deletedAccounts = ref([])
+const deletedLoading = ref(false)
+const deletedLoaded = ref(false)
+const deletedError = ref('')
+
+// Havuz tembel yukleniyor: cogu oturumda hic acilmiyor, her sayfa acilisinda
+// fazladan istek atmanin anlami yok.
+function openDeletedTab() {
+  tab.value = 'deleted'
+  if (!deletedLoaded.value) loadDeleted()
+}
+
+async function loadDeleted() {
+  deletedLoading.value = true
+  deletedError.value = ''
+  try {
+    const { data } = await api.get('/portal/bank-accounts/deleted')
+    deletedAccounts.value = Array.isArray(data) ? data : []
+    deletedLoaded.value = true
+  } catch (e) {
+    deletedError.value = e.response?.data?.message || 'Silinmiş hesaplar yüklenemedi'
+  } finally {
+    deletedLoading.value = false
+  }
 }
 
 onMounted(async () => {
@@ -758,82 +829,90 @@ onMounted(async () => {
 
 <style scoped>
 /* ═══════════════════════════════════════════ */
-/* OVERVIEW STATS — hero-card grid             */
+/* SEKMELER                                    */
 /* ═══════════════════════════════════════════ */
-.bank-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.bank-stat-card {
-  position: relative;
+.bank-tabs {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 18px;
-  border-radius: 0;
-  background: var(--sp-glass-bg);
+  gap: 1px;
+  margin-bottom: 14px;
+  background: var(--sp-glass-border);
   border: 1px solid var(--sp-glass-border);
-  overflow: hidden;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
-.bank-stat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.06;
-  z-index: 0;
-}
-.bank-stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-}
-
-.stat-deposit::before    { background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan)); }
-.stat-deposit            { border-color: rgba(102,241,189,0.2); }
-.stat-withdrawal::before { background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan)); }
-.stat-withdrawal         { border-color: rgba(112,169,255,0.2); }
-.stat-teslim::before     { background: linear-gradient(135deg, var(--sp-accent-amber), var(--sp-accent-peach)); }
-.stat-teslim             { border-color: rgba(255,190,91,0.2); }
-.stat-commission::before { background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple)); }
-.stat-commission         { border-color: rgba(161,140,209,0.22); }
-
-.stat-icon-wrap {
-  width: 44px; height: 44px;
+.bank-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 16px;
+  border: 0;
   border-radius: 0;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  position: relative; z-index: 1;
+  cursor: pointer;
+  background: var(--sp-card-bg);
+  color: var(--sp-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  transition: background 0.18s ease, color 0.18s ease;
 }
-.stat-deposit .stat-icon-wrap    { background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan)); }
-.stat-withdrawal .stat-icon-wrap { background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan)); }
-.stat-teslim .stat-icon-wrap     { background: linear-gradient(135deg, var(--sp-accent-amber), var(--sp-accent-peach)); }
-.stat-commission .stat-icon-wrap { background: linear-gradient(135deg, var(--sp-accent-purple), var(--sp-accent-purple)); }
-
-.stat-content { position: relative; z-index: 1; min-width: 0; flex: 1; }
-.stat-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
-  color: var(--sp-text-muted); font-weight: 600;
-  margin-bottom: 4px;
+.bank-tab:hover { color: var(--sp-text); background: var(--sp-glass-hover); }
+.bank-tab.is-active {
+  background: var(--sp-accent-bg-active);
+  color: var(--sp-primary);
+  box-shadow: inset 0 -2px 0 var(--sp-primary);
 }
-.stat-value {
-  font-size: 19px; font-weight: 800; letter-spacing: -0.4px;
-  color: var(--sp-text); line-height: 1.1;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.tab-count {
+  margin-left: 8px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sp-text-muted);
 }
-.stat-sub  { font-size: 11px; color: var(--sp-text-dim); margin-top: 2px; }
-.stat-count { font-weight: 700; color: var(--sp-text); }
-
-@media (max-width: 1100px) {
-  .bank-stats { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 600px) {
-  .bank-stats { grid-template-columns: 1fr; }
+.bank-tab.is-active .tab-count {
+  background: rgba(102, 241, 189, 0.16);
+  color: var(--sp-primary);
 }
 
 /* ═══════════════════════════════════════════ */
-/* TABLE CARD                                  */
+/* SAYAÇ ŞERİDİ — 1px boşluklu üçlü grid       */
+/* ═══════════════════════════════════════════ */
+.bank-counters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--sp-glass-border);
+  border: 1px solid var(--sp-glass-border);
+}
+.counter-cell {
+  background: var(--sp-card-bg);
+  padding: 14px 18px;
+}
+.counter-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--sp-text-muted);
+}
+.counter-value {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--sp-text);
+}
+.counter-cell.is-active .counter-value  { color: var(--sp-accent-success); }
+.counter-cell.is-passive .counter-value { color: var(--sp-text-dimmer); }
+
+@media (max-width: 600px) {
+  .bank-counters { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════ */
+/* TABLO KARTI                                 */
 /* ═══════════════════════════════════════════ */
 .bank-table-card {
   background: var(--sp-glass-bg);
@@ -858,6 +937,10 @@ onMounted(async () => {
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
+.bank-table-icon.is-muted {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--sp-glass-border);
+}
 .bank-table-heading { font-size: 15px; font-weight: 700; color: var(--sp-text); line-height: 1.1; }
 .bank-table-sub     { font-size: 11px; color: var(--sp-text-dim); margin-top: 2px; }
 .bank-add-btn {
@@ -870,30 +953,145 @@ onMounted(async () => {
 }
 
 /* ═══════════════════════════════════════════ */
-/* ACCOUNT / IBAN / STATUS / PILL CELLS         */
+/* AKTİF / PASİF FİLTRESİ                      */
 /* ═══════════════════════════════════════════ */
-.account-cell { display: flex; align-items: flex-start; gap: 10px; line-height: 1.25; }
-.account-avatar {
-  width: 28px; height: 28px;
-  border-radius: 0;
-  background: linear-gradient(135deg, var(--sp-primary), var(--sp-accent-purple));
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
+.filter-shell {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--sp-divider, rgba(255,255,255,0.06));
+  background: linear-gradient(180deg, rgba(102,241,189,0.04), transparent);
 }
-.account-text { min-width: 0; }
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--sp-glass-border);
+  color: var(--sp-text-muted);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+.filter-pill:hover { color: var(--sp-text); border-color: rgba(102,241,189,0.4); }
+.filter-pill .pill-count {
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+.filter-pill.pill-neutral.is-active {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.22);
+  color: var(--sp-text);
+}
+.filter-pill.pill-success.is-active {
+  background: rgba(102,241,189,0.16);
+  border-color: rgba(102,241,189,0.55);
+  color: var(--sp-accent-success);
+}
+.filter-pill.pill-muted.is-active {
+  background: rgba(113,132,122,0.22);
+  border-color: rgba(160,175,165,0.45);
+  color: var(--sp-text);
+}
+
+/* ═══════════════════════════════════════════ */
+/* HÜCRELER                                    */
+/* ═══════════════════════════════════════════ */
+.empty-dash { font-size: 11px; color: var(--sp-text-dim); }
+
+.group-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.group-pill {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 0;
+  background: rgba(102,241,189,0.12);
+  color: var(--sp-accent-purple);
+  border: 1px solid rgba(102,241,189,0.22);
+}
+.owner-line {
+  display: inline-flex; align-items: center;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--sp-text-muted);
+}
+.owner-line .presence-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+.owner-line.is-online .presence-dot {
+  background: var(--sp-accent-success);
+  box-shadow: 0 0 0 3px rgba(102,241,189,0.18);
+  animation: presence-pulse 2s ease-in-out infinite;
+}
+.owner-line.is-offline .presence-dot {
+  background: var(--sp-text-dim);
+  opacity: 0.6;
+}
+@keyframes presence-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(102,241,189,0.18); }
+  50%      { box-shadow: 0 0 0 5px rgba(102,241,189,0.05); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .owner-line.is-online .presence-dot { animation: none; }
+}
+
+.account-cell { line-height: 1.25; min-width: 0; }
 .account-holder {
   font-size: 13px; font-weight: 700; color: var(--sp-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   max-width: 220px;
 }
 .account-bank { font-size: 10.5px; color: var(--sp-text-muted); }
-.account-iban {
+
+.iban-text {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 10.5px;
-  color: var(--sp-text-dim);
+  font-size: 11.5px;
+  color: var(--sp-text-secondary);
   letter-spacing: 0.2px;
-  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.currency-tag {
+  margin-left: 6px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+  padding: 1px 5px;
+  background: rgba(112,169,255,0.14);
+  color: var(--sp-accent-blue);
+  border: 1px solid rgba(112,169,255,0.24);
+}
+
+.limit-cell { display: flex; flex-direction: column; gap: 3px; line-height: 1.15; }
+.limit-row { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.limit-tag {
+  display: inline-block;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+  padding: 1px 6px; border-radius: 0;
+  background: rgba(102,241,189,0.15);
+  color: var(--sp-accent-success);
+  border: 1px solid rgba(102,241,189,0.22);
+}
+.limit-tag.tag-alt {
+  background: rgba(255,190,91,0.15);
+  color: var(--sp-accent-amber);
+  border-color: rgba(255,190,91,0.22);
+}
+.limit-value { font-size: 11.5px; font-weight: 600; color: var(--sp-text); }
+.limit-sub   { font-size: 10px; color: var(--sp-text-hint); }
+.limit-none  { font-size: 11px; color: var(--sp-text-dim); }
+
+.commission-value {
+  font-size: 11.5px; font-weight: 700;
+  color: var(--sp-accent-purple);
+  font-variant-numeric: tabular-nums;
 }
 
 .status-pill {
@@ -923,44 +1121,21 @@ onMounted(async () => {
 }
 .status-pill.is-inactive .status-dot { background: var(--sp-text-dim); }
 
-.owner-pill, .group-pill {
-  display: inline-flex; align-items: center;
-  font-size: 11px; font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 0;
+.txn-count {
+  font-size: 11.5px; font-weight: 700;
+  color: var(--sp-text-dim);
+  font-variant-numeric: tabular-nums;
 }
-.owner-pill {
-  background: rgba(255,190,91,0.12);
-  color: var(--sp-accent-amber);
-  border: 1px solid rgba(255,190,91,0.2);
-}
-.group-pill {
-  background: rgba(102,241,189,0.12);
-  color: var(--sp-accent-purple);
-  border: 1px solid rgba(102,241,189,0.22);
-}
-.owner-pill .presence-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  margin-right: 6px;
-  flex-shrink: 0;
-}
-.owner-pill.is-online .presence-dot {
-  background: var(--sp-accent-success);
-  box-shadow: 0 0 0 3px rgba(102,241,189,0.18);
-  animation: presence-pulse 2s ease-in-out infinite;
-}
-.owner-pill.is-offline .presence-dot {
-  background: var(--sp-text-dim);
-  opacity: 0.5;
-}
-@keyframes presence-pulse {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(102,241,189,0.18); }
-  50%      { box-shadow: 0 0 0 5px rgba(102,241,189,0.05); }
+.txn-count.has-history { color: var(--sp-accent-amber); }
+.deleted-at {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 10.5px;
+  color: var(--sp-text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ═══════════════════════════════════════════ */
-/* TABLE INTERNALS                             */
+/* TABLO İÇİ                                   */
 /* ═══════════════════════════════════════════ */
 .bank-table :deep(td) {
   font-size: 12px !important;
@@ -1063,51 +1238,11 @@ onMounted(async () => {
   line-height: 1.35;
 }
 
-/* Per-deposit range cell in the data table */
-.range-cell { display: flex; flex-direction: column; gap: 3px; line-height: 1.1; }
-.range-row { display: flex; align-items: center; gap: 6px; }
-.range-tag {
-  display: inline-block;
-  font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
-  padding: 1px 6px; border-radius: 0;
-}
-.tag-min { background: rgba(255,190,91,0.15); color: var(--sp-accent-amber); border: 1px solid rgba(255,190,91,0.22); }
-.tag-max { background: rgba(102,241,189,0.15); color: var(--sp-accent-success); border: 1px solid rgba(102,241,189,0.22); }
-.range-value { font-size: 11.5px; font-weight: 600; color: var(--sp-text); font-variant-numeric: tabular-nums; }
-
-/* Bugün cell — daily volume + count usage stacked */
-.daily-cell { display: flex; flex-direction: column; gap: 3px; line-height: 1.15; }
-.daily-row { display: flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
-.daily-used { font-size: 11.5px; font-weight: 700; }
-.daily-cap  { font-size: 10px; color: var(--sp-text-hint); }
-.daily-unlimited { font-size: 11px; color: var(--sp-text-dim); }
-
-/* Hareket cell — lifetime deposits + commission */
-.activity-cell { display: flex; flex-direction: column; gap: 2px; line-height: 1.1; }
-.activity-row {
-  display: flex; align-items: center; gap: 6px;
-  font-variant-numeric: tabular-nums;
-}
-.act-tag {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 16px; height: 16px;
-  font-size: 9px; font-weight: 800;
-  border-radius: 0;
-  flex-shrink: 0;
-}
-.act-dep .act-tag { background: rgba(102,241,189,0.18); color: var(--sp-accent-success); }
-.act-com .act-tag { background: rgba(206,147,216,0.18); color: var(--sp-accent-purple); }
-.act-value { font-size: 11.5px; font-weight: 700; color: var(--sp-text); }
-.act-count { font-size: 10px; color: var(--sp-text-hint); }
-
-/* Atama cell — owner pill + group pill stacked */
-.assignment-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
-
 .switch-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 6px 12px; border-radius: 0;
-  background: var(--sp-surface-1, rgba(102,241,189,0.05));
-  border: 1px solid var(--sp-border);
+  background: var(--sp-accent-bg, rgba(102,241,189,0.05));
+  border: 1px solid var(--sp-glass-border);
   min-height: 40px;
 }
 .switch-label { font-size: 13px; font-weight: 600; color: var(--sp-text); }
@@ -1131,13 +1266,10 @@ onMounted(async () => {
 /* ── Responsive — fit-to-viewport, no forced horizontal scroll on desktop ── */
 .bank-table :deep(table) { width: 100%; }
 .bank-table :deep(td), .bank-table :deep(th) { white-space: nowrap; }
-/* Allow the Hesap cell content to wrap so very long holder/IBAN don't blow the column */
-.bank-table :deep(td:first-child) { white-space: normal; }
 
 @media (max-width: 960px) {
-  /* Below 960px (typical narrow tablet) we let the table scroll because
-     6 information-dense columns can't all fit in <900px. The scroll only
-     kicks in below this breakpoint. */
+  /* Dar ekranda tablo kaydiriliyor: 5 sutun + aksiyonlar 900px altina
+     sigmiyor. Kaydirma yalnizca bu kirilimin altinda devreye giriyor. */
   .bank-table { overflow-x: auto; }
   .bank-table :deep(table) { min-width: 820px; }
 }

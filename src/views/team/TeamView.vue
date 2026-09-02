@@ -15,7 +15,7 @@
       </v-card-title>
 
       <v-card-subtitle v-if="canAddMember" class="pb-3 text-medium-emphasis">
-        Eklediğiniz ekip üyeleri sizinle aynı yöneticiye bağlanır.
+        Eklediğiniz ekip üyeleri size bağlanır ve sizin bir altınızdaki göreve atanır.
       </v-card-subtitle>
 
       <v-data-table
@@ -26,25 +26,28 @@
         no-data-text="Ekip üyesi bulunamadı"
         loading-text="Yükleniyor..."
       >
-        <template v-slot:item.roles="{ item }">
-          <v-chip
-            v-for="role in item.roles"
-            :key="role.id"
-            size="small"
-            class="mr-1"
-          >
-            {{ role.display_name || role.name }}
-          </v-chip>
+        <template v-slot:item.gorev="{ item }">
+          <v-chip v-if="item.gorev" size="small">{{ item.gorev }}</v-chip>
+          <span v-else class="text-medium-emphasis">—</span>
         </template>
-        <template v-slot:item.is_active="{ item }">
-          <v-chip :color="item.is_active ? 'success' : 'grey'" size="small">
-            {{ item.is_active ? 'Aktif' : 'Pasif' }}
-          </v-chip>
+        <template v-slot:item.durum="{ item }">
+          <div class="d-flex align-center ga-2">
+            <span class="team-dot" :class="item.is_clocked_in ? 'dot-online' : 'dot-offline'" />
+            <span v-if="item.is_clocked_in" class="team-status-on">
+              Mesaide &bull; {{ formatMinutes(item.today_minutes) }}
+            </span>
+            <span v-else class="team-status-off">Çevrimdışı</span>
+            <!-- Pasif hesap mesai durumundan ayri bir bilgi: kisi bugun
+                 mesaiye hic girmemis olabilir ama hesabi hala aciktir.
+                 Bu yuzden noktanin yanina ayri bir rozet olarak konuyor. -->
+            <v-chip v-if="!item.is_active" size="x-small" color="grey" variant="tonal">
+              Pasif hesap
+            </v-chip>
+          </div>
         </template>
-        <template v-slot:item.last_login_at="{ item }">
-          {{ item.last_login_at
-            ? new Date(item.last_login_at).toLocaleString('tr-TR')
-            : 'Hiç giriş yapmadı' }}
+        <template v-slot:item.created_by="{ item }">
+          <span v-if="item.created_by">{{ item.created_by }}</span>
+          <span v-else class="text-medium-emphasis">—</span>
         </template>
       </v-data-table>
     </v-card>
@@ -60,16 +63,19 @@
             <v-icon size="44" color="white">mdi-account-plus</v-icon>
           </div>
           <div class="team-hero-title">EKİP ÜYESİ EKLE</div>
-          <div class="team-hero-sub">Sizinle aynı yetkilere sahip yeni bir üye</div>
+          <div class="team-hero-sub">Size bağlı, bir alt rütbede yeni bir üye</div>
         </div>
 
-        <!-- Inherited-role pill (the eye magnet — operator sees what
-             permissions the new user will get before filling the form) -->
+        <!-- Gorev blogu: eskiden burada ekleyenin rolu "miras alinacak rol"
+             olarak yaziyordu. Artik yeni uye ekleyenle ayni yetkileri
+             almiyor, bir alt rutbeye ataniyor ve hangi rol oldugunu backend
+             belirliyor; istemci rol gondermiyor. O yuzden sabit bir aciklama. -->
         <div class="team-role-block">
           <div class="team-role-icon"><v-icon size="22" color="white">mdi-shield-account-outline</v-icon></div>
           <div class="team-role-text">
             <div class="team-role-label">Atanacak Görev</div>
-            <div class="team-role-value">{{ inheritedRoleLabel }}</div>
+            <div class="team-role-value">Sizin bir altınızdaki görev</div>
+            <div class="team-role-hint">Görevi sistem belirler, siz seçmezsiniz.</div>
           </div>
         </div>
 
@@ -151,7 +157,6 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { roleLabel } from '@/utils/roles'
 import api from '@/plugins/axios'
 
 const auth = useAuthStore()
@@ -164,35 +169,39 @@ const showPw = ref(false)
 const errorMsg = ref('')
 const fieldErrors = reactive({ name: '', email: '', password: '' })
 
-function roleName(role) {
-  return roleLabel(role)
-}
-
-const inheritedRole = computed(() => auth.user?.roles?.[0]?.name || '')
-const inheritedRoleLabel = computed(() => roleLabel(auth.user?.roles?.[0] || null))
+// Ekleyenin kendi rolu. Yeni uyenin rolunu artik backend seciyor, burada
+// yalnizca "hic rolu olmayan biri ekip kuramaz" kontrolu icin duruyor.
+const ownRole = computed(() => auth.user?.roles?.[0]?.name || '')
 
 // Ekip uyesi ekleme artik ayri bir izin. Onceden yalnizca "super admin
 // degilsin ve devralinacak bir rolun var" kosuluna bakiliyordu, yani
 // izinden tamamen bagimsizdi.
 const canAddMember = computed(
-  () => (auth.isSuperAdmin || auth.can('team.create')) && !auth.isSuperAdmin && !!inheritedRole.value
+  () => (auth.isSuperAdmin || auth.can('team.create')) && !auth.isSuperAdmin && !!ownRole.value
 )
 
-const teammates = computed(() =>
-  users.value.filter((u) => {
-    if (u.id === auth.user?.id) return false
-    if (u.roles?.some((r) => r.name === 'super_admin')) return false
-    return true
-  })
-)
+// GET /portal/team artik duz bir dizi donuyor ve icinde Eloquent kullanici
+// nesnesi (roles dizisi, last_login_at) yok. Super admin ayiklamasini da
+// backend yapiyor; burada sadece kullanicinin kendisi listeden dusuruluyor.
+const teammates = computed(() => users.value.filter((u) => u.id !== auth.user?.id))
 
 const headers = [
-  { title: 'Ad Soyad', key: 'name' },
+  { title: 'İsim', key: 'name' },
   { title: 'E-posta', key: 'email' },
-  { title: 'Görev', key: 'roles' },
-  { title: 'Durum', key: 'is_active' },
-  { title: 'Son Giriş', key: 'last_login_at' },
+  { title: 'Görev', key: 'gorev' },
+  { title: 'Durum', key: 'durum', sortable: false },
+  { title: 'Ekleyen', key: 'created_by' },
 ]
+
+// Mesai suresi dakika olarak geliyor; ClockTrackingView ile ayni bicim
+// kullaniliyor ki iki ekranda ayni sure ayni sekilde okunsun.
+function formatMinutes(mins) {
+  const total = Number(mins) || 0
+  if (total <= 0) return '0dk'
+  const h = Math.floor(total / 60)
+  const m = total % 60
+  return h > 0 ? `${h}sa ${m}dk` : `${m}dk`
+}
 
 const form = reactive({
   name: '',
@@ -205,8 +214,7 @@ const canSubmit = computed(
   () =>
     form.name.trim().length > 1 &&
     /\S+@\S+\.\S+/.test(form.email) &&
-    form.password.length >= 8 &&
-    !!inheritedRole.value
+    form.password.length >= 8
 )
 
 function resetForm() {
@@ -243,6 +251,14 @@ async function loadTeam() {
   }
 }
 
+// Backend, ekleyenin altinda tanimli rol yoksa 422 ile
+// { message, error: 'no_subordinate_role' } donuyor. Kod alani "error"
+// olarak geliyor; "code" da kontrol ediliyor ki alan adi ileride
+// degisirse ekran ham mesaja dusmesin.
+function isNoSubordinateRole(res) {
+  return res?.error === 'no_subordinate_role' || res?.code === 'no_subordinate_role'
+}
+
 async function saveMember() {
   saving.value = true
   errorMsg.value = ''
@@ -264,7 +280,16 @@ async function saveMember() {
         if (res.errors[key]) fieldErrors[key] = res.errors[key][0]
       }
     }
-    errorMsg.value = res?.message || 'Ekip üyesi oluşturulamadı. Lütfen tekrar deneyin.'
+    // Backend, ekleyenin altinda tanimli bir gorev yoksa 422 +
+    // no_subordinate_role donuyor. Ham kod kullaniciya hicbir sey
+    // anlatmadigi icin burada acik bir cumleye cevriliyor.
+    if (isNoSubordinateRole(res)) {
+      errorMsg.value =
+        'Sizin altınızda tanımlı bir görev bulunmuyor, bu yüzden ekip üyesi ekleyemezsiniz. ' +
+        'Yöneticinizden alt görev tanımlanmasını isteyin.'
+    } else {
+      errorMsg.value = res?.message || 'Ekip üyesi oluşturulamadı. Lütfen tekrar deneyin.'
+    }
   } finally {
     saving.value = false
   }
@@ -355,6 +380,37 @@ onMounted(loadTeam)
   color: var(--sp-text);
   letter-spacing: -0.2px;
 }
+.team-role-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--sp-text-dimmer);
+  margin-top: 2px;
+}
+
+/* Durum sutunu — ClockTrackingView'daki canli mesai noktasiyla ayni
+   gorunum, iki ekranda "mesaide" ayni sekilde okunsun diye. */
+.team-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.team-dot.dot-online {
+  background: var(--sp-accent-success);
+  box-shadow: 0 0 6px rgba(102, 241, 189, 0.5);
+  animation: team-blink 2s ease-in-out infinite;
+}
+.team-dot.dot-offline { background: var(--sp-text-ghost); }
+@keyframes team-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.team-status-on {
+  color: var(--sp-accent-success);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.team-status-off { color: var(--sp-text-faint); }
 
 .team-body { padding: 18px 22px 6px; }
 
