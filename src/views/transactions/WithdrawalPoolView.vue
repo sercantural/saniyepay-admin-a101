@@ -438,8 +438,8 @@ onUnmounted(() => clearInterval(ticker))
 .mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 .muted { color: var(--sp-text-muted); font-size: 11px; }
 .waited-main { font-size: 12.5px; font-weight: 600; }
-.waited-main.w-warn { color: #f0a35e; }
-.waited-main.w-crit { color: #ff8e82; }
+.waited-main.w-warn { color: var(--sp-accent-orange); }
+.waited-main.w-crit { color: var(--sp-accent-error); }
 .waited-at { font-size: 10.5px; color: var(--sp-text-muted); }
 .amount { font-weight: 700; font-variant-numeric: tabular-nums; }
 
@@ -456,5 +456,5 @@ onUnmounted(() => clearInterval(ticker))
 }
 .op-name { font-weight: 600; }
 .op-bal { font-size: 11.5px; color: var(--sp-text-muted); font-variant-numeric: tabular-nums; }
-.op-bal.neg { color: #ff8e82; }
+.op-bal.neg { color: var(--sp-accent-error); }
 </style>

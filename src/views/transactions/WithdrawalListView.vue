@@ -2204,8 +2204,9 @@ onUnmounted(() => {
   animation: counter-pulse 1s ease-in-out infinite;
 }
 .counter-bar--overdue {
-  background: rgba(127, 29, 29, 0.35);
-  color: #fff;
+  background: var(--sp-error-bg);
+  color: var(--sp-accent-error);
+  border: 1px solid var(--sp-error-border);
 }
 @keyframes counter-pulse {
   0%, 100% { opacity: 1; }

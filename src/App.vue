@@ -199,19 +199,19 @@ useTheme().change(themeStore.getStoredTheme())
   --sp-accent-border-vivid: rgba(14, 143, 99, 0.45);
 
   --sp-glass-bg: rgba(11, 20, 16, 0.025);
-  --sp-glass-border: #D5DFDA;
+  --sp-glass-border: #C9D4CE;
   --sp-glass-hover: rgba(11, 20, 16, 0.045);
 
   --sp-card-bg: #FFFFFF;
-  --sp-card-border: #D5DFDA;
+  --sp-card-border: #C9D4CE;
   --sp-overlay: rgba(244, 248, 246, 0.94);
   --sp-modal-bg: #FFFFFF;
   --sp-dropdown-bg: #FFFFFF;
-  --sp-shadow: rgba(11, 20, 16, 0.12);
-  --sp-shadow-strong: rgba(11, 20, 16, 0.2);
+  --sp-shadow: rgba(11, 20, 16, 0.18);
+  --sp-shadow-strong: rgba(11, 20, 16, 0.3);
   --sp-scrollbar: rgba(14, 143, 99, 0.25);
   --sp-scrollbar-hover: rgba(14, 143, 99, 0.4);
-  --sp-divider: #E1E9E5;
+  --sp-divider: #DCE4E0;
   --sp-badge-bg: rgba(14, 143, 99, 0.12);
   --sp-input-border: #C7D3CD;
 

@@ -363,7 +363,7 @@ onMounted(async () => {
 .perm-group-count {
   margin-left: auto;
   font-variant-numeric: tabular-nums;
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--sp-text-hint);
 }
 .perm-item {
   display: flex;
@@ -384,19 +384,19 @@ onMounted(async () => {
   font-size: 9.5px;
   letter-spacing: 0.04em;
   padding: 1px 5px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--sp-card-border);
+  color: var(--sp-text-muted);
   white-space: nowrap;
 }
-.perm-level.lv-admin { color: #ff9c88; border-color: rgba(255, 156, 136, 0.35); }
-.perm-level.lv-manager { color: #f0a35e; border-color: rgba(240, 163, 94, 0.35); }
+.perm-level.lv-admin { color: var(--sp-accent-rose); border-color: var(--sp-error-border); }
+.perm-level.lv-manager { color: var(--sp-accent-orange); border-color: var(--sp-warning-border); }
 .perm-level.lv-operator { color: rgb(var(--v-theme-primary)); border-color: rgba(102, 241, 189, 0.3); }
 .perm-desc {
   display: block;
   margin-top: 3px;
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--sp-text-muted);
 }
 
 /* ── Responsive ── */

@@ -38,6 +38,18 @@ const darkComfort = {
  */
 const lightComfort = {
   dark: false,
+  /*
+   * Vurgu opakliklari. Vuetify'in acik varsayilani orta vurgu icin 0.6:
+   * tablolardaki alt yazilar (.text-medium-emphasis, .text-caption
+   * ile birlikte) beyaz zeminde acik gri kaliyor. Sistem admini bunu
+   * "yazilar belli olmuyor" diye bildirdi. Koyu temada ayni siniflar
+   * okunuyor cunku zemin koyu; acikta ayni oran yetmiyor.
+   */
+  variables: {
+    'high-emphasis-opacity': 1,
+    'medium-emphasis-opacity': 0.8,
+    'disabled-opacity': 0.5,
+  },
   colors: {
     background: '#F4F8F6',
     surface: '#FFFFFF',

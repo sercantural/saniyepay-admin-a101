@@ -227,8 +227,8 @@ onMounted(load)
 .amount { font-variant-numeric: tabular-nums; font-weight: 600; }
 .amount.pos { color: var(--sp-primary); }
 .amount.zero { color: var(--sp-text-muted); }
-.amount.neg { color: #ff8e82; }
-.amount.pending { color: #f0a35e; }
+.amount.neg { color: var(--sp-accent-error); }
+.amount.pending { color: var(--sp-accent-orange); }
 
 .bal-note {
   display: flex;

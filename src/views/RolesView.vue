@@ -466,8 +466,8 @@ onMounted(load)
   color: var(--sp-text-muted);
   white-space: nowrap;
 }
-.perm-level.lv-admin { color: #ff9c88; border-color: rgba(255,156,136,0.35); }
-.perm-level.lv-manager { color: #f0a35e; border-color: rgba(240,163,94,0.35); }
+.perm-level.lv-admin { color: var(--sp-accent-rose); border-color: var(--sp-error-border); }
+.perm-level.lv-manager { color: var(--sp-accent-orange); border-color: var(--sp-warning-border); }
 .perm-level.lv-operator { color: var(--sp-primary); border-color: rgba(102,241,189,0.3); }
 .perm-desc {
   display: block;
