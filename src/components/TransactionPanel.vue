@@ -1112,30 +1112,6 @@ defineExpose({ open, close, visible, txn })
 }
 
 /* Light mode */
-:global(.v-theme--lightComfort .txn-panel) {
-  box-shadow: 0 1px 4px rgba(16,33,27, 0.06);
-}
-:global(.v-theme--lightComfort .detail-section) {
-  box-shadow: 0 1px 3px rgba(16,33,27, 0.04);
-}
-:global(.v-theme--lightComfort .hero-banner) {
-  background: linear-gradient(135deg, #F7F8FC 0%, #ECEEF5 100%);
-  border-color: #D8DBE8;
-}
-:global(.v-theme--lightComfort .hero-amount) {
-  color: var(--sp-surface-bright);
-}
-:global(.v-theme--lightComfort .hero-currency) {
-  color: var(--sp-text-muted);
-}
-:global(.v-theme--lightComfort .hero-id) {
-  color: var(--sp-text-muted);
-}
-:global(.v-theme--lightComfort .hero-banner--approved) { border-left-color: var(--sp-accent-success); }
-:global(.v-theme--lightComfort .hero-banner--rejected) { border-left-color: var(--sp-accent-error); }
-:global(.v-theme--lightComfort .hero-banner--processing) { border-left-color: var(--sp-accent-orange); }
-:global(.v-theme--lightComfort .hero-banner--assigned) { border-left-color: var(--sp-accent-blue); }
-:global(.v-theme--lightComfort .hero-banner--pending) { border-left-color: var(--sp-text-muted); }
 
 /* ── Responsive ── */
 @media (max-width: 960px) {

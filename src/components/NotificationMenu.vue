@@ -270,9 +270,4 @@ function onSelect(n) {
   0% { width: 100%; }
   100% { width: 0%; }
 }
-:global(.v-theme--lightComfort .notif-dropdown) {
-  background: #FFFFFF;
-  border-color: #E3E5EE;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 0 0 1px #E3E5EE !important;
-}
 </style>

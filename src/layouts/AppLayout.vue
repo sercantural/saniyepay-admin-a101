@@ -714,7 +714,7 @@ onUnmounted(() => {
   justify-content: space-between;
   height: 70px;
   padding: 0 30px;
-  background: rgba(8, 13, 10, 0.88);
+  background: var(--sp-topbar-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--sp-card-border);
@@ -738,7 +738,7 @@ onUnmounted(() => {
   height: 32px;
   padding: 0 11px;
   font-size: 10px;
-  color: #70DCB4;
+  color: var(--sp-primary);
   background: var(--sp-accent-bg);
   border: 1px solid var(--sp-accent-border-strong);
 }

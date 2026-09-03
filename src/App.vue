@@ -34,6 +34,7 @@ import ApiErrorSnackbar from '@/components/ApiErrorSnackbar.vue'
   --sp-surface-bright: #101815;
   --sp-surface-variant: #16211C;
   --sp-sidebar: #090E0C;
+  --sp-topbar-bg: rgba(8, 13, 10, 0.88);
 
   --sp-text: #EDF7F1;
   --sp-text-secondary: rgba(237, 247, 241, 0.72);
@@ -159,15 +160,19 @@ import ApiErrorSnackbar from '@/components/ApiErrorSnackbar.vue'
   --sp-surface-bright: #FFFFFF;
   --sp-surface-variant: #E9F0EC;
   --sp-sidebar: #EEF3F0;
+  --sp-topbar-bg: rgba(244, 248, 246, 0.9);
 
-  --sp-text: #0B1410;
-  --sp-text-secondary: rgba(11, 20, 16, 0.76);
-  --sp-text-muted: rgba(11, 20, 16, 0.58);
-  --sp-text-hint: rgba(11, 20, 16, 0.44);
-  --sp-text-faint: rgba(11, 20, 16, 0.32);
-  --sp-text-ghost: rgba(11, 20, 16, 0.24);
-  --sp-text-dim: rgba(11, 20, 16, 0.38);
-  --sp-text-dimmer: rgba(11, 20, 16, 0.5);
+  /* Metin kademeleri koyuda oldugundan cok daha sik: beyaz zeminde
+   * %40 alfa gri okunuyor, sistem admini "siyah olmasi lazim" dedi.
+   * En silik kademe bile %55'in altina inmiyor. */
+  --sp-text: #000000;
+  --sp-text-secondary: rgba(0, 0, 0, 0.92);
+  --sp-text-muted: rgba(0, 0, 0, 0.82);
+  --sp-text-hint: rgba(0, 0, 0, 0.7);
+  --sp-text-faint: rgba(0, 0, 0, 0.6);
+  --sp-text-ghost: rgba(0, 0, 0, 0.55);
+  --sp-text-dim: rgba(0, 0, 0, 0.72);
+  --sp-text-dimmer: rgba(0, 0, 0, 0.78);
 
   --sp-primary: #0E8F63;
   --sp-primary-rgb: 14, 143, 99;
@@ -222,6 +227,13 @@ import ApiErrorSnackbar from '@/components/ApiErrorSnackbar.vue'
   --sp-accent-success-bg: rgba(14, 143, 99, 0.12);
   --sp-accent-amber-bg: rgba(184, 110, 0, 0.12);
 }
+
+/* Acik temada aktif suzgec pilleri.
+ * Ekranlar .status-pill.is-active icin color:#fff yaziyor; koyu zeminde
+ * dogru, acik zeminde pilin arka plani soluk ve beyaz yazi kayboluyor.
+ * Ekran ekran dolasmak yerine tek kural: acik temada pil yazisi siyah.
+ * :root.theme-light ile ozgulluk kapsamli stilin ustune cikiyor. */
+:root.theme-light .status-pill.is-active { color: var(--sp-text) !important; }
 
 /* Smooth thin scrollbars */
 ::-webkit-scrollbar {

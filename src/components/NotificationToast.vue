@@ -233,7 +233,7 @@ onUnmounted(() => { if (timer) clearTimeout(timer) })
   position: relative;
   width: 420px;
   max-width: calc(100vw - 32px);
-  background: #16211C;
+  background: var(--sp-surface-variant);
   border-radius: 0;
   padding: 0;
   overflow: hidden;
