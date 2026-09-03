@@ -86,6 +86,29 @@
             variant="outlined"
             density="compact"
             clearable
+            hint="Kendi grubu. Oluşturduğu kayıtlar bu gruba yazılır."
+            persistent-hint
+          />
+
+          <!-- Bir mudur birden fazla grubun muduru olabiliyor. Bu alan
+               yalnizca GORME kapsamini genisletiyor; kayitlarin hangi
+               gruba yazilacagini yukaridaki "Alt Grup" belirliyor. -->
+          <v-select
+            v-if="auth.isSuperAdmin"
+            v-model="form.managed_sub_group_ids"
+            :items="ekGrupSecenekleri"
+            item-title="name"
+            item-value="id"
+            label="Sorumlu Olduğu Diğer Gruplar"
+            variant="outlined"
+            density="compact"
+            class="mt-4"
+            multiple
+            chips
+            closable-chips
+            clearable
+            hint="Bir müdür birden fazla grubun müdürü olabilir. Seçilen grupların işlemlerini de görür."
+            persistent-hint
           />
           <v-switch v-if="editing" v-model="form.is_active" label="Aktif" color="success" />
 
@@ -172,6 +195,12 @@ const auth = useAuthStore()
 const can = (p) => auth.can(p) || auth.isSuperAdmin
 const users = ref([])
 const subGroups = ref([])
+
+// Kendi grubu ikinci listede cikmasin: kapsam zaten ikisinin birlesimi,
+// ayni grubu iki yerde gormek "iki kez mi atadim" sorusunu doguruyordu.
+const ekGrupSecenekleri = computed(
+  () => subGroups.value.filter(g => g.id !== form.sub_group_id)
+)
 const loading = ref(false)
 const dialog = ref(false)
 const saving = ref(false)
@@ -203,7 +232,7 @@ const selectedRoleHint = computed(() => {
   return n ? `Bu rol ${n} izin taşıyor — aşağıda kilitli görünüyorlar.` : 'Bu role henüz izin atanmamış.'
 })
 
-const form = reactive({ name: '', email: '', password: '', role: '', sub_group_id: null, is_active: true, direct_permissions: [] })
+const form = reactive({ name: '', email: '', password: '', role: '', sub_group_id: null, is_active: true, direct_permissions: [], managed_sub_group_ids: [] })
 
 // Izin katalogu — rol ekraniyla ayni kaynak.
 const permissionGroups = ref([])
@@ -265,7 +294,7 @@ const headers = [
 
 function openCreateDialog() {
   editing.value = false
-  Object.assign(form, { name: '', email: '', password: '', role: '', sub_group_id: null, is_active: true, direct_permissions: [] })
+  Object.assign(form, { name: '', email: '', password: '', role: '', sub_group_id: null, is_active: true, direct_permissions: [], managed_sub_group_ids: [] })
   dialog.value = true
 }
 
@@ -279,6 +308,7 @@ function editUser(user) {
     password: '',
     role: user.roles?.[0]?.name || '',
     sub_group_id: user.sub_group_id,
+    managed_sub_group_ids: user.managed_sub_group_ids || [],
     is_active: user.is_active,
     direct_permissions: user.direct_permissions || [],
   })
