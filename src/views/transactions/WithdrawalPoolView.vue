@@ -41,18 +41,6 @@
         </template>
       </div>
 
-      <!-- Uyari yalnizca havuzdan CEKIM ALABILECEK kisiye.
-           Onceden herkese cikiyordu ve destek/admin, o ekranda isi cekimi
-           almak degil bir gruba iletmek oldugu halde "banka hesabiniz
-           olmali" uyarisi goruyordu. -->
-      <v-alert
-        v-if="hesapUyarisi"
-        type="warning" variant="tonal" density="compact" class="mb-3"
-      >
-        Havuzdan çekim alabilmek için aktif bir banka hesabınız olmalı.
-        Çekimi kendi üstünüze aldığınızda ödeme o hesaptan çıkar.
-        Banka Hesapları ekranından bir hesap tanımlayın.
-      </v-alert>
 
       <v-data-table
         :headers="headers"
@@ -206,18 +194,6 @@ const canClaim = ref(false)
 // Sunucu 'alabilir mi' diyor; arayuz ayrica izni de kontrol ediyor
 // ki izinsiz kullanicida dugme hic gorunmesin.
 const mayClaim = computed(() => canClaim.value && (auth.isSuperAdmin || auth.can('withdrawal_pool.claim')))
-
-/*
- * Hesap uyarisi kime cikar?
- *
- * Yalnizca havuzdan alma IZNI olup aktif banka hesabi OLMAYANA. Izni
- * olmayan (destek, admin) bu ekrana cekimi bir gruba iletmek icin
- * geliyor; ona hesap sormanin anlami yok. Super admin de disarida,
- * o zaten sahada para tasiyan taraf degil.
- */
-const hesapUyarisi = computed(
-  () => !canClaim.value && !auth.isSuperAdmin && auth.can('withdrawal_pool.claim')
-)
 const mayAssign = computed(() => auth.isSuperAdmin || auth.can('withdrawal_pool.assign'))
 // Sunucunun soyledigi; auth store ile ayni olmali ama yetki kararini
 // veren taraf sunucu oldugu icin onu esas aliyoruz.
