@@ -194,9 +194,6 @@ const auth = useAuthStore()
 const themeStore = useThemeStore()
 const vuetifyTheme = useTheme()
 
-// Kayitli secimi Vuetify'a uygula; html sinifini store kendi yaziyor.
-vuetifyTheme.change(themeStore.getStoredTheme())
-
 function toggleTheme() {
   const yeni = themeStore.isDark ? themeStore.LIGHT : themeStore.DARK
   vuetifyTheme.change(yeni)

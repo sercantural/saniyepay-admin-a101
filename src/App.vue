@@ -6,7 +6,21 @@
 </template>
 
 <script setup>
+import { useTheme } from 'vuetify'
 import ApiErrorSnackbar from '@/components/ApiErrorSnackbar.vue'
+import { useThemeStore } from '@/stores/theme'
+
+/*
+ * Tema kurulumu burada, kabukta degil.
+ *
+ * Onceden AppLayout yapiyordu; giris ekrani kabugun disinda oldugu icin
+ * kayitli secim orada hic uygulanmiyor ve giris her zaman koyu
+ * aciliyordu. Kokte yapilinca her rota ayni secimle basliyor. Store
+ * olusturulurken <html> sinifini kendi yaziyor; Vuetify'a da burada
+ * soyluyoruz.
+ */
+const themeStore = useThemeStore()
+useTheme().change(themeStore.getStoredTheme())
 
 // Panel karanlik-tek; secilecek baska tema yok.
 </script>

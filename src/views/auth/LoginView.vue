@@ -5,6 +5,16 @@
     <div class="al-grid" aria-hidden="true"></div>
     <div class="al-glow" aria-hidden="true"></div>
 
+    <button type="button" class="al-theme" :aria-label="themeStore.isDark ? 'Açık temaya geç' : 'Koyu temaya geç'" @click="toggleTheme">
+      <svg v-if="themeStore.isDark" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+        <circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </svg>
+      <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+      </svg>
+      {{ themeStore.isDark ? 'AÇIK' : 'KOYU' }}
+    </button>
+
     <main class="al-card">
       <span class="al-kicker">GÜVENLİ ERİŞİM</span>
       <h1>Giriş.</h1>
@@ -73,9 +83,19 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useTheme } from 'vuetify'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 
 const auth = useAuthStore()
+const themeStore = useThemeStore()
+const vuetifyTheme = useTheme()
+
+function toggleTheme() {
+  const yeni = themeStore.isDark ? themeStore.LIGHT : themeStore.DARK
+  vuetifyTheme.change(yeni)
+  themeStore.setTheme(yeni)
+}
 const router = useRouter()
 
 const email = ref('')
@@ -132,11 +152,28 @@ onMounted(() => emailInput.value?.focus())
    burasinin ne oldugunu soylemesi icin bir sebep yok.
    ============================================================ */
 .al-page {
+  /* Koyu (varsayilan). Acik karsiliklari asagida :root.theme-light altinda.
+   * Giris ekrani kabugun disinda oldugu icin --sp-* token'larini degil kendi
+   * paletini kullaniyor; iki tema da bu degiskenlerden okur. */
   --ink: #070B09;
   --panel: #0C1210;
-  --mint: #66F1BD;
+  --mint: #66F1BD;         /* metin ve cizgi icin sinyal rengi */
+  --mint-fill: #66F1BD;    /* dolu dugme zemini; iki temada da parlak mint, ustunde koyu yazi */
   --fg: #EEF7F1;
   --line: #27342D;
+  --label: #9BACA2;
+  --icon: #5F7267;
+  --input-bg: #080D0B;
+  --input-line: #2B3831;
+  --focus-ring: rgba(102, 241, 189, 0.07);
+  --err: #FF9C88;
+  --err-bg: rgba(255, 129, 106, 0.07);
+  --err-line: rgba(255, 129, 106, 0.22);
+  --glow: #07583D;
+  --glow-opacity: 0.18;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --grid: rgba(102, 241, 189, 0.03);
+  --submit-shadow: rgba(102, 241, 189, 0.15);
 
   position: relative;
   display: grid;
@@ -149,13 +186,62 @@ onMounted(() => emailInput.value?.focus())
   overflow: hidden;
 }
 
+/* Acik tema: ayni dil, ters zemin. <html class="theme-light"> ile geliyor
+ * (stores/theme.js). Mint beyaz ustunde okunmaz, metin ve cizgi icin
+ * koyulastirildi; dolu dugme (--mint-fill) parlak mint kaliyor cunku
+ * ustundeki yazi koyu. */
+:root.theme-light .al-page {
+  --ink: #F4F8F6;
+  --panel: #FFFFFF;
+  --mint: #0E8F63;
+  --fg: #000000;
+  --line: #D5DFDA;
+  --label: rgba(0, 0, 0, 0.72);
+  --icon: rgba(0, 0, 0, 0.55);
+  --input-bg: #F4F8F6;
+  --input-line: #C7D3CD;
+  --focus-ring: rgba(14, 143, 99, 0.14);
+  --err: #C8483A;
+  --err-bg: rgba(200, 72, 58, 0.07);
+  --err-line: rgba(200, 72, 58, 0.28);
+  --glow: #66F1BD;
+  --glow-opacity: 0.35;
+  --shadow: rgba(11, 20, 16, 0.14);
+  --grid: rgba(14, 143, 99, 0.06);
+  --submit-shadow: rgba(14, 143, 99, 0.2);
+}
+
+/* Tema dugmesi: sag ustte, kabuktaki dugmenin karsiligi. */
+.al-theme {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--label);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.al-theme:hover { color: var(--mint); border-color: var(--mint); }
+.al-theme svg { flex: none; }
+
 .al-grid {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(102, 241, 189, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(102, 241, 189, 0.03) 1px, transparent 1px);
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 52px 52px;
   -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 0, transparent 72%);
   mask-image: radial-gradient(circle at 50% 45%, #000 0, transparent 72%);
@@ -168,9 +254,9 @@ onMounted(() => emailInput.value?.focus())
   height: 620px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: #07583D;
+  background: var(--glow);
   filter: blur(190px);
-  opacity: 0.18;
+  opacity: var(--glow-opacity);
   pointer-events: none;
 }
 
@@ -181,7 +267,7 @@ onMounted(() => emailInput.value?.focus())
   padding: 40px 38px 38px;
   background: var(--panel);
   border: 1px solid var(--line);
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 40px 100px var(--shadow);
 }
 /* Ust kenarda ince mint sinyal cizgisi */
 .al-card::before {
@@ -200,7 +286,7 @@ onMounted(() => emailInput.value?.focus())
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1.6px;
-  color: #61E9B5;
+  color: var(--mint);
 }
 .al-card h1 {
   font-family: Archivo, 'Arial Narrow', sans-serif;
@@ -216,7 +302,7 @@ onMounted(() => emailInput.value?.focus())
   margin: 0 0 9px;
   font-size: 11px;
   font-weight: 700;
-  color: #9BACA2;
+  color: var(--label);
 }
 .al-input {
   display: flex;
@@ -225,21 +311,21 @@ onMounted(() => emailInput.value?.focus())
   height: 52px;
   padding: 0 15px;
   margin-bottom: 20px;
-  background: #080D0B;
-  border: 1px solid #2B3831;
+  background: var(--input-bg);
+  border: 1px solid var(--input-line);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .al-input:focus-within {
-  border-color: #56D9A7;
-  box-shadow: 0 0 0 3px rgba(102, 241, 189, 0.07);
+  border-color: var(--mint);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
-.al-input > svg { color: #5F7267; flex: none; }
+.al-input > svg { color: var(--icon); flex: none; }
 .al-input input {
   flex: 1;
   min-width: 0;
   font-family: inherit;
   font-size: 13px;
-  color: #EDF6F0;
+  color: var(--fg);
   background: none;
   border: 0;
   outline: 0;
@@ -249,7 +335,7 @@ onMounted(() => emailInput.value?.focus())
   place-items: center;
   width: 30px;
   height: 30px;
-  color: #617269;
+  color: var(--icon);
   background: none;
   border: 0;
   cursor: pointer;
@@ -264,9 +350,9 @@ onMounted(() => emailInput.value?.focus())
   padding: 11px 13px;
   font-size: 11.5px;
   line-height: 1.5;
-  color: #FF9C88;
-  background: rgba(255, 129, 106, 0.07);
-  border: 1px solid rgba(255, 129, 106, 0.22);
+  color: var(--err);
+  background: var(--err-bg);
+  border: 1px solid var(--err-line);
 }
 .al-error svg { flex: none; }
 
@@ -282,14 +368,14 @@ onMounted(() => emailInput.value?.focus())
   font-size: 12.5px;
   font-weight: 800;
   color: #06110C;
-  background: var(--mint);
+  background: var(--mint-fill);
   border: 0;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 .al-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(102, 241, 189, 0.15);
+  box-shadow: 0 12px 30px var(--submit-shadow);
 }
 .al-submit:disabled { opacity: 0.75; cursor: default; }
 
