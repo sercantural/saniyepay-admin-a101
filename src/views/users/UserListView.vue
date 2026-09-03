@@ -136,6 +136,19 @@
             </label>
           </div>
 
+          <!-- Hata formun icinde duruyor, ekranin kosesinde degil:
+               kullanici hangi alani duzeltecegini gormeden Kaydet'e
+               tekrar basiyordu. -->
+          <v-alert
+            v-if="formHatasi"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mt-4"
+          >
+            {{ formHatasi }}
+          </v-alert>
+
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -162,6 +175,7 @@ const subGroups = ref([])
 const loading = ref(false)
 const dialog = ref(false)
 const saving = ref(false)
+const formHatasi = ref('')
 const editing = ref(false)
 const editingId = ref(null)
 
@@ -256,6 +270,7 @@ function openCreateDialog() {
 }
 
 function editUser(user) {
+  formHatasi.value = ''
   editing.value = true
   editingId.value = user.id
   Object.assign(form, {
@@ -272,10 +287,15 @@ function editUser(user) {
 
 async function saveUser() {
   saving.value = true
+  formHatasi.value = ''
   try {
     if (editing.value) { const data = { ...form }; if (!data.password) delete data.password; await api.put(`/portal/users/${editingId.value}`, data) }
     else { await api.post('/portal/users', form) }
     dialog.value = false; await loadUsers()
+  } catch (e) {
+    // Onceden catch YOKTU: sunucu "bu e-posta zaten kayitli" diyordu,
+    // dialog acik kaliyordu ve ekranda tek kelime cikmiyordu.
+    formHatasi.value = e.uiMessage || 'Kullanıcı kaydedilemedi.'
   } finally { saving.value = false }
 }
 

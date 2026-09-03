@@ -1,10 +1,12 @@
 <template>
   <v-app>
     <router-view />
+    <ApiErrorSnackbar />
   </v-app>
 </template>
 
 <script setup>
+import ApiErrorSnackbar from '@/components/ApiErrorSnackbar.vue'
 
 // Panel karanlik-tek; secilecek baska tema yok.
 </script>
