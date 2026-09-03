@@ -126,7 +126,8 @@ import ApiErrorSnackbar from '@/components/ApiErrorSnackbar.vue'
   border-radius: 50% !important;
 }
 
-.v-theme--darkComfort {
+.v-theme--darkComfort,
+.v-theme--lightComfort {
   font-family: Manrope, 'Helvetica Neue', Arial, sans-serif;
 }
 .v-theme--darkComfort h1,
@@ -134,14 +135,93 @@ import ApiErrorSnackbar from '@/components/ApiErrorSnackbar.vue'
 .v-theme--darkComfort h3,
 .v-theme--darkComfort .text-h4,
 .v-theme--darkComfort .text-h5,
-.v-theme--darkComfort .text-h6 {
+.v-theme--darkComfort .text-h6,
+.v-theme--lightComfort h1,
+.v-theme--lightComfort h2,
+.v-theme--lightComfort h3,
+.v-theme--lightComfort .text-h4,
+.v-theme--lightComfort .text-h5,
+.v-theme--lightComfort .text-h6 {
   font-family: Archivo, 'Arial Narrow', sans-serif;
   letter-spacing: -0.02em;
 }
 
-/* Light theme — clean, solid, professional */
-/* Panel karanlik-tek: "Signal" acik varyanti yok. Onceki
- * lightComfort temasi ve ona ait kurallar kaldirildi. */
+/* ── Acik tema token'lari ────────────────────────────────────
+ * <html class="theme-light"> ile devreye giriyor (stores/theme.js).
+ * :root'taki her token burada acik karsiligini aliyor; bir tanesini
+ * eksik birakmak o parcanin karanlikta kalmasi demek. Mint, beyaz
+ * zeminde okunmasi icin koyulastirildi; alfa arka planlar ayni oranla
+ * ama koyu mint uzerinden turetildi.
+ * ------------------------------------------------------------ */
+:root.theme-light {
+  --sp-bg: #F4F8F6;
+  --sp-surface: #FFFFFF;
+  --sp-surface-bright: #FFFFFF;
+  --sp-surface-variant: #E9F0EC;
+  --sp-sidebar: #EEF3F0;
+
+  --sp-text: #0B1410;
+  --sp-text-secondary: rgba(11, 20, 16, 0.76);
+  --sp-text-muted: rgba(11, 20, 16, 0.58);
+  --sp-text-hint: rgba(11, 20, 16, 0.44);
+  --sp-text-faint: rgba(11, 20, 16, 0.32);
+  --sp-text-ghost: rgba(11, 20, 16, 0.24);
+  --sp-text-dim: rgba(11, 20, 16, 0.38);
+  --sp-text-dimmer: rgba(11, 20, 16, 0.5);
+
+  --sp-primary: #0E8F63;
+  --sp-primary-rgb: 14, 143, 99;
+  --sp-accent-bg: rgba(14, 143, 99, 0.07);
+  --sp-accent-bg-hover: rgba(14, 143, 99, 0.11);
+  --sp-accent-bg-active: rgba(14, 143, 99, 0.16);
+  --sp-accent-bg-subtle: rgba(14, 143, 99, 0.045);
+  --sp-accent-border: rgba(14, 143, 99, 0.18);
+  --sp-accent-border-strong: rgba(14, 143, 99, 0.28);
+  --sp-accent-border-vivid: rgba(14, 143, 99, 0.45);
+
+  --sp-glass-bg: rgba(11, 20, 16, 0.025);
+  --sp-glass-border: #D5DFDA;
+  --sp-glass-hover: rgba(11, 20, 16, 0.045);
+
+  --sp-card-bg: #FFFFFF;
+  --sp-card-border: #D5DFDA;
+  --sp-overlay: rgba(244, 248, 246, 0.94);
+  --sp-modal-bg: #FFFFFF;
+  --sp-dropdown-bg: #FFFFFF;
+  --sp-shadow: rgba(11, 20, 16, 0.12);
+  --sp-shadow-strong: rgba(11, 20, 16, 0.2);
+  --sp-scrollbar: rgba(14, 143, 99, 0.25);
+  --sp-scrollbar-hover: rgba(14, 143, 99, 0.4);
+  --sp-divider: #E1E9E5;
+  --sp-badge-bg: rgba(14, 143, 99, 0.12);
+  --sp-input-border: #C7D3CD;
+
+  --sp-success-bg: rgba(14, 143, 99, 0.08);
+  --sp-success-border: rgba(14, 143, 99, 0.25);
+  --sp-warning-bg: rgba(184, 110, 0, 0.08);
+  --sp-warning-border: rgba(184, 110, 0, 0.28);
+  --sp-error-bg: rgba(200, 72, 58, 0.08);
+  --sp-error-border: rgba(200, 72, 58, 0.28);
+  --sp-user-avatar: linear-gradient(135deg, rgba(14, 143, 99, 0.28), rgba(47, 111, 214, 0.24));
+
+  --sp-accent-success: #0E8F63;
+  --sp-accent-success-bright: #0B7350;
+  --sp-accent-cyan: #0F8F84;
+  --sp-accent-blue: #2F6FD6;
+  --sp-accent-info: #2F6FD6;
+  --sp-accent-indigo: #3B63C9;
+  --sp-accent-purple: #5C5FC4;
+  --sp-accent-violet: #4E5FC9;
+  --sp-accent-amber: #B86E00;
+  --sp-accent-orange: #B85F00;
+  --sp-accent-orange-bright: #9A5A00;
+  --sp-accent-peach: #B5573A;
+  --sp-accent-rose: #C9564A;
+  --sp-accent-error: #C8483A;
+  --sp-accent-error-bg: rgba(200, 72, 58, 0.1);
+  --sp-accent-success-bg: rgba(14, 143, 99, 0.12);
+  --sp-accent-amber-bg: rgba(184, 110, 0, 0.12);
+}
 
 /* Smooth thin scrollbars */
 ::-webkit-scrollbar {

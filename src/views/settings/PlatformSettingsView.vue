@@ -89,6 +89,77 @@
           </div>
         </div>
 
+        <!-- Test anahtarları: doğrulamaları geçici kapatma -->
+        <div class="setting-block setting-block--danger">
+          <div class="setting-head">
+            <v-icon size="16" color="warning" class="mr-2">mdi-shield-off-outline</v-icon>
+            <span class="setting-name">TXID Zincir Doğrulaması</span>
+          </div>
+          <div class="setting-desc">
+            Açıkken teslim onaylanmadan önce kripto işlem hash'i ilgili zincirde doğrulanır.
+            <strong>Yalnızca test için kapatın:</strong> kapalıyken uydurma bir hash ile teslim onaylanabilir
+            ve operatöre kredi yazılır.
+          </div>
+          <div class="setting-input">
+            <v-switch
+              v-model="form.verifyTxHash"
+              color="primary"
+              density="compact"
+              hide-details
+              :label="form.verifyTxHash ? 'Doğrulama açık' : 'Doğrulama KAPALI (test)'"
+            />
+            <v-btn
+              color="primary"
+              variant="flat"
+              :loading="saving === 'teslim.verify_tx_hash'"
+              :disabled="!canManage || !isDirty('teslim.verify_tx_hash')"
+              @click="save('teslim.verify_tx_hash', form.verifyTxHash)"
+              prepend-icon="mdi-content-save"
+            >
+              Kaydet
+            </v-btn>
+          </div>
+          <div v-if="lastSavedAt['teslim.verify_tx_hash']" class="setting-saved">
+            <v-icon size="12" color="success">mdi-check-circle</v-icon>
+            Kaydedildi · {{ lastSavedAt['teslim.verify_tx_hash'] }}
+          </div>
+        </div>
+
+        <div class="setting-block setting-block--danger">
+          <div class="setting-head">
+            <v-icon size="16" color="warning" class="mr-2">mdi-shield-off-outline</v-icon>
+            <span class="setting-name">IBAN Doğrulaması</span>
+          </div>
+          <div class="setting-desc">
+            Açıkken banka hesabı eklerken IBAN'ın uzunluğu, kontrol toplamı ve banka kodu doğrulanır.
+            <strong>Yalnızca test için kapatın:</strong> kapalıyken herhangi bir metin IBAN olarak kabul edilir,
+            tanınmayan banka "Bilinmeyen Banka (test)" olarak kaydedilir.
+          </div>
+          <div class="setting-input">
+            <v-switch
+              v-model="form.validateIban"
+              color="primary"
+              density="compact"
+              hide-details
+              :label="form.validateIban ? 'Doğrulama açık' : 'Doğrulama KAPALI (test)'"
+            />
+            <v-btn
+              color="primary"
+              variant="flat"
+              :loading="saving === 'bank_accounts.validate_iban'"
+              :disabled="!canManage || !isDirty('bank_accounts.validate_iban')"
+              @click="save('bank_accounts.validate_iban', form.validateIban)"
+              prepend-icon="mdi-content-save"
+            >
+              Kaydet
+            </v-btn>
+          </div>
+          <div v-if="lastSavedAt['bank_accounts.validate_iban']" class="setting-saved">
+            <v-icon size="12" color="success">mdi-check-circle</v-icon>
+            Kaydedildi · {{ lastSavedAt['bank_accounts.validate_iban'] }}
+          </div>
+        </div>
+
         <!-- Havuz görünürlük aralığı -->
         <div class="setting-block">
           <div class="setting-head">
@@ -159,6 +230,8 @@ const form = reactive({
   poolEnabled: false,
   poolMin: 0,
   poolMax: 0,
+  verifyTxHash: true,
+  validateIban: true,
 })
 
 // Sunucu anahtari -> formdaki alan. isDirty ve load bunun uzerinden
@@ -168,6 +241,8 @@ const FIELD_BY_KEY = {
   'withdrawal.pool_enabled': 'poolEnabled',
   'withdrawal.pool_min_amount': 'poolMin',
   'withdrawal.pool_max_amount': 'poolMax',
+  'teslim.verify_tx_hash': 'verifyTxHash',
+  'bank_accounts.validate_iban': 'validateIban',
 }
 const saving = ref(null)
 const lastSavedAt = reactive({})
@@ -214,6 +289,9 @@ async function load() {
   form.poolEnabled = Boolean(data['withdrawal.pool_enabled'])
   form.poolMin = Number(data['withdrawal.pool_min_amount'] || 0)
   form.poolMax = Number(data['withdrawal.pool_max_amount'] || 0)
+  // Varsayilan ACIK: sunucu anahtari hic yazilmamissa true kabul et.
+  form.verifyTxHash = data['teslim.verify_tx_hash'] === undefined ? true : Boolean(data['teslim.verify_tx_hash'])
+  form.validateIban = data['bank_accounts.validate_iban'] === undefined ? true : Boolean(data['bank_accounts.validate_iban'])
 }
 
 async function save(key, value) {
@@ -234,6 +312,9 @@ onMounted(load)
 </script>
 
 <style scoped>
+/* Test anahtarlari: kapali kalmasi tehlikeli, sol kenar amber. */
+.setting-block--danger { border-left: 2px solid var(--sp-accent-amber); }
+
 .platform-settings { max-width: 760px; }
 
 .settings-card {

@@ -26,6 +26,35 @@ const darkComfort = {
   },
 }
 
+/*
+ * "Signal" acik varyant.
+ *
+ * Ayni dil, ters zemin: neredeyse beyaz, mint tek sinyal rengi olarak
+ * kaliyor ama beyaz ustunde okunabilmesi icin koyulastirildi (#66F1BD
+ * beyazda 1.4:1 kontrast veriyor, #0E8F63 ise 4.6:1). Anlamsal renkler de
+ * ayni sebeple bir ton koyu. Onceki lightComfort indigo tabanliydi ve
+ * Signal'e gecince silinmisti; bu onun yerine gecen, ayni aileden bir
+ * varyant.
+ */
+const lightComfort = {
+  dark: false,
+  colors: {
+    background: '#F4F8F6',
+    surface: '#FFFFFF',
+    'surface-bright': '#FFFFFF',
+    'surface-variant': '#E9F0EC',
+    'on-background': '#0B1410',
+    'on-surface': '#0B1410',
+    primary: '#0E8F63',
+    'primary-darken-1': '#0B7350',
+    secondary: '#2F6FD6',
+    success: '#0E8F63',
+    warning: '#B86E00',
+    error: '#C8483A',
+    info: '#2F6FD6',
+  },
+}
+
 export default createVuetify({
   components,
   directives,
@@ -104,6 +133,7 @@ export default createVuetify({
     defaultTheme: 'darkComfort',
     themes: {
       darkComfort,
+      lightComfort,
     },
   },
   defaults: {

@@ -76,6 +76,12 @@
           <strong>{{ currentTime }}</strong>
         </div>
 
+        <!-- Tema dugmesi: bir donem kaldirilmisti, istek uzerine geri geldi. -->
+        <button class="portal-logout portal-theme-toggle" type="button" @click="toggleTheme">
+          <v-icon size="15">{{ themeStore.isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
+          {{ themeStore.isDark ? 'Açık tema' : 'Koyu tema' }}
+        </button>
+
         <button class="portal-logout" @click="handleLogout">
           <v-icon size="15">mdi-logout</v-icon> Güvenli çıkış
         </button>
@@ -174,7 +180,9 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useTheme } from 'vuetify'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 import { roleLabel } from '@/utils/roles'
 import { useTransactionStore } from '@/stores/transactions'
 import { useNotificationStore } from '@/stores/notifications'
@@ -183,6 +191,18 @@ import NotificationMenu from '@/components/NotificationMenu.vue'
 import NotificationToast from '@/components/NotificationToast.vue'
 
 const auth = useAuthStore()
+const themeStore = useThemeStore()
+const vuetifyTheme = useTheme()
+
+// Kayitli secimi Vuetify'a uygula; html sinifini store kendi yaziyor.
+vuetifyTheme.change(themeStore.getStoredTheme())
+
+function toggleTheme() {
+  const yeni = themeStore.isDark ? themeStore.LIGHT : themeStore.DARK
+  vuetifyTheme.change(yeni)
+  themeStore.setTheme(yeni)
+}
+
 const txnStore = useTransactionStore()
 const notifStore = useNotificationStore()
 const router = useRouter()
@@ -680,6 +700,7 @@ onUnmounted(() => {
   transition: color 0.2s;
 }
 .portal-logout:hover { color: var(--sp-accent-error); }
+.portal-theme-toggle:hover { color: var(--sp-primary); }
 
 /* ── Kabuk ve ust cubuk ───────────────────────────────────── */
 .portal-shell { position: relative; min-height: 100svh; margin-left: 268px; }
