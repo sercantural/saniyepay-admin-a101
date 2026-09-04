@@ -56,8 +56,8 @@
       </div>
     </div>
 
-    <!-- ===== INSUFFICIENT BALANCE WARNING (withdrawal) ===== -->
-    <div v-if="txn.merchant_balance && !txn.merchant_balance.can_afford && !['approved','rejected','expired','cancelled'].includes(txn.status)" class="balance-alert mb-4">
+    <!-- ===== BAYI BAKIYESI UYARISI: yalnizca firma kimligini gorene, taserona gitmez ===== -->
+    <div v-if="(auth.isSuperAdmin || auth.can('scope.merchant_identity')) && txn.merchant_balance && !txn.merchant_balance.can_afford && !['approved','rejected','expired','cancelled'].includes(txn.status)" class="balance-alert mb-4">
       <v-icon color="error" size="24" class="mr-3 pulse-icon">mdi-alert</v-icon>
       <div>
         <div class="font-weight-bold" style="color: var(--sp-accent-error)">Yetersiz Bayi Bakiyesi!</div>

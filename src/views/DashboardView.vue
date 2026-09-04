@@ -49,9 +49,17 @@
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
+    <!-- Hicbir bolum acik degilse: bos sayfa yerine tek cumlelik durum karti. -->
+    <v-card v-if="!herhangiBolumAcik" class="glass-table-card pa-6 mb-5">
+      <div class="d-flex align-center ga-3">
+        <v-icon size="20" style="color: var(--sp-text-muted)">mdi-view-dashboard-outline</v-icon>
+        <div style="color: var(--sp-text-muted)">Bu sayfada size açık bir bölüm yok.</div>
+      </div>
+    </v-card>
+
     <!-- SA: BUSINESS OVERVIEW -->
     <!-- ═══════════════════════════════════════════ -->
-    <div v-if="auth.isSuperAdmin && stats.business" class="mb-5">
+    <div v-if="bolumAcik.company && stats.business" class="mb-5">
       <div class="section-header mb-3">
         <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-purple))">
           <v-icon size="18" color="white">mdi-office-building</v-icon>
@@ -134,7 +142,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <!-- SA: MERCHANT CARDS -->
     <!-- ═══════════════════════════════════════════ -->
-    <div v-if="auth.isSuperAdmin && merchants.length" class="mb-5">
+    <div v-if="bolumAcik.merchants && merchants.length" class="mb-5">
       <div class="section-header mb-3">
         <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan))">
           <v-icon size="18" color="white">mdi-store</v-icon>
@@ -216,7 +224,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <!-- ADMIN / MANAGER: OPERATOR BALANCES -->
     <!-- ═══════════════════════════════════════════ -->
-    <div v-if="operators.length" class="mb-5">
+    <div v-if="bolumAcik.operators && operators.length" class="mb-5">
       <div class="section-header mb-3">
         <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-success), var(--sp-accent-cyan))">
           <v-icon size="18" color="white">mdi-account-group</v-icon>
@@ -296,7 +304,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <!-- SA: RECENT TRANSACTIONS -->
     <!-- ═══════════════════════════════════════════ -->
-    <div v-if="auth.isSuperAdmin" class="mb-5">
+    <div v-if="bolumAcik.recent" class="mb-5">
       <div class="d-flex align-center justify-space-between mb-3">
         <div class="section-header">
           <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan))">
@@ -502,7 +510,7 @@
     <!-- ═══════════════════════════════════════════ -->
     <!-- OPERATOR: TRANSACTION HISTORY -->
     <!-- ═══════════════════════════════════════════ -->
-    <div v-if="!auth.isSuperAdmin" class="mb-5">
+    <div v-if="bolumAcik.history" class="mb-5">
       <div class="d-flex align-center justify-space-between mb-3">
         <div class="section-header">
           <div class="section-icon" style="background: linear-gradient(135deg, var(--sp-accent-blue), var(--sp-accent-cyan))">
@@ -670,13 +678,34 @@ async function onPanelUpdated() {
   // Reload dashboard data after transaction action
   const { data } = await api.get('/portal/dashboard')
   stats.value = data
-  if (!auth.isSuperAdmin) {
-    loadMyStats()
-    loadMyTransactions()
-  }
+  // Her iki fonksiyon kendi kosulunu (rol / bolum izni) icinde denetliyor.
+  loadMyStats()
+  loadMyTransactions()
 }
 const merchants = computed(() => stats.value.merchants || [])
 const operators = computed(() => stats.value.operators || [])
+
+/*
+ * Bolum bazli izinler (dashboard.section.*). Super admin hepsini gorur;
+ * digerleri yalnizca izni olan bolumu. Sunucu zaten ilgili veriyi izne
+ * gore gonderiyor (business/merchants/operators), burada sadece bos
+ * kalan basliklari cizmiyoruz.
+ *
+ * Istisna: "Islem Gecmisi" super admin icin kapali kaliyor, cunku
+ * /portal/dashboard/my-transactions super admine 403 donuyor (ona
+ * /transactions ekrani var). Acik olsaydi bos bir hata bolumu cizilirdi.
+ */
+const bolumAcik = computed(() => {
+  const sa = auth.isSuperAdmin
+  return {
+    company: sa || auth.can('dashboard.section.company'),
+    merchants: sa || auth.can('dashboard.section.merchants'),
+    operators: sa || auth.can('dashboard.section.operators'),
+    recent: sa || auth.can('dashboard.section.recent'),
+    history: !sa && auth.can('dashboard.section.history'),
+  }
+})
+const herhangiBolumAcik = computed(() => Object.values(bolumAcik.value).some(Boolean))
 const settlement = ref(null)
 const teslim = ref(null)
 const operatorCredit = ref(null)
@@ -862,7 +891,8 @@ const statusOptions = [
 const txnHeaders = []
 
 async function loadMyTransactions() {
-  if (auth.isSuperAdmin) return
+  // Bolum gorunmuyorsa istegi de atma.
+  if (!bolumAcik.value.history) return
   txnLoading.value = true
   try {
     const params = { page: txnPage.value, per_page: txnPerPage.value }
@@ -1002,10 +1032,9 @@ function maskIban(iban) {
 onMounted(async () => {
   const { data } = await api.get('/portal/dashboard')
   stats.value = data
-  if (!auth.isSuperAdmin) {
-    loadMyStats()
-    loadMyTransactions()
-  }
+  // Her iki fonksiyon kendi kosulunu (rol / bolum izni) icinde denetliyor.
+  loadMyStats()
+  loadMyTransactions()
 })
 </script>
 

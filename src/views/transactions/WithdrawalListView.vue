@@ -4,18 +4,19 @@
       <v-icon start color="info">mdi-minus-circle</v-icon>
       Çekimler
       <v-spacer />
-      <!-- Parca cekim: buyuk bir talep gruplara bolunerek elle giriliyor.
-           Yalnizca ic firmalara islenir, backend de bunu dogruluyor. -->
+      <!-- Manuel cekim: API'den gelmeyen bir talep elle giriliyor. Kayit
+           karsiya yeni gibi duser, listede MANUEL etiketiyle ayrilir.
+           Eski adi "Parca Cekim" idi; bolme isi artik Kismi Odeme'de. -->
       <v-btn
         v-if="canCreateManual"
         color="primary"
         variant="outlined"
         density="comfortable"
-        prepend-icon="mdi-call-split"
+        prepend-icon="mdi-pencil-plus-outline"
         class="mr-2"
         @click="openManual()"
       >
-        Parça Çekim
+        Manuel Çekim
       </v-btn>
       <v-text-field
         v-model="search"
@@ -192,7 +193,7 @@
          kullanimda tablonun ustunu kaplamasin. -->
     <div v-if="canAssign && selectedIds.length" class="bulk-bar">
       <v-icon size="16" class="mr-2">mdi-checkbox-multiple-marked-outline</v-icon>
-      <span class="bulk-count">{{ selectedIds.length }} çekim seçildi</span>
+      <span class="bulk-count">{{ selectedIds.length }} çekim seçildi · {{ formatCurrency(bulkSelectedTotal) }} TRY</span>
       <v-spacer />
       <v-btn size="small" variant="text" @click="selectedIds = []">Seçimi Bırak</v-btn>
       <v-btn size="small" color="primary" variant="flat" prepend-icon="mdi-account-group" @click="openBulkAssign()">
@@ -223,11 +224,14 @@
           <div v-if="auth.isSuperAdmin && item.merchant_trx_id" class="text-caption" style="color: var(--sp-text-hint); font-family: 'JetBrains Mono', monospace; font-size: 10px">
             {{ item.merchant_trx_id }}
           </div>
+          <!-- Kaynak etiketi: elle girilen kayit MANUEL, kismi odemeyle
+               dogan alt kayit PARCA. Ikisi de kucuk mono etiket; satirin
+               geri kalani normal cekimle ayni gorunur. -->
+          <div v-if="item.is_manual || item.parent_transaction_id" class="id-tags">
+            <span v-if="item.is_manual" class="id-tag id-tag--manual">MANUEL</span>
+            <span v-if="item.parent_transaction_id" class="id-tag id-tag--part">PARÇA</span>
+          </div>
         </div>
-      </template>
-      <template v-slot:item.merchant="{ item }">
-        <span v-if="item.merchant?.name" class="font-weight-bold" style="color: var(--sp-text)">{{ item.merchant.name }}</span>
-        <span v-else class="text-medium-emphasis">—</span>
       </template>
       <template v-slot:item.customer="{ item }">
         <div style="line-height: 1.3">
@@ -249,6 +253,11 @@
                burada: "kim onayladi" sorusu durumun devami. -->
           <div v-if="item.approver" class="approver-line">
             <v-icon size="10" class="mr-1">mdi-account-check-outline</v-icon>{{ item.approver.name }}
+          </div>
+          <!-- Ic not yalnizca izinli kullaniciya geliyor (backend alani
+               hic gondermiyor); alan yoksa satir da yok. -->
+          <div v-if="item.internal_note" class="note-line" :title="item.internal_note">
+            <v-icon size="10" class="mr-1">mdi-note-text-outline</v-icon>Not: {{ item.internal_note }}
           </div>
           <!-- Operator finalization time — locked → resolved. Surfaces
                who-took-how-long at a glance for SA throughput review. -->
@@ -275,6 +284,15 @@
             <div v-if="Number(item.requested_amount) >= ADMIN_REVIEW_THRESHOLD" class="text-caption" style="color: var(--sp-accent-blue); font-size: 10px; font-weight: 700; margin-top: 1px">
               ≥ 5K · Yönetici onayı gerekli
             </div>
+            <!-- Kismi odeme parcalari: ana kaydin altinda her parca bir
+                 satir. Kalan tutar backend'de hesaplaniyor; burada yalnizca
+                 gosterim var. -->
+            <div v-if="item.partials?.length" class="partial-lines">
+              <div v-for="p in item.partials" :key="p.id" class="partial-line">
+                ↳ {{ formatCurrency(p.requested_amount) }} → {{ p.sub_group?.name || '—' }}
+                <span class="partial-status">({{ statusText(p.status) }})</span>
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -293,11 +311,16 @@
         </div>
         <span v-else class="text-medium-emphasis">—</span>
       </template>
+      <!-- GRUP hucresi: grup adi buyuk, altinda "kimde" bilgisi. Oncelik:
+           kilitleyen (isleme alan) > havuzdan ustune alan > hesabin sahibi.
+           Ayri bir "operator" sutunu acmak yerine grubun altina yazildi. -->
       <template v-slot:item.sub_group="{ item }">
-        <v-chip v-if="item.sub_group" size="x-small" variant="tonal" color="primary">
-          {{ item.sub_group.name }}
-        </v-chip>
-        <span v-else class="text-medium-emphasis">—</span>
+        <div class="group-cell">
+          <div class="group-name">{{ item.sub_group?.name || '—' }}</div>
+          <div v-if="whoLabel(item)" class="group-who">
+            <v-icon size="10" class="mr-1">{{ whoLabel(item).icon }}</v-icon>{{ whoLabel(item).text }}
+          </div>
+        </div>
       </template>
       <template v-slot:item.approver="{ item }">
         <v-chip v-if="item.approver" size="x-small" color="success">{{ item.approver.name }}</v-chip>
@@ -341,6 +364,21 @@
                  olabilecegi gibi super admin tarafindan da atanmis
                  olabilir; ikinci durumda "uzerime alma" yanlis okunuyor.
                  Alma = sahiplik, isleme alma = calismaya baslama. -->
+            <!-- Kismi odeme kilitsiz satirda da var: sistem admini
+                 "Isleme Al kisminin yaninda" dedi. Siteden gelen, henuz
+                 kimsenin uzerine almadigi cekim de bolunebilmeli; boylece
+                 destek buyuk cekimi once boler, parcalar gruplara gider. -->
+            <v-btn
+              v-if="canLock(item) && canPartialUnlocked(item)"
+              size="small"
+              variant="flat"
+              color="warning"
+              prepend-icon="mdi-call-split"
+              class="mr-1"
+              @click.stop="openPartial(item)"
+            >
+              Kısmi Ödeme
+            </v-btn>
             <v-btn
               v-if="canLock(item)"
               size="small"
@@ -353,47 +391,62 @@
               İşleme Al
             </v-btn>
 
-            <!-- Stage 2 (<5k): direct Onayla -->
-            <v-btn
-              v-else-if="canApproveItem(item) && Number(item.requested_amount) < ADMIN_REVIEW_THRESHOLD"
-              size="small"
-              variant="flat"
-              color="success"
-              @click="openApprove(item)"
-              prepend-icon="mdi-check"
-            >
-              Onayla
-            </v-btn>
-
-            <!-- Stage 2 (≥5k): Dekont / URL upload -->
-            <template v-else-if="canSubmitProof(item) && Number(item.requested_amount) >= ADMIN_REVIEW_THRESHOLD">
-              <v-btn size="small" variant="flat" color="secondary" @click="openProof(item, 'file')" prepend-icon="mdi-file-upload">Dekont Yükle</v-btn>
-              <v-btn size="small" variant="flat" color="info" @click="openProof(item, 'url')"  prepend-icon="mdi-link-variant">URL Yükle</v-btn>
-            </template>
-
-            <!-- Stage 3 (admin_review, SA only): inspect → decide -->
-            <template v-if="item.status === 'admin_review' && (auth.isSuperAdmin || auth.can('transactions.approve.withdrawal'))">
-              <!-- Decisive actions side-by-side; review action on its own row below -->
-              <div class="admin-review-stack">
-                <div class="admin-review-decision">
-                  <v-btn size="small" variant="flat" color="success" @click.stop="openApprove(item)" prepend-icon="mdi-check" class="flex-grow-1">Onayla</v-btn>
-                  <v-btn size="small" variant="flat" color="error"   @click.stop="openReject(item)"  prepend-icon="mdi-close" class="flex-grow-1">Reddet</v-btn>
-                </div>
-                <v-btn
-                  v-if="item.dekont_path || item.dekont_url"
-                  size="small"
-                  variant="tonal"
-                  color="secondary"
-                  @click.stop="openDekontPreview(item)"
-                  prepend-icon="mdi-file-eye"
-                  block
-                >
-                  Dekontu İncele
-                </v-btn>
+            <!-- Stage 2: kilitli / ustune alinmis cekim icin tek yigin.
+                 1. satir Onayla | Reddet, 2. satir Kismi Odeme (tam
+                 genislik, amber), 3. satir Dekont Inceleme (sayili),
+                 4. satir Dekont Yukle | URL Yukle. Tutar esigine gore
+                 gizleme yok: sunucu zaten karari veriyor, operator ne
+                 yapabilecegini bastan gorsun. admin_review satirinda da
+                 ayni yigin kullaniliyor (yukleme o durumda gorunmez cunku
+                 canSubmitProof yalnizca kilitli durumlarda dogru). -->
+            <div v-else-if="showActionStack(item)" class="wd-action-stack">
+              <div v-if="showApprove(item) || showReject(item)" class="wd-action-row">
+                <v-btn v-if="showApprove(item)" size="small" variant="flat" color="success" @click.stop="openApprove(item)" prepend-icon="mdi-check" class="flex-grow-1">Onayla</v-btn>
+                <v-btn v-if="showReject(item)"  size="small" variant="flat" color="error"   @click.stop="openReject(item)"  prepend-icon="mdi-close" class="flex-grow-1">Reddet</v-btn>
               </div>
-            </template>
+              <v-btn
+                v-if="canPartialItem(item)"
+                size="small"
+                variant="flat"
+                color="warning"
+                class="wd-action-partial"
+                prepend-icon="mdi-call-split"
+                block
+                @click.stop="openPartial(item)"
+              >
+                Kısmi Ödeme
+              </v-btn>
+              <v-btn
+                v-if="proofCount(item) > 0"
+                size="small"
+                variant="tonal"
+                color="secondary"
+                prepend-icon="mdi-file-eye"
+                block
+                @click.stop="openDekontPreview(item)"
+              >
+                Dekont İnceleme ({{ proofCount(item) }})
+              </v-btn>
+              <div v-if="canSubmitProof(item)" class="wd-action-row">
+                <v-btn size="small" variant="tonal" color="secondary" class="flex-grow-1" @click.stop="openProof(item, 'file')" prepend-icon="mdi-file-upload">Dekont Yükle</v-btn>
+                <v-btn size="small" variant="tonal" color="info"      class="flex-grow-1" @click.stop="openProof(item, 'url')"  prepend-icon="mdi-link-variant">URL Yükle</v-btn>
+              </div>
+            </div>
 
             <span v-else-if="item.status === 'admin_review'" class="action-pending-pill">Yönetici onayı bekleniyor</span>
+
+            <!-- Sonuclanmis satirda dekont varsa inceleme yine acik kalsin:
+                 "ne odendi" sorusu onaydan sonra da soruluyor. -->
+            <v-btn
+              v-else-if="proofCount(item) > 0 && canViewProofs(item)"
+              size="small"
+              variant="text"
+              color="secondary"
+              prepend-icon="mdi-file-eye"
+              @click.stop="openDekontPreview(item)"
+            >
+              Dekont İnceleme ({{ proofCount(item) }})
+            </v-btn>
           </div>
 
           <!-- Secondary actions cluster — text buttons / icon menus -->
@@ -423,12 +476,14 @@
                 </v-tooltip>
               </template>
               <v-list density="compact">
+                <!-- Atama (islem yapilmamis cekim, grup secilir) ile
+                     aktarma (onayli cekim, gerekce zorunlu) ayri ucar. -->
                 <v-list-item
                   v-if="canAssign && !['approved','rejected','expired','cancelled'].includes(item.status)"
-                  prepend-icon="mdi-account-switch"
+                  prepend-icon="mdi-account-group"
                   @click="openAssign(item)"
                 >
-                  <v-list-item-title>Operatöre Ata</v-list-item-title>
+                  <v-list-item-title>Gruba Ata</v-list-item-title>
                 </v-list-item>
                 <v-list-item
                   v-if="canTransferGroup && item.status === 'approved'"
@@ -517,7 +572,7 @@
               <div class="wd-approve-row-value">{{ selectedTxn.locker.name }}</div>
             </div>
 
-            <div v-if="selectedTxn.dekont_path || selectedTxn.dekont_url" class="wd-approve-dekont">
+            <div v-if="proofCount(selectedTxn) > 0" class="wd-approve-dekont">
               <v-btn
                 block
                 variant="tonal"
@@ -525,7 +580,7 @@
                 prepend-icon="mdi-file-eye"
                 @click="approveDialog = false; openDekontPreview(selectedTxn)"
               >
-                Dekontu İncele
+                Dekont İnceleme ({{ proofCount(selectedTxn) }})
               </v-btn>
             </div>
 
@@ -537,22 +592,9 @@
           </template>
         </div>
 
-        <!-- Inline amount edit (kept from before — rare case) -->
-        <div v-if="amountEditOpen" class="px-5 pb-2">
-          <v-text-field
-            v-model.number="editedAmount"
-            type="number"
-            step="0.01"
-            label="Onay Tutarı"
-            variant="outlined"
-            density="compact"
-            :hint="amountHint"
-            persistent-hint
-          />
-        </div>
-        <div v-else-if="!approveIsAdminReview" class="px-5 pb-2">
-          <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-pencil" @click="enableAmountEdit">Tutarı düzenle</v-btn>
-        </div>
+        <!-- Cekim tutari duzenlenemez: eski "Tutari duzenle" alani ve
+             onay istegindeki amount kaldirildi; sunucu da 422 donuyor.
+             Eksik odeme icin Kismi Odeme kullanilir. -->
 
         <v-alert v-if="approveError" type="error" density="compact" class="mx-5 mb-3">{{ approveError }}</v-alert>
 
@@ -701,11 +743,48 @@
         </div>
 
         <div class="dekont-preview-body">
-          <!-- URL-style proof: show URL, render iframe attempt + fallback -->
-          <template v-if="selectedTxn.dekont_url">
+          <!-- Dekont listesi: birden fazla kayit olabilir (her yukleme yeni
+               satir). Satira tiklaninca asagida onizleme acilir. Dosya
+               indirme ucu tek (en son dosyayi verir); birden fazla dosya
+               varsa hepsi listelenir ama onizleme/indirme ayni uca gider. -->
+          <div v-if="dekontProofs.length" class="proof-list">
+            <button
+              v-for="(p, i) in dekontProofs"
+              :key="p.id"
+              type="button"
+              class="proof-row"
+              :class="{ 'is-active': activeProof && activeProof.id === p.id }"
+              @click="selectProof(p)"
+            >
+              <v-icon size="16" :color="p.kind === 'url' ? 'primary' : 'secondary'">
+                {{ p.kind === 'url' ? 'mdi-link-variant' : 'mdi-file-document-outline' }}
+              </v-icon>
+              <span class="proof-row-label">{{ proofLabel(p, i) }}</span>
+              <span v-if="p.kind === 'url'" class="proof-row-url" :title="p.url">{{ p.url }}</span>
+              <span class="proof-row-date">{{ p.created_at ? formatDateShort(p.created_at) : '—' }}</span>
+              <a
+                v-if="p.kind === 'url'"
+                :href="p.url"
+                target="_blank"
+                rel="noopener"
+                class="proof-row-open"
+                title="Yeni sekmede aç"
+                @click.stop
+              ><v-icon size="15">mdi-open-in-new</v-icon></a>
+              <span
+                v-else
+                class="proof-row-open"
+                title="İndir"
+                @click.stop="downloadDekont(selectedTxn)"
+              ><v-icon size="15">mdi-download</v-icon></span>
+            </button>
+          </div>
+
+          <!-- Secili URL: baglanti + iframe denemesi -->
+          <template v-if="activeProof && activeProof.kind === 'url'">
             <div class="dekont-url-bar">
               <v-icon size="18" color="primary" class="mr-2">mdi-link-variant</v-icon>
-              <a :href="selectedTxn.dekont_url" target="_blank" rel="noopener" class="dekont-url-link">{{ selectedTxn.dekont_url }}</a>
+              <a :href="activeProof.url" target="_blank" rel="noopener" class="dekont-url-link">{{ activeProof.url }}</a>
               <v-tooltip text="Bağlantıyı kopyala" location="top">
                 <template v-slot:activator="{ props }">
                   <v-icon v-bind="props" size="16" :color="dekontUrlCopied ? 'success' : 'primary'" style="cursor:pointer; margin-left: 8px" @click="copyDekontUrl">
@@ -716,7 +795,7 @@
             </div>
             <div class="dekont-frame-wrap">
               <iframe
-                :src="selectedTxn.dekont_url"
+                :src="activeProof.url"
                 class="dekont-frame"
                 sandbox="allow-same-origin allow-scripts allow-popups"
                 referrerpolicy="no-referrer"
@@ -728,8 +807,8 @@
             </div>
           </template>
 
-          <!-- File-style proof: image preview or PDF embed via blob URL -->
-          <template v-else-if="selectedTxn.dekont_path">
+          <!-- Secili dosya: blob URL ile resim ya da PDF -->
+          <template v-else-if="activeProof && activeProof.kind === 'file'">
             <div v-if="dekontBlobLoading" class="dekont-loading">
               <v-progress-circular indeterminate color="secondary" size="32" />
               <div class="mt-2">Dekont yükleniyor...</div>
@@ -744,8 +823,8 @@
             </template>
           </template>
 
-          <!-- Neither — shouldn't normally happen since the button is gated -->
-          <div v-else class="dekont-empty">
+          <!-- Hic dekont yok: dugme kapali oldugu icin normalde gorunmez -->
+          <div v-else-if="!dekontProofs.length" class="dekont-empty">
             Bu işlem için dekont bulunamadı.
           </div>
         </div>
@@ -754,10 +833,10 @@
           <v-btn variant="text" @click="dekontPreviewDialog = false">Kapat</v-btn>
           <v-spacer />
           <v-btn
-            v-if="selectedTxn.dekont_url"
+            v-if="activeProof && activeProof.kind === 'url'"
             variant="tonal"
             color="primary"
-            :href="selectedTxn.dekont_url"
+            :href="activeProof.url"
             target="_blank"
             rel="noopener"
             prepend-icon="mdi-open-in-new"
@@ -765,7 +844,7 @@
             Yeni Sekmede Aç
           </v-btn>
           <v-btn
-            v-if="selectedTxn.dekont_path"
+            v-if="activeProof && activeProof.kind === 'file'"
             variant="tonal"
             color="primary"
             @click="downloadDekont(selectedTxn)"
@@ -791,6 +870,12 @@
           <v-alert type="info" variant="tonal" density="compact" class="mb-3">
             {{ selectedIds.length }} çekim seçili. Bu sırada başka biri bir çekimi işleme aldıysa o çek atlanır.
           </v-alert>
+          <!-- Toplam tutar: grup yoneticisi "ne kadar is geliyor" sorusunu
+               iletmeden once gorsun. Sayfadaki satirlardan toplaniyor. -->
+          <div class="bulk-total">
+            <span class="bulk-total-label">Toplam Tutar</span>
+            <span class="bulk-total-value">{{ formatCurrency(bulkSelectedTotal) }} <span class="bulk-total-cur">TRY</span></span>
+          </div>
           <v-autocomplete
             v-model="bulkSubGroupId"
             :items="subGroups"
@@ -800,6 +885,7 @@
             variant="outlined"
             density="compact"
             hide-details
+            :loading="subGroupsLoading"
           />
           <v-alert v-if="bulkError" type="error" density="compact" class="mt-3">{{ bulkError }}</v-alert>
           <div v-if="bulkResult" class="mt-3">
@@ -821,20 +907,20 @@
       </v-card>
     </v-dialog>
 
-    <!-- Parca cekim / elle islem girisi -->
+    <!-- Manuel cekim girisi: API'den gelmeyen talep elle aciliyor. -->
     <v-dialog v-model="manualDialog" max-width="560">
       <v-card>
         <v-card-title class="d-flex align-center">
-          <v-icon size="28" color="primary" class="mr-2">mdi-call-split</v-icon>
-          Elle Çekim Gir
+          <v-icon size="28" color="primary" class="mr-2">mdi-pencil-plus-outline</v-icon>
+          Manuel çekim girişi
         </v-card-title>
         <v-card-text>
           <v-alert type="info" variant="tonal" density="compact" class="mb-3">
-            Bayinin onaylanmış büyük talebini parçalara bölmek için kullanılır. Yalnızca iç firmalara işlenir.
+            Kayıt karşıya yeni çekim gibi düşer; listede <strong>MANUEL</strong> etiketiyle ayrılır.
           </v-alert>
           <v-autocomplete
             v-model="manualForm.merchant_id"
-            :items="internalMerchants"
+            :items="manualMerchants"
             item-value="id"
             item-title="name"
             label="Firma"
@@ -842,7 +928,7 @@
             density="compact"
             class="mb-3"
             hide-details
-            no-data-text="Tanımlı iç firma yok"
+            no-data-text="Tanımlı firma yok"
           />
           <v-text-field
             :model-value="formatAmountInput(manualForm.amount)"
@@ -870,8 +956,19 @@
             :loading="manualAccountsLoading"
           />
           <v-text-field v-model="manualForm.player_account_holder" label="Alıcı Ad Soyad" variant="outlined" density="compact" class="mb-3" hide-details />
-          <v-text-field v-model="manualForm.player_iban" label="Alıcı IBAN" variant="outlined" density="compact" class="mb-3" hide-details />
-          <v-textarea v-model="manualForm.notes" label="Not" variant="outlined" density="compact" rows="2" hide-details />
+          <v-text-field v-model="manualForm.player_iban" label="Alıcı IBAN" variant="outlined" density="compact" class="mb-3 font-mono" hide-details />
+          <v-text-field v-model="manualForm.player_bank_name" label="Alıcı Banka" variant="outlined" density="compact" class="mb-3" hide-details />
+          <v-textarea v-model="manualForm.notes" label="Not" variant="outlined" density="compact" rows="2" class="mb-3" hide-details />
+          <v-textarea
+            v-model="manualForm.internal_note"
+            label="İç Not (yalnızca destek ve üstü görür)"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            counter="500"
+            maxlength="500"
+            prepend-inner-icon="mdi-note-text-outline"
+          />
           <v-alert v-if="manualError" type="error" density="compact" class="mt-3">{{ manualError }}</v-alert>
         </v-card-text>
         <v-card-actions>
@@ -889,11 +986,14 @@
       <v-card>
         <v-card-title class="d-flex align-center">
           <v-icon size="28" color="warning" class="mr-2">mdi-swap-horizontal-bold</v-icon>
-          Başka Gruba Aktar
+          <div>
+            <div>Başka Gruba Aktar</div>
+            <div class="dialog-kicker">Aktarma: işlem yapılmış çekimi yönlendirir</div>
+          </div>
         </v-card-title>
         <v-card-text v-if="selectedTxn">
           <v-alert type="warning" variant="tonal" density="compact" class="mb-3">
-            Kredi eski gruptan düşülüp yeni gruba yazılır. Ödediğini söyleyip ödememiş grup için kullanılır.
+            Kredi eski gruptan düşülüp yeni gruba yazılır. Ödediğini söyleyip ödememiş grup için kullanılır. İşlem yapılmamış çekim için "Gruba Ata" kullanın.
           </v-alert>
           <div class="text-body-2 mb-3">
             <strong>#{{ selectedTxn.internal_id }}</strong> — {{ formatCurrency(selectedTxn.requested_amount) }} {{ selectedTxn.currency }}
@@ -909,6 +1009,7 @@
             density="compact"
             class="mb-3"
             hide-details
+            :loading="subGroupsLoading"
           />
           <v-textarea
             v-model="transferReason"
@@ -931,46 +1032,131 @@
       </v-card>
     </v-dialog>
 
+    <!-- Gruba Ata: islem yapilmamis cekim (pending/assigned/processing/
+         admin_review) baska bir gruba yonlendirilir. Isim degil grup
+         secilir; hesap grubun aktif hesabindan sunucuda bulunur. -->
     <v-dialog v-model="assignDialog" max-width="500">
       <v-card>
         <v-card-title class="d-flex align-center">
-          <v-icon size="32" color="primary" class="mr-2">mdi-account-switch</v-icon>
-          Operatöre Ata
+          <v-icon size="32" color="primary" class="mr-2">mdi-account-group</v-icon>
+          <div>
+            <div>Gruba Ata</div>
+            <div class="dialog-kicker">Atama: işlem yapılmamış çekimi yönlendirir</div>
+          </div>
         </v-card-title>
         <v-card-text v-if="selectedTxn">
           <v-alert type="info" variant="tonal" density="compact" class="mb-3">
-            Çekimi istediğin operatöre atayabilirsin. Mevcut operatör kilidi kaldırılır ve işlem yeni operatörün listesine düşer.
+            Çekim seçilen grubun hesabına düşer. Mevcut kilit kaldırılır; bu sırada başka biri işleme aldıysa atama yapılmaz.
           </v-alert>
           <div class="text-body-2 mb-3">
             <strong>#{{ selectedTxn.internal_id }}</strong> — {{ formatCurrency(selectedTxn.requested_amount) }} {{ selectedTxn.currency }}
-            <div class="text-caption text-medium-emphasis mt-1">Mevcut durum: {{ statusText(selectedTxn.status) }}</div>
+            <div class="text-caption text-medium-emphasis mt-1">Mevcut durum: {{ statusText(selectedTxn.status) }} · Mevcut grup: {{ selectedTxn.sub_group?.name || '—' }}</div>
           </div>
           <v-autocomplete
-            v-model="assignOperatorId"
-            :items="assignableOperators"
+            v-model="assignSubGroupId"
+            :items="subGroups"
             item-value="id"
             item-title="name"
-            label="Operatör"
+            label="Hedef Grup"
             variant="outlined"
             density="compact"
-            :loading="assignLoading"
-            no-data-text="Çekim hesabı tanımlı operatör yok"
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item v-bind="props" :title="item.raw.name">
-                <template v-slot:subtitle>
-                  Bakiye: {{ formatCurrency(item.raw.available_balance || 0) }}
-                </template>
-              </v-list-item>
-            </template>
-          </v-autocomplete>
+            :loading="subGroupsLoading"
+            no-data-text="Grup bulunamadı"
+          />
           <v-alert v-if="assignError" type="error" density="compact" class="mt-2">{{ assignError }}</v-alert>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn @click="assignDialog = false">Vazgeç</v-btn>
-          <v-btn color="primary" variant="flat" @click="confirmAssign" :loading="actingId === selectedTxn?.id" :disabled="!assignOperatorId">
+          <v-btn color="primary" variant="flat" @click="confirmAssign" :loading="actingId === selectedTxn?.id" :disabled="!assignSubGroupId">
             Ata
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Kismi Odeme: ana cekimin bir parcasi baska gruba acilir. IBAN
+         alani bilerek yok; parca ana kaydin alicisina gider. Kalan tutar
+         burada gosterim icin hesaplaniyor, asil dogrulama sunucuda. -->
+    <v-dialog v-model="partialDialog" max-width="520">
+      <v-card v-if="selectedTxn">
+        <v-card-title class="d-flex align-center">
+          <v-icon size="32" color="warning" class="mr-2">mdi-call-split</v-icon>
+          <div>
+            <div>Kısmi Ödeme</div>
+            <div class="dialog-kicker">#{{ selectedTxn.internal_id }} · Toplam {{ formatCurrency(selectedTxn.requested_amount) }} {{ selectedTxn.currency }}</div>
+          </div>
+        </v-card-title>
+        <v-card-text>
+          <div class="partial-summary">
+            <div class="partial-summary-cell">
+              <div class="partial-summary-label">Toplam</div>
+              <div class="partial-summary-value">{{ formatCurrency(selectedTxn.requested_amount) }}</div>
+            </div>
+            <div class="partial-summary-cell">
+              <div class="partial-summary-label">Parçalar</div>
+              <div class="partial-summary-value">{{ formatCurrency(partialsTotal(selectedTxn)) }}</div>
+            </div>
+            <div class="partial-summary-cell partial-summary-cell--remaining">
+              <div class="partial-summary-label">Kalan</div>
+              <div class="partial-summary-value">{{ formatCurrency(partialRemaining) }}</div>
+            </div>
+          </div>
+          <div v-if="selectedTxn.partials?.length" class="partial-existing">
+            <div v-for="p in selectedTxn.partials" :key="p.id" class="partial-line">
+              ↳ #{{ p.internal_id }} · {{ formatCurrency(p.requested_amount) }} → {{ p.sub_group?.name || '—' }}
+              <span class="partial-status">({{ statusText(p.status) }})</span>
+            </div>
+          </div>
+          <v-text-field
+            :model-value="formatAmountInput(partialForm.amount)"
+            @update:model-value="v => { partialForm.amount = parseAmountInput(v) }"
+            label="Parça Tutarı"
+            type="text"
+            inputmode="numeric"
+            suffix="TRY"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            :hint="`Kalan tutardan küçük olmalı: ${formatCurrency(partialRemaining)} TRY`"
+            persistent-hint
+          />
+          <v-autocomplete
+            v-model="partialForm.sub_group_id"
+            :items="subGroups"
+            item-value="id"
+            item-title="name"
+            label="Ödeyecek Grup"
+            variant="outlined"
+            density="compact"
+            class="mb-3"
+            hide-details
+            :loading="subGroupsLoading"
+            no-data-text="Grup bulunamadı"
+          />
+          <v-textarea
+            v-model="partialForm.note"
+            label="Not (isteğe bağlı)"
+            variant="outlined"
+            density="compact"
+            rows="2"
+            counter="255"
+            maxlength="255"
+          />
+          <v-alert v-if="partialError" type="error" density="compact" class="mt-2">{{ partialError }}</v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn @click="partialDialog = false">Vazgeç</v-btn>
+          <v-btn
+            color="warning"
+            variant="flat"
+            :loading="partialLoading"
+            :disabled="!partialForm.amount || !partialForm.sub_group_id"
+            prepend-icon="mdi-call-split"
+            @click="confirmPartial"
+          >
+            Parçayı Aç
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -1105,6 +1291,8 @@ const seesAllGroups = computed(() =>
 const canCreateManual = computed(() => auth.isSuperAdmin || auth.can('transactions.create_manual'))
 const canTransferGroup = computed(() => auth.isSuperAdmin || auth.can('transactions.transfer_group'))
 const canCancel = computed(() => auth.isSuperAdmin || auth.can('transactions.cancel'))
+// Kismi odeme: ana cekimden parca acma. Parca tekrar bolunemez.
+const canPartialPayment = computed(() => auth.isSuperAdmin || auth.can('transactions.partial_payment'))
 
 // Notification → highlight the row (mirrors DepositListView).
 const highlightId = ref(route.query.highlight ? String(route.query.highlight) : null)
@@ -1186,11 +1374,9 @@ const ownBankAccounts = ref([])
 const actingId = ref(null)
 const selectedTxn = ref(null)
 
-// Approve
+// Approve (tutar duzenleme yok; bkz. dialog icindeki aciklama)
 const approveDialog = ref(false)
 const approveError = ref('')
-const amountEditOpen = ref(false)
-const editedAmount = ref(null)
 
 // Reject
 const rejectDialog = ref(false)
@@ -1239,13 +1425,23 @@ const dekontBlobIsImage = ref(false)
 const dekontBlobLoading = ref(false)
 const dekontBlobError = ref('')
 const dekontUrlCopied = ref(false)
+// Secili dekont kaydi ({id, kind, url, created_at}); liste proofs'tan.
+const activeProof = ref(null)
 
-// Assign (super admin) — reassign withdrawal to any operator manually
+// Gruba ata: cekim baska bir grubun hesabina yonlendirilir.
 const assignDialog = ref(false)
 const assignError = ref('')
-const assignOperatorId = ref(null)
-const assignableOperators = ref([])
-const assignLoading = ref(false)
+const assignSubGroupId = ref(null)
+
+// Grup listesi dialoglar icin de gerekli (atama, aktarma, kismi odeme),
+// bu yuzden yalnizca suzgec izniyle degil ihtiyac aninda da yukleniyor.
+const subGroupsLoading = ref(false)
+
+// Kismi odeme formu.
+const partialDialog = ref(false)
+const partialLoading = ref(false)
+const partialError = ref('')
+const partialForm = ref({ amount: null, sub_group_id: null, note: '' })
 
 // Toplu atama: cekler secilir, tek grup secilir, iletilir.
 const selectedIds = ref([])
@@ -1255,21 +1451,26 @@ const bulkLoading = ref(false)
 const bulkError = ref('')
 const bulkResult = ref(null)
 
-// Elle cekim (parca cekim) formu.
+// Manuel cekim formu.
 const manualDialog = ref(false)
 const manualLoading = ref(false)
 const manualError = ref('')
-const internalMerchants = ref([])
+const manualMerchants = ref([])
 const manualAccounts = ref([])
 const manualAccountsLoading = ref(false)
-const manualForm = ref({
-  merchant_id: null,
-  amount: null,
-  bank_account_id: null,
-  player_account_holder: '',
-  player_iban: '',
-  notes: '',
-})
+function bosManuelForm() {
+  return {
+    merchant_id: null,
+    amount: null,
+    bank_account_id: null,
+    player_account_holder: '',
+    player_iban: '',
+    player_bank_name: '',
+    notes: '',
+    internal_note: '',
+  }
+}
+const manualForm = ref(bosManuelForm())
 
 // Gruplar arasi aktarim.
 const transferDialog = ref(false)
@@ -1402,33 +1603,31 @@ const sandboxOptions = [
   { text: 'Tümü', value: 'all' },
 ]
 
+/*
+ * Sutun sirasi sistem admininin verdigi liste:
+ * ID | GRUP | ISIM | HEDEF HESAP | TUTAR | DURUM | TARIH | ISLEM.
+ * "Site" sutunu kaldirildi (firma suzgeci duruyor). Ortam yalnizca
+ * super admine, en sonda.
+ */
 const allHeaders = [
-  { title: 'ID', key: 'internal_id', width: '70px' },
-  // value getter resolves the nested name so the cell renders the string
-  // even without a v-slot (Vuetify 3's default-cell renderer JSON-stringifies
-  // raw objects). Slot still wins when present.
-  { title: 'Site', key: 'merchant', value: (item) => item.merchant?.name || '—', sortable: false },
-  { title: 'Grup', key: 'sub_group', sortable: false, width: '120px' },
-  { title: 'İsim', key: 'customer', sortable: false },
-  { title: 'Hedef Hesap', key: 'player_bank', sortable: false },
-  { title: 'Tutar', key: 'requested_amount' },
-  { title: 'Durum', key: 'status' },
-  { title: 'Tarih', key: 'created_at', sortable: false, width: '130px' },
-  { title: 'Ortam', key: 'environment', sortable: false },
-  { title: 'İşlem', key: 'actions', sortable: false, align: 'end' },
+  { title: 'ID', key: 'internal_id', width: '80px' },
+  { title: 'GRUP', key: 'sub_group', sortable: false, width: '150px' },
+  { title: 'İSİM', key: 'customer', sortable: false },
+  { title: 'HEDEF HESAP', key: 'player_bank', sortable: false },
+  { title: 'TUTAR', key: 'requested_amount' },
+  { title: 'DURUM', key: 'status' },
+  { title: 'TARİH', key: 'created_at', sortable: false, width: '130px' },
+  { title: 'İŞLEM', key: 'actions', sortable: false, align: 'end' },
+  { title: 'ORTAM', key: 'environment', sortable: false },
 ]
 
 /*
- * Sutun gorunurlugu izne bagli, role degil.
- *
- * Onceden tek isSuperAdmin kontrolu vardi ve destek ekibi, firmayla
- * iletisime gecmesi gerektigi halde Site sutununu goremiyordu.
- * Onaylayan ayri bir sutun degil artik; durum rozetinin altinda.
+ * Grup sutunu artik herkese acik: altindaki "kimde" satiri tek gruplu
+ * kullanici icin de anlamli. Onaylayan ayri bir sutun degil; durum
+ * rozetinin altinda.
  */
 const visibleHeaders = computed(() => {
   const gizli = []
-  if (!seesFinancials.value) gizli.push('merchant')
-  if (!seesAllGroups.value) gizli.push('sub_group')
   if (!auth.isSuperAdmin) gizli.push('environment')
   return allHeaders.filter(h => !gizli.includes(h.key))
 })
@@ -1566,9 +1765,113 @@ function canSubmitProof(item) {
   return canActOnLocked(item) && (auth.isSuperAdmin || auth.can('transactions.submit_proof'))
 }
 
+const SONUCLANMIS = ['approved', 'rejected', 'expired', 'cancelled']
+
+// admin_review satirinda karar verebilenler (onay izni). Eski koddaki
+// kosulun aynisi; yigin icinde tekrar yazmamak icin fonksiyon oldu.
+function canDecideAdminReview(item) {
+  return item.status === 'admin_review' && (auth.isSuperAdmin || auth.can('transactions.approve.withdrawal'))
+}
+function showApprove(item) {
+  return canApproveItem(item) || canDecideAdminReview(item)
+}
+// Reddet artik tutar esigine bakmiyor: 5.000 altinda da gorunur.
+function showReject(item) {
+  return canRejectItem(item) || canDecideAdminReview(item)
+}
+// Kismi odeme: izin var, kayit bir parca degil, durum sonuclanmamis,
+// sandbox degil (sunucu canli disini reddediyor).
+// Kilitsiz (pending/assigned) satir icin: izin + ana kayit + sonuclanmamis.
+function canPartialUnlocked(item) {
+  if (!(auth.isSuperAdmin || auth.can('transactions.partial_payment'))) return false
+  if (item.parent_transaction_id) return false
+  return ['pending', 'assigned'].includes(item.status)
+}
+
+function canPartialItem(item) {
+  if (!canPartialPayment.value) return false
+  if (item.parent_transaction_id) return false
+  if (item.is_sandbox) return false
+  return !SONUCLANMIS.includes(item.status)
+}
+// Islem yigini: kilitli/ustune alinmis cekim ya da admin_review.
+function showActionStack(item) {
+  return canActOnLocked(item) || canDecideAdminReview(item)
+}
+// Sonuclanmis satirda dekonta kim bakabilir: yonetim, onay yetkisi olan
+// ya da islemi yapan kisi.
+function canViewProofs(item) {
+  return auth.isSuperAdmin
+    || auth.can('transactions.approve.withdrawal')
+    || item.locked_by === auth.user?.id
+}
+
+/*
+ * Dekont listesi: yeni sozlesmede `proofs` dizisi geliyor. Eski kayitlar
+ * icin dizi bos olabilir; o zaman dekont_url / dekont_path'ten tek
+ * kayitlik liste turetiyoruz ki inceleme eskisi gibi calissin.
+ */
+function proofList(item) {
+  if (!item) return []
+  if (Array.isArray(item.proofs) && item.proofs.length) return item.proofs
+  const eski = []
+  if (item.dekont_url) eski.push({ id: 'legacy-url', kind: 'url', url: item.dekont_url, created_at: item.proof_submitted_at || null })
+  if (item.dekont_path) eski.push({ id: 'legacy-file', kind: 'file', url: null, created_at: item.proof_submitted_at || null })
+  return eski
+}
+function proofCount(item) { return proofList(item).length }
+function proofLabel(p, index) {
+  if (p.kind === 'url') return 'URL'
+  // Dosyalar sirayla numaralanir: liste icindeki kacinci dosya.
+  const dosyaSirasi = dekontProofs.value.slice(0, index + 1).filter(x => x.kind === 'file').length
+  return `Dosya #${dosyaSirasi}`
+}
+const dekontProofs = computed(() => proofList(selectedTxn.value))
+
+// GRUP hucresinin alt satiri: kimde? Kilitleyen > ustune alan > hesap sahibi.
+function whoLabel(item) {
+  if (item.locker?.name) return { icon: 'mdi-lock-outline', text: `İşlemde: ${item.locker.name}` }
+  if (item.claimer?.name) return { icon: 'mdi-hand-extended-outline', text: `Üstüne aldı: ${item.claimer.name}` }
+  if (item.bank_account?.owner_name) return { icon: 'mdi-bank-outline', text: `Hesap: ${item.bank_account.owner_name}` }
+  return null
+}
+
+// Kismi odeme toplamlari (gosterim icin; asil dogrulama sunucuda).
+function partialsTotal(item) {
+  return (item?.partials || []).reduce((t, p) => t + Number(p.requested_amount || 0), 0)
+}
+const partialRemaining = computed(() => {
+  const t = selectedTxn.value
+  if (!t) return 0
+  return Math.max(0, Number(t.requested_amount || 0) - partialsTotal(t))
+})
+
+// Toplu atama seridi ve dialogu icin secili cekimlerin toplami. Secim
+// sayfadaki satirlardan yapildigi icin txnStore.items yeterli.
+const bulkSelectedTotal = computed(() => {
+  const secili = new Set(selectedIds.value)
+  return txnStore.items
+    .filter(t => secili.has(t.id))
+    .reduce((toplam, t) => toplam + Number(t.requested_amount || 0), 0)
+})
+
+// Grup listesi bos ise yukle. Suzgec icin loadFilterOptions'ta, dialoglar
+// icin acilista cagriliyor. Sunucu, kullanicinin gorebildigi gruplari
+// donduruyor.
+async function ensureSubGroups() {
+  if (subGroups.value.length || subGroupsLoading.value) return
+  subGroupsLoading.value = true
+  try {
+    const { data } = await api.get('/portal/sub-groups')
+    subGroups.value = data || []
+  } catch { /* dialog kendi hatasini gosterir */ } finally {
+    subGroupsLoading.value = false
+  }
+}
+
 // Reassignment is super-admin-only now — operators can't release a
 // withdrawal once it's assigned to them (prevents cherry-picking).
-// SA reassigns via the "Operatöre Ata" overflow menu item.
+// Yonetim "Gruba Ata" menu maddesiyle yonlendirir.
 function canRelease(_item) {
   return false
 }
@@ -1612,13 +1915,7 @@ function copyIban(iban) {
 function openApprove(item) {
   selectedTxn.value = item
   approveError.value = ''
-  amountEditOpen.value = false
-  editedAmount.value = null
   approveDialog.value = true
-}
-function enableAmountEdit() {
-  amountEditOpen.value = true
-  editedAmount.value = Number(selectedTxn.value?.requested_amount || 0)
 }
 // SA approving an admin_review row → richer modal with all the context
 // the admin needs (operator who handled it, source bank, dekont, etc.).
@@ -1626,29 +1923,14 @@ const approveIsAdminReview = computed(() => {
   return auth.isSuperAdmin && selectedTxn.value?.status === 'admin_review'
 })
 
-const amountHint = computed(() => {
-  const requested = Number(selectedTxn.value?.requested_amount || 0)
-  return `Talep: ${formatCurrency(requested)} • Sapma izni: ±1.000 TRY`
-})
 async function confirmApprove() {
   if (!selectedTxn.value) return
   approveError.value = ''
-  if (amountEditOpen.value) {
-    const requested = Number(selectedTxn.value.requested_amount)
-    const v = Number(editedAmount.value)
-    if (!v || v <= 0) { approveError.value = 'Geçerli bir tutar girin.'; return }
-    if (Math.abs(v - requested) > 1000) {
-      approveError.value = 'Sapma izni ±1.000 TRY ile sınırlıdır.'
-      return
-    }
-  }
 
   actingId.value = selectedTxn.value.id
   try {
-    const payload = {}
-    if (amountEditOpen.value) payload.amount = Number(editedAmount.value)
-
-    const { data } = await api.post(`/portal/transactions/${selectedTxn.value.id}/approve`, payload)
+    // Govde bos: cekimde tutar gonderilmez, sunucu gonderilirse 422 donuyor.
+    const { data } = await api.post(`/portal/transactions/${selectedTxn.value.id}/approve`, {})
     // Sync the local store cache so list updates without a full reload.
     txnStore.upsertItem?.(data) || (await loadData())
     approveDialog.value = false
@@ -1770,36 +2052,18 @@ async function downloadDekont(item) {
 }
 
 // --- Dekont preview (admin) ---
-async function openDekontPreview(item) {
+// Dialog acilinca en son dekont secilir; satira tiklaninca digerine
+// gecilir. URL icin fetch yok (iframe/baglanti), dosya icin blob cekilir.
+function openDekontPreview(item) {
   selectedTxn.value = item
   dekontUrlCopied.value = false
-  dekontBlobError.value = ''
-  dekontBlobUrl.value = null
-  dekontBlobIsImage.value = false
+  activeProof.value = null
   dekontPreviewDialog.value = true
-
-  // For URL-style proofs we don't fetch anything — the URL goes straight
-  // into an iframe / link. For file-style proofs we fetch a blob so we
-  // can render <img> for images and <iframe> for PDFs without forcing a
-  // download. Mime-type comes from the response Content-Type.
-  if (item.dekont_path && !item.dekont_url) {
-    dekontBlobLoading.value = true
-    try {
-      const res = await api.get(`/portal/transactions/${item.id}/dekont`, { responseType: 'blob' })
-      const mime = res.data.type || res.headers?.['content-type'] || 'application/octet-stream'
-      dekontBlobIsImage.value = mime.startsWith('image/')
-      dekontBlobUrl.value = window.URL.createObjectURL(new Blob([res.data], { type: mime }))
-    } catch (e) {
-      dekontBlobError.value = e?.response?.data?.message || 'Dekont yüklenemedi.'
-    } finally {
-      dekontBlobLoading.value = false
-    }
-  }
+  const liste = proofList(item)
+  if (liste.length) selectProof(liste[liste.length - 1])
 }
 
-function onDekontPreviewToggle(open) {
-  if (open) return
-  // Revoke the blob URL so we don't leak object URLs across previews.
+function revokeDekontBlob() {
   if (dekontBlobUrl.value) {
     window.URL.revokeObjectURL(dekontBlobUrl.value)
     dekontBlobUrl.value = null
@@ -1809,10 +2073,45 @@ function onDekontPreviewToggle(open) {
   dekontBlobLoading.value = false
 }
 
-async function copyDekontUrl() {
-  if (!selectedTxn.value?.dekont_url) return
+async function selectProof(p) {
+  if (!p || !selectedTxn.value) return
+  revokeDekontBlob()
+  activeProof.value = p
+  if (p.kind !== 'file') return
+
+  // Gercek dekont kaydi (sayisal id) kendi ucundan iner; boylece birden
+  // fazla dosya olan cekimde her satir kendi dosyasini acar. Eski
+  // kolonlardan turetilen tek kayitta id yok, o zaman "en son dosya" ucu.
+  const txnId = selectedTxn.value.id
+  const url = Number.isInteger(p.id)
+    ? `/portal/transactions/${txnId}/proofs/${p.id}`
+    : `/portal/transactions/${txnId}/dekont`
+  dekontBlobLoading.value = true
   try {
-    await navigator.clipboard.writeText(selectedTxn.value.dekont_url)
+    const res = await api.get(url, { responseType: 'blob' })
+    if (activeProof.value !== p) return // bu arada baska satir secildi
+    const mime = res.data.type || res.headers?.['content-type'] || 'application/octet-stream'
+    dekontBlobIsImage.value = mime.startsWith('image/')
+    dekontBlobUrl.value = window.URL.createObjectURL(new Blob([res.data], { type: mime }))
+  } catch (e) {
+    if (activeProof.value === p) dekontBlobError.value = e?.uiMessage || 'Dekont yüklenemedi.'
+  } finally {
+    if (activeProof.value === p) dekontBlobLoading.value = false
+  }
+}
+
+function onDekontPreviewToggle(open) {
+  if (open) return
+  // Blob URL'yi birak ki onizlemeler arasinda nesne URL'si sizmasin.
+  revokeDekontBlob()
+  activeProof.value = null
+}
+
+async function copyDekontUrl() {
+  const url = activeProof.value?.kind === 'url' ? activeProof.value.url : null
+  if (!url) return
+  try {
+    await navigator.clipboard.writeText(url)
     dekontUrlCopied.value = true
     setTimeout(() => { dekontUrlCopied.value = false }, 1500)
   } catch { /* clipboard denied — silent */ }
@@ -1865,6 +2164,7 @@ function openBulkAssign() {
   bulkResult.value = null
   bulkSubGroupId.value = null
   bulkDialog.value = true
+  ensureSubGroups()
 }
 
 async function confirmBulkAssign() {
@@ -1891,7 +2191,7 @@ async function confirmBulkAssign() {
   }
 }
 
-// --- Elle cekim girisi (parca cekim) ---
+// --- Manuel cekim girisi ---
 function accountLabel(a) {
   const grup = a.sub_group?.name || a.sub_group_name || ''
   return grup ? `${grup} — ${a.account_holder || a.bank_name}` : (a.account_holder || a.bank_name || `#${a.id}`)
@@ -1899,29 +2199,21 @@ function accountLabel(a) {
 
 async function openManual() {
   manualError.value = ''
-  manualForm.value = {
-    merchant_id: null,
-    amount: null,
-    bank_account_id: null,
-    player_account_holder: '',
-    player_iban: '',
-    notes: '',
-  }
+  manualForm.value = bosManuelForm()
   manualDialog.value = true
-  if (!internalMerchants.value.length || !manualAccounts.value.length) {
+  if (!manualMerchants.value.length || !manualAccounts.value.length) {
     manualAccountsLoading.value = true
     try {
+      // Firma serbest: ic firma suzgeci kaldirildi, gercek bayi de
+      // secilebiliyor. Sunucu kaydi is_manual ile isaretliyor.
       const [{ data: ms }, { data: accs }] = await Promise.all([
-        api.get('/portal/merchants', { params: { internal: 1 } }),
+        api.get('/portal/merchants'),
         api.get('/portal/bank-accounts'),
       ])
-      // Ic firma isareti backend'den geliyor; gelmezse listeyi
-      // daraltmiyoruz, backend zaten disaridakini reddediyor.
-      const icOlanlar = (ms || []).filter(m => m.is_internal)
-      internalMerchants.value = icOlanlar.length ? icOlanlar : (ms || [])
+      manualMerchants.value = ms || []
       manualAccounts.value = (accs || []).filter(a => a.is_active !== false)
     } catch (e) {
-      manualError.value = e?.response?.data?.message || 'Firma ve hesap listesi alınamadı.'
+      manualError.value = e?.uiMessage || 'Firma ve hesap listesi alınamadı.'
     } finally {
       manualAccountsLoading.value = false
     }
@@ -1932,26 +2224,71 @@ async function submitManual() {
   manualError.value = ''
   manualLoading.value = true
   try {
+    const f = manualForm.value
     const { data } = await api.post('/portal/transactions/manual', {
-      merchant_id: manualForm.value.merchant_id,
+      merchant_id: f.merchant_id,
       type: 'withdrawal',
-      amount: manualForm.value.amount,
-      bank_account_id: manualForm.value.bank_account_id || null,
-      player_account_holder: manualForm.value.player_account_holder || null,
-      player_iban: manualForm.value.player_iban || null,
-      notes: manualForm.value.notes || null,
+      amount: f.amount,
+      bank_account_id: f.bank_account_id || null,
+      player_account_holder: f.player_account_holder || null,
+      player_iban: f.player_iban ? f.player_iban.replace(/\s+/g, '').toUpperCase() : null,
+      player_bank_name: f.player_bank_name || null,
+      notes: f.notes || null,
+      internal_note: f.internal_note || null,
     })
     manualDialog.value = false
     notifications.addNotification({
       type: 'success',
       title: 'Çekim Oluşturuldu',
-      message: data?.message || 'Elle çekim kaydı oluşturuldu.',
+      message: data?.message || 'Manuel çekim kaydı oluşturuldu.',
     })
     loadData()
   } catch (e) {
-    manualError.value = e?.response?.data?.message || 'Çekim oluşturulamadı.'
+    manualError.value = e?.uiMessage || 'Çekim oluşturulamadı.'
   } finally {
     manualLoading.value = false
+  }
+}
+
+// --- Kismi odeme ---
+function openPartial(item) {
+  selectedTxn.value = item
+  partialError.value = ''
+  partialForm.value = { amount: null, sub_group_id: null, note: '' }
+  partialDialog.value = true
+  ensureSubGroups()
+}
+
+async function confirmPartial() {
+  if (!selectedTxn.value) return
+  partialError.value = ''
+  const tutar = Number(partialForm.value.amount)
+  if (!tutar || tutar <= 0) { partialError.value = 'Geçerli bir tutar girin.'; return }
+  if (tutar >= partialRemaining.value) {
+    partialError.value = `Parça tutarı kalan tutardan küçük olmalı. Kalan: ${formatCurrency(partialRemaining.value)} TRY`
+    return
+  }
+  if (!partialForm.value.sub_group_id) { partialError.value = 'Ödeyecek grubu seçin.'; return }
+
+  partialLoading.value = true
+  try {
+    const { data } = await api.post(`/portal/transactions/${selectedTxn.value.id}/partial`, {
+      amount: tutar,
+      sub_group_id: partialForm.value.sub_group_id,
+      note: partialForm.value.note?.trim() || undefined,
+    })
+    partialDialog.value = false
+    selectedTxn.value = null
+    notifications.addNotification({
+      type: 'success',
+      title: 'Parça Açıldı',
+      message: data?.message || (data?.child?.internal_id ? `#${data.child.internal_id} parçası oluşturuldu.` : 'Kısmi ödeme kaydı oluşturuldu.'),
+    })
+    loadData()
+  } catch (e) {
+    partialError.value = e?.uiMessage || 'Kısmi ödeme oluşturulamadı.'
+  } finally {
+    partialLoading.value = false
   }
 }
 
@@ -1962,6 +2299,7 @@ function openTransfer(item) {
   transferSubGroupId.value = null
   transferReason.value = ''
   transferDialog.value = true
+  ensureSubGroups()
 }
 
 async function confirmTransfer() {
@@ -1988,45 +2326,47 @@ async function confirmTransfer() {
   }
 }
 
-// --- Assign / reassign (SA only) ---
-async function openAssign(item) {
+// --- Gruba ata ---
+// Tekil `assign` ucu yalnizca operator_id kabul ediyor; grup secimi icin
+// bulk-assign tek id ile cagriliyor (o uc sub_group_id aliyor ve grubun
+// aktif hesabini kendisi buluyor).
+function openAssign(item) {
   selectedTxn.value = item
   assignError.value = ''
-  assignOperatorId.value = null
+  assignSubGroupId.value = null
   assignDialog.value = true
-  if (!assignableOperators.value.length) {
-    assignLoading.value = true
-    try {
-      const { data } = await api.get('/portal/transactions/withdrawal-operators')
-      assignableOperators.value = data || []
-    } catch (e) {
-      assignError.value = e?.response?.data?.message || 'Operatör listesi alınamadı.'
-    } finally {
-      assignLoading.value = false
-    }
-  }
+  ensureSubGroups()
 }
 async function confirmAssign() {
-  if (!selectedTxn.value || !assignOperatorId.value) {
-    assignError.value = 'Bir operatör seçin.'
+  if (!selectedTxn.value || !assignSubGroupId.value) {
+    assignError.value = 'Bir grup seçin.'
     return
   }
   assignError.value = ''
-  actingId.value = selectedTxn.value.id
+  const txn = selectedTxn.value
+  actingId.value = txn.id
   try {
-    await api.post(`/portal/transactions/${selectedTxn.value.id}/assign`, {
-      operator_id: assignOperatorId.value,
+    const { data } = await api.post('/portal/transactions/bulk-assign', {
+      transaction_ids: [txn.id],
+      sub_group_id: assignSubGroupId.value,
     })
+    // Tek kayit atlandiysa bu bir hata: sebebi dialogda kalsin.
+    const atlanan = (data?.skipped || []).find(s => String(s.id) === String(txn.id) || String(s.id) === String(txn.internal_id))
+    if (atlanan && !(data?.assigned || []).includes(txn.id)) {
+      assignError.value = atlanan.sebep || data?.message || 'Atama yapılamadı.'
+      return
+    }
     assignDialog.value = false
     selectedTxn.value = null
+    const grupAdi = subGroups.value.find(g => g.id === assignSubGroupId.value)?.name
     notifications.addNotification({
       type: 'success',
       title: 'Atandı',
-      message: 'İşlem seçilen operatöre atandı.',
+      message: grupAdi ? `Çekim ${grupAdi} grubuna atandı.` : (data?.message || 'Çekim gruba atandı.'),
     })
     loadData()
   } catch (e) {
-    assignError.value = e?.response?.data?.message || 'Atama başarısız.'
+    assignError.value = e?.uiMessage || 'Atama başarısız.'
   } finally {
     actingId.value = null
   }
@@ -2116,8 +2456,7 @@ async function loadFilterOptions() {
       merchants.value = m
     }
     if (seesAllGroups.value) {
-      const { data: sg } = await api.get('/portal/sub-groups')
-      subGroups.value = sg
+      await ensureSubGroups()
     }
     if (auth.isSuperAdmin) {
       const [{ data: m }, ops] = await Promise.all([
@@ -2982,21 +3321,184 @@ onUnmounted(() => {
   font-size: 13px;
 }
 
-/* Admin-review action layout: Onayla + Reddet on the top row,
-   Dekontu İncele on its own line beneath them. */
-.admin-review-stack {
+/* Islem yigini (kilitli / admin_review satiri):
+   1. Onayla | Reddet  2. Kismi Odeme  3. Dekont Inceleme (n)
+   4. Dekont Yukle | URL Yukle. Signal: sifir radius, hairline, token. */
+.wd-action-stack {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 220px;
+  min-width: 236px;
+  padding: 6px;
+  border: 1px solid var(--sp-divider, rgba(255,255,255,0.06));
+  background: var(--sp-surface-variant, rgba(255,255,255,0.02));
 }
-.admin-review-decision {
+.wd-action-row {
   display: flex;
   gap: 6px;
 }
-.admin-review-decision :deep(.v-btn) {
-  min-width: 0;
+.wd-action-row :deep(.v-btn) { min-width: 0; }
+.wd-action-stack :deep(.v-btn) { border-radius: 0 !important; }
+.wd-action-partial {
+  color: #05120D !important;
+  background: var(--sp-accent-orange) !important;
+  box-shadow: 0 2px 8px rgba(255,190,91, 0.22) !important;
 }
+
+/* Tablo basliklari: mono, buyuk harf, sessiz. */
+:deep(.v-data-table th) {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+  color: var(--sp-text-muted) !important;
+}
+
+/* ID altindaki kaynak etiketleri (MANUEL / PARCA). */
+.id-tags { display: flex; gap: 4px; margin-top: 3px; flex-wrap: wrap; }
+.id-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 0;
+  border: 1px solid transparent;
+}
+.id-tag--manual { color: var(--sp-accent-orange); background: rgba(255,190,91, 0.12); border-color: rgba(255,190,91, 0.35); }
+.id-tag--part   { color: var(--sp-accent-blue);   background: rgba(112,169,255, 0.12); border-color: rgba(112,169,255, 0.35); }
+
+/* GRUP hucresi: ad buyuk, altinda kimde. */
+.group-cell { display: flex; flex-direction: column; gap: 2px; line-height: 1.2; }
+.group-name { font-size: 13px; font-weight: 800; color: var(--sp-text); letter-spacing: -0.01em; }
+.group-who {
+  display: inline-flex; align-items: center;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--sp-text-muted);
+  white-space: nowrap;
+}
+
+/* Kismi odeme parca satirlari (TUTAR altinda ve dialogda). */
+.partial-lines { margin-top: 3px; display: flex; flex-direction: column; gap: 1px; }
+.partial-line {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sp-text-secondary, var(--sp-text-muted));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.partial-status { color: var(--sp-text-hint); font-weight: 500; }
+.partial-existing {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--sp-divider, rgba(255,255,255,0.06));
+  display: flex; flex-direction: column; gap: 2px;
+}
+.partial-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--sp-divider, rgba(255,255,255,0.08));
+  border: 1px solid var(--sp-divider, rgba(255,255,255,0.08));
+  margin-bottom: 12px;
+}
+.partial-summary-cell { background: var(--sp-surface); padding: 10px 12px; }
+.partial-summary-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--sp-text-muted);
+  margin-bottom: 4px;
+}
+.partial-summary-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px; font-weight: 700;
+  color: var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+.partial-summary-cell--remaining .partial-summary-value { color: var(--sp-accent-orange); }
+
+/* Ic not satiri: durum rozetinin altinda, tek satira kirpilmis. */
+.note-line {
+  display: inline-flex; align-items: center;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--sp-accent-orange);
+  max-width: 220px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Toplu atama dialogundaki toplam tutar. */
+.bulk-total {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--sp-divider, rgba(255,255,255,0.08));
+  background: var(--sp-surface);
+}
+.bulk-total-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--sp-text-muted);
+}
+.bulk-total-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px; font-weight: 700; color: var(--sp-text);
+  font-variant-numeric: tabular-nums;
+}
+.bulk-total-cur { font-size: 11px; font-weight: 700; color: var(--sp-primary); margin-left: 4px; }
+
+/* Dialog basliginin altindaki kucuk mono aciklama. */
+.dialog-kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--sp-text-muted);
+  margin-top: 2px;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Dekont listesi (birden fazla kayit). */
+.proof-list {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--sp-card-border);
+  margin-bottom: 12px;
+}
+.proof-row {
+  display: grid;
+  grid-template-columns: 18px max-content 1fr max-content 24px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--sp-divider, rgba(255,255,255,0.06));
+  color: var(--sp-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.18s ease;
+}
+.proof-row:last-child { border-bottom: 0; }
+.proof-row:hover { background: rgba(102,241,189, 0.055); }
+.proof-row.is-active { background: rgba(102,241,189, 0.09); box-shadow: inset 2px 0 0 var(--sp-primary); }
+.proof-row-label { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.proof-row-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--sp-text-muted);
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.proof-row-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; color: var(--sp-text-muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  grid-column: 4;
+}
+.proof-row-open { color: var(--sp-accent-blue); display: inline-flex; justify-content: center; text-decoration: none; cursor: pointer; grid-column: 5; }
+.proof-row-open:hover { color: var(--sp-primary); }
 </style>
 
 <!-- Unscoped — see DepositListView for rationale. Withdrawal has fewer

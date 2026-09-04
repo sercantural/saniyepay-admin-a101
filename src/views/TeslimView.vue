@@ -59,39 +59,62 @@ const createForm = ref({
 })
 
 /*
- * Sutun duzeni sistem admininin istedigi sirada:
- * ID | GRUP | KRIPTO | KUR | TXID | TRY | DURUM | ISLEM
+ * Sutun duzeni sistem admininin istedigi sirada (2026-09-03 revizyonu):
+ * ID | GRUP (TASERON) | KRIPTO | KUR | TXID | NOT | TRY | DURUM | ISLEM
  *
- * Ayri "Tarih" sutunu kaldirildi; tarih ID hucresinin altina kucuk
- * satir olarak tasindi. Boyle yapildi cunku TXID sutunu genis ve
- * sekiz sutunla tablo 1400px kabuga sigmiyordu -- tarih hem az
- * okunan hem de ID ile ayni "kimlik" grubuna ait bir bilgi.
+ * Ayri "Tarih" sutunu yok; olusturma ve sonuc tarihleri ISLEM
+ * hucresinin altinda iki kucuk satir olarak duruyor. Onceden tarih ID
+ * altindaydi; "kim, ne zaman karar verdi" bilgisi DURUM/ISLEM tarafina
+ * toplandi ki satir soldan saga "kimlik -> tutar -> karar" diye okunsun.
  *
- * Operator kendi alt grubunda tek basina calistigi icin GRUP sutunu
- * yalnizca inceleyen (admin) gorunumunde var.
+ * GRUP sutunu artik her iki gorunumde de var: taseron patronu birden
+ * fazla operatorun teslimini goruyor ve satirin kime ait oldugunu
+ * bilmesi gerekiyor. Iki dizi ayri tutuldu ki ileride gorunume ozel
+ * bir fark gerekirse tek noktadan ayrilabilsin.
  */
 const operatorHeaders = [
-  { title: 'ID', key: 'id', width: '104px' },
-  { title: 'Kripto', key: 'crypto_summary' },
-  { title: 'Kur', key: 'conversion_rate' },
-  { title: 'TXID', key: 'crypto_hash', sortable: false },
+  { title: 'ID', key: 'id', width: '72px' },
+  { title: 'GRUP (TAŞERON)', key: 'group', sortable: false },
+  { title: 'KRİPTO', key: 'crypto_summary' },
+  { title: 'KUR', key: 'conversion_rate' },
+  { title: 'TXİD', key: 'crypto_hash', sortable: false },
+  { title: 'NOT', key: 'notes', sortable: false },
   { title: 'TRY', key: 'amount_try' },
-  { title: 'Durum', key: 'status' },
-  { title: '', key: 'actions', sortable: false, align: 'end' },
+  { title: 'DURUM', key: 'status' },
+  { title: 'İŞLEM', key: 'actions', sortable: false, align: 'end' },
 ]
 
 const adminHeaders = [
-  { title: 'ID', key: 'id', width: '104px' },
-  { title: 'Grup', key: 'group', sortable: false },
-  { title: 'Kripto', key: 'crypto_summary' },
-  { title: 'Kur', key: 'conversion_rate' },
-  { title: 'TXID', key: 'crypto_hash', sortable: false },
+  { title: 'ID', key: 'id', width: '72px' },
+  { title: 'GRUP (TAŞERON)', key: 'group', sortable: false },
+  { title: 'KRİPTO', key: 'crypto_summary' },
+  { title: 'KUR', key: 'conversion_rate' },
+  { title: 'TXİD', key: 'crypto_hash', sortable: false },
+  { title: 'NOT', key: 'notes', sortable: false },
   { title: 'TRY', key: 'amount_try' },
-  { title: 'Durum', key: 'status' },
-  { title: 'İşlem', key: 'actions', sortable: false, align: 'end' },
+  { title: 'DURUM', key: 'status' },
+  { title: 'İŞLEM', key: 'actions', sortable: false, align: 'end' },
 ]
 
 const headers = computed(() => (canReview.value ? adminHeaders : operatorHeaders))
+
+// NOT sutunu: ilk 40 karakter hucrede, tamami tooltip'te. 40, TXID ile
+// TRY arasinda kalan alana tek satirda sigan uzunluk.
+const NOTE_PREVIEW_LEN = 40
+function shortenNote(note) {
+  const s = (note || '').trim()
+  if (!s) return ''
+  return s.length > NOTE_PREVIEW_LEN ? s.slice(0, NOTE_PREVIEW_LEN) + '…' : s
+}
+
+// DURUM altindaki "kim karar verdi" satiri. reviewer approved/rejected/
+// cancelled hepsinde ayni alana yaziliyor; etiket status'a gore degisir.
+function reviewerLine(item) {
+  const name = item?.reviewer?.name
+  if (!name) return ''
+  const prefix = { approved: 'Onaylayan', rejected: 'Reddeden', cancelled: 'İptal' }[item.status]
+  return prefix ? `${prefix}: ${name}` : ''
+}
 
 const statusOptions = [
   { title: 'Hepsi', value: '' },
@@ -774,6 +797,18 @@ function fmtDate(d) {
   return d ? new Date(d).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : '--'
 }
 
+// ISLEM hucresindeki tarih satirlari icin sabit "dd.MM.yyyy HH:mm".
+// toLocaleString tarayiciya gore "3.09.2026" gibi sifirsiz gun
+// donebiliyor; iki satir alt alta dururken hizasi bozulmasin diye
+// elle sifirlaniyor.
+function fmtStamp(d) {
+  if (!d) return ''
+  const dt = new Date(d)
+  if (Number.isNaN(dt.getTime())) return ''
+  const p = (n) => String(n).padStart(2, '0')
+  return `${p(dt.getDate())}.${p(dt.getMonth() + 1)}.${dt.getFullYear()} ${p(dt.getHours())}:${p(dt.getMinutes())}`
+}
+
 // Hash copy state — keyed by teslim id so multiple rows can flash ✓
 // independently after their own copy click without interfering.
 const copiedHashId = ref(null)
@@ -984,10 +1019,7 @@ onMounted(async () => {
         @click:row="onRowClick"
       >
         <template #item.id="{ item }">
-          <div class="cell-ident">
-            <span class="cell-id">#{{ item.id }}</span>
-            <span class="cell-date">{{ fmtDate(item.created_at) }}</span>
-          </div>
+          <span class="cell-id">#{{ item.id }}</span>
         </template>
         <template #item.group="{ item }">
           <div class="cell-group">
@@ -1032,35 +1064,54 @@ onMounted(async () => {
             <span v-else class="cell-hash-empty">—</span>
           </div>
         </template>
+        <template #item.notes="{ item }">
+          <v-tooltip v-if="shortenNote(item.notes)" :text="item.notes" location="top" max-width="420">
+            <template #activator="{ props }">
+              <span v-bind="props" class="cell-note">{{ shortenNote(item.notes) }}</span>
+            </template>
+          </v-tooltip>
+          <span v-else class="cell-note-empty">—</span>
+        </template>
         <template #item.status="{ item }">
-          <v-chip :color="statusColor(item.status)" size="small" variant="flat" label class="font-weight-bold">
-            <v-icon start size="14">{{ statusIcon(item.status) }}</v-icon>
-            {{ statusLabel(item.status) }}
-          </v-chip>
+          <div class="cell-status">
+            <v-chip :color="statusColor(item.status)" size="small" variant="flat" label class="font-weight-bold">
+              <v-icon start size="14">{{ statusIcon(item.status) }}</v-icon>
+              {{ statusLabel(item.status) }}
+            </v-chip>
+            <div v-if="reviewerLine(item)" class="cell-status-by">{{ reviewerLine(item) }}</div>
+          </div>
         </template>
         <template #item.actions="{ item }">
-          <div class="d-flex justify-end ga-1">
-            <template v-if="canReview && item.status === 'pending'">
-              <!-- Onayla button opens the detail modal so the admin
-                   reviews everything (amounts, commission, on-chain
-                   verification) before clicking the final Onayla there.
-                   Direct approve was too easy to misclick. -->
-              <v-btn size="small" variant="flat" color="success" prepend-icon="mdi-check" @click.stop="openDetailFor(item)">Onayla</v-btn>
-              <v-btn size="small" variant="flat" color="error" prepend-icon="mdi-close" @click.stop="openReject(item)">Reddet</v-btn>
-            </template>
-            <!-- Iptal yalnizca ONAYLANMIS satirda ve teslim.cancel izniyle
-                 gorunur. Outline birakildi (dolu degil) ki onay satirinda
-                 yanlislikla tiklanacak kadar one cikmasin. -->
-            <v-btn
-              v-if="canCancelTeslim && item.status === 'approved'"
-              size="small"
-              variant="outlined"
-              color="error"
-              prepend-icon="mdi-undo-variant"
-              @click.stop="openCancel(item)"
-            >
-              İptal Et
-            </v-btn>
+          <div class="cell-actions">
+            <div class="d-flex justify-end ga-1">
+              <template v-if="canReview && item.status === 'pending'">
+                <!-- Onayla button opens the detail modal so the admin
+                     reviews everything (amounts, commission, on-chain
+                     verification) before clicking the final Onayla there.
+                     Direct approve was too easy to misclick. -->
+                <v-btn size="small" variant="flat" color="success" prepend-icon="mdi-check" @click.stop="openDetailFor(item)">Onayla</v-btn>
+                <v-btn size="small" variant="flat" color="error" prepend-icon="mdi-close" @click.stop="openReject(item)">Reddet</v-btn>
+              </template>
+              <!-- Iptal yalnizca ONAYLANMIS satirda ve teslim.cancel izniyle
+                   gorunur. Outline birakildi (dolu degil) ki onay satirinda
+                   yanlislikla tiklanacak kadar one cikmasin. -->
+              <v-btn
+                v-if="canCancelTeslim && item.status === 'approved'"
+                size="small"
+                variant="outlined"
+                color="error"
+                prepend-icon="mdi-undo-variant"
+                @click.stop="openCancel(item)"
+              >
+                İptal Et
+              </v-btn>
+            </div>
+            <!-- Tarihler ISLEM'in altinda: olusturma her satirda, sonuc
+                 yalnizca karar verilmis (reviewed_at dolu) satirda. -->
+            <div class="cell-stamps">
+              <div class="cell-stamp">Oluşturma: {{ fmtStamp(item.created_at) }}</div>
+              <div v-if="item.reviewed_at" class="cell-stamp">Sonuç: {{ fmtStamp(item.reviewed_at) }}</div>
+            </div>
           </div>
         </template>
       </v-data-table>
@@ -1750,7 +1801,6 @@ onMounted(async () => {
 }
 
 /* Cell styling */
-.cell-date { font-size: 12px; color: var(--sp-text-muted); white-space: nowrap; }
 .cell-id {
   font-size: 12px;
   font-weight: 800;
@@ -1759,10 +1809,36 @@ onMounted(async () => {
   font-variant-numeric: tabular-nums;
 }
 
-/* ID + tarih tek hucrede: ayri "Tarih" sutunu kaldirildigi icin tarih
-   buraya, ikincil satir olarak indi. */
-.cell-ident { line-height: 1.3; }
-.cell-ident .cell-date { display: block; font-size: 11px; margin-top: 1px; }
+/* NOT hucresi: kisaltilmis metin, tam hali tooltip'te. */
+.cell-note {
+  font-size: 12px;
+  color: var(--sp-text);
+  white-space: nowrap;
+  cursor: help;
+  border-bottom: 1px dotted var(--sp-text-muted);
+}
+.cell-note-empty { font-size: 12px; color: var(--sp-text-muted); }
+
+/* DURUM: rozet ustte, karari veren kisi altta kucuk satir. */
+.cell-status { line-height: 1.3; }
+.cell-status-by {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sp-text-muted);
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+/* ISLEM: dugmeler ustte, tarihler altta saga yasli. Dugme yoksa
+   (operator gorunumu, kapanmis satir) yalniz tarihler kalir. */
+.cell-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.cell-stamps { line-height: 1.3; text-align: right; }
+.cell-stamp {
+  font-size: 11px;
+  color: var(--sp-text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 /* GRUP hucresi: alt grup adi birincil, operator adi ikincil satir --
    admin once "hangi ekip", sonra "kim" diye okuyor. */

@@ -457,7 +457,21 @@ export const useTransactionStore = defineStore('transactions', () => {
     // ── Handler: Teslim updated ──
     function handleTeslimUpdated(e) {
       const t = e.teslim
-      if (!t || seen.has('tsl:' + t.id + ':' + e.action)) return
+      if (!t) return
+
+      // "Yeni Teslim Talebi" yalnizca talebi inceleyecek/onaylayacak
+      // kisiye anlamli. Taseron ve taseron patronu ayni alt grup
+      // kanalini dinledigi icin bu yayin onlara da dusuyordu; kendi
+      // ekibinin talebini "yeni talep" diye bildirim almalari gurultu.
+      // Toast basilmadan erken donuyoruz; yalnizca tick artiriliyor ki
+      // acik olan Teslim listesi yeni satiri yine de sessizce cekebilsin.
+      const canSeeCreated = auth.can('teslim.review') || auth.can('teslim.approve') || auth.isSuperAdmin
+      if (e.action === 'created' && !canSeeCreated) {
+        teslimUpdateTick.value++
+        return
+      }
+
+      if (seen.has('tsl:' + t.id + ':' + e.action)) return
       seen.add('tsl:' + t.id + ':' + e.action)
 
       // Tailor the message based on who's receiving it. Operators get a
@@ -466,15 +480,18 @@ export const useTransactionStore = defineStore('transactions', () => {
       // including the amount.
       const isOwnTeslim = auth.user?.id && t.operator?.id === auth.user.id
       const amount = new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(t.amount_try)
+      // Kararı kimin verdigi toast'ta gorunsun: operator "kim onayladi"
+      // diye sormak zorunda kalmasin. reviewer olay govdesinde yuklu geliyor.
+      const reviewerName = t.reviewer?.name || ''
 
       let title, message, extra
       if (e.action === 'approved' && isOwnTeslim) {
         title = 'Teslim Onaylandı'
-        message = 'Teslimin onaylandı.'
+        message = reviewerName ? `Teslimin onaylandı — Onaylayan: ${reviewerName}` : 'Teslimin onaylandı.'
         extra = null // suppress amount block in toast
       } else if (e.action === 'rejected' && isOwnTeslim) {
         title = 'Teslim Reddedildi'
-        message = 'Teslimin reddedildi.'
+        message = reviewerName ? `Teslimin reddedildi — Reddeden: ${reviewerName}` : 'Teslimin reddedildi.'
         extra = null
       } else if (e.action === 'created') {
         title = 'Yeni Teslim Talebi'

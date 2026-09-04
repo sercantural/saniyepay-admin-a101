@@ -117,9 +117,17 @@ function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('tr-TR') : '--'
 }
 
-function truncateAddress(a) {
-  if (!a) return ''
-  return a.length > 24 ? a.slice(0, 12) + '...' + a.slice(-8) : a
+// Adres artik kisaltilmiyor: operator adresi baska yerle karsilastirmak
+// zorunda kalinca "..." yuzunden dialogu acip kopyaliyordu. Tam adres +
+// kopyala ikonu bu adimi kaldiriyor.
+async function copyAddress(a) {
+  if (!a) return
+  try {
+    await navigator.clipboard.writeText(a)
+    notif.addNotification({ type: 'success', message: 'Adres panoya kopyalandı' })
+  } catch {
+    notif.addNotification({ type: 'error', message: 'Kopyalanamadı' })
+  }
 }
 
 onMounted(load)
@@ -157,7 +165,19 @@ onMounted(load)
           <v-chip size="small" variant="tonal" color="secondary">{{ item.network }}</v-chip>
         </template>
         <template #item.address="{ item }">
-          <code style="font-size: 11px">{{ truncateAddress(item.address) }}</code>
+          <div class="wallet-address">
+            <code class="wallet-address-text">{{ item.address }}</code>
+            <v-btn
+              icon
+              variant="text"
+              size="x-small"
+              title="Adresi kopyala"
+              aria-label="Adresi kopyala"
+              @click="copyAddress(item.address)"
+            >
+              <v-icon size="14">mdi-content-copy</v-icon>
+            </v-btn>
+          </div>
         </template>
         <template #item.created_at="{ item }">
           {{ formatDate(item.created_at) }}
@@ -199,3 +219,32 @@ onMounted(load)
     </v-dialog>
   </v-container>
 </template>
+
+<style scoped>
+/* Adres hucresi: tam metin, gerekirse satir kirar; ikon adresin yaninda kalir. */
+.wallet-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 220px;
+}
+.wallet-address-text {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  word-break: break-all;
+  color: var(--sp-text);
+  background: transparent;
+  padding: 2px 0;
+}
+
+/* Kucuk ekranda tablo yatay kaydirilabilir kalsin. */
+@media (max-width: 960px) {
+  :deep(.v-data-table) {
+    overflow-x: auto;
+  }
+  :deep(.v-data-table table) {
+    min-width: 820px;
+  }
+}
+</style>

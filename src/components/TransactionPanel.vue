@@ -66,8 +66,9 @@
         </div>
       </div>
 
-      <!-- Insufficient Balance Warning (withdrawal) -->
-      <div v-if="txn.merchant_balance && !txn.merchant_balance.can_afford && !['approved','rejected','expired','cancelled'].includes(txn.status)" class="balance-alert mb-3">
+      <!-- Bayi bakiyesi uyarisi yalnizca firma kimligini gorene: taserona
+           gitmez (backend alani zaten gondermiyor; bu ikinci kapi). -->
+      <div v-if="(auth.isSuperAdmin || auth.can('scope.merchant_identity')) && txn.merchant_balance && !txn.merchant_balance.can_afford && !['approved','rejected','expired','cancelled'].includes(txn.status)" class="balance-alert mb-3">
         <v-icon color="error" size="22" class="mr-3 pulse-icon">mdi-alert</v-icon>
         <div style="flex: 1">
           <div class="font-weight-bold" style="color: var(--sp-accent-error); font-size: 14px">Yetersiz Bayi Bakiyesi!</div>

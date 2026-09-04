@@ -4,6 +4,20 @@
       <v-icon start color="success">mdi-plus-circle</v-icon>
       Yatırımlar
       <v-spacer />
+      <!-- Manuel yatirim: bayi adina elle kayit acma. Izin bazli; super
+           admin her zaman gorur. Dugme arama alanindan once duruyor,
+           liste ekranlarindaki baslik-eylem duzeni bu. -->
+      <v-btn
+        v-if="canCreateManual"
+        color="primary"
+        variant="flat"
+        size="small"
+        prepend-icon="mdi-plus-box-outline"
+        class="manual-btn"
+        @click="openManual"
+      >
+        Manuel Yatırım
+      </v-btn>
       <v-text-field
         v-model="search"
         prepend-inner-icon="mdi-magnify"
@@ -206,6 +220,8 @@
           <div v-if="auth.isSuperAdmin && item.merchant_trx_id" class="text-caption" style="color: var(--sp-text-hint); font-family: 'JetBrains Mono', monospace; font-size: 10px">
             {{ item.merchant_trx_id }}
           </div>
+          <!-- Elle acilan kayit: API'den gelmedigi icin ayirt edilsin. -->
+          <div v-if="item.is_manual" class="manual-tag">MANUEL</div>
         </div>
       </template>
       <template v-slot:item.customer="{ item }">
@@ -217,10 +233,6 @@
       <template v-slot:item.environment="{ item }">
         <v-chip v-if="item.is_sandbox" size="x-small" color="warning">Sandbox</v-chip>
         <v-chip v-else size="x-small" color="success">Canlı</v-chip>
-      </template>
-      <template v-slot:item.merchant="{ item }">
-        <span v-if="item.merchant?.name" class="font-weight-bold" style="color: var(--sp-text)">{{ item.merchant.name }}</span>
-        <span v-else class="text-medium-emphasis">—</span>
       </template>
       <template v-slot:item.status="{ item }">
         <div class="status-cell">
@@ -243,6 +255,11 @@
                durumun devami olarak soruluyor. -->
           <div v-if="item.approver" class="approver-line">
             <v-icon size="10" class="mr-1">mdi-account-check-outline</v-icon>{{ item.approver.name }}
+          </div>
+          <!-- Ic not yalnizca izinliye geliyor (sunucu suzuyor); alan
+               yoksa satir da yok, tasaron hic gormuyor. -->
+          <div v-if="item.internal_note" class="internal-note-line" :title="item.internal_note">
+            Not: {{ item.internal_note }}
           </div>
           <!-- Operator finalization time — locked → resolved. Same badge
                as the withdrawal page so SA can review throughput across
@@ -298,11 +315,22 @@
         </div>
         <span v-else class="text-medium-emphasis">—</span>
       </template>
+      <!-- GRUP (TASERON): grup adi, altinda hesabin sahibi taseron ve
+           varsa kilidi tutan kisi. Site sutununun yerini aldi; bayi adi
+           artik listede yok, islemin "kimin isi" oldugu buradan okunuyor. -->
       <template v-slot:item.sub_group="{ item }">
-        <v-chip v-if="item.sub_group" size="x-small" variant="tonal" color="primary">
-          {{ item.sub_group.name }}
-        </v-chip>
-        <span v-else class="text-medium-emphasis">—</span>
+        <div class="group-cell">
+          <v-chip v-if="item.sub_group" size="x-small" variant="tonal" color="primary">
+            {{ item.sub_group.name }}
+          </v-chip>
+          <span v-else class="text-medium-emphasis">—</span>
+          <div v-if="item.bank_account?.owner_name" class="group-sub">
+            <v-icon size="10" class="mr-1">mdi-account-outline</v-icon>{{ item.bank_account.owner_name }}
+          </div>
+          <div v-if="item.locker?.name" class="group-sub group-sub--locker">
+            <v-icon size="10" class="mr-1">mdi-lock-outline</v-icon>İşlemde: {{ item.locker.name }}
+          </div>
+        </div>
       </template>
       <template v-slot:item.approver="{ item }">
         <v-chip v-if="item.approver" size="x-small" color="success">{{ item.approver.name }}</v-chip>
@@ -571,6 +599,94 @@
           <v-btn variant="text" size="large" @click="rejectDialog = false" class="flex-grow-1">Vazgeç</v-btn>
           <v-btn color="error" variant="flat" size="large" @click="confirmReject" :loading="actingId === selectedTxn?.id" class="flex-grow-1 reject-confirm-btn" prepend-icon="mdi-close-thick">
             Evet, Reddet
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Manuel yatirim dialogu. Bayi adina elle kayit; sunucu 201 doner,
+         liste yenilenir. Hata dialog icinde kalir ki kullanici girdigini
+         kaybetmeden duzeltsin. -->
+    <v-dialog v-model="manualDialog" max-width="520" persistent>
+      <v-card class="manual-card">
+        <div class="manual-head">
+          <div class="manual-kicker">MANUEL KAYIT</div>
+          <div class="manual-title">Manuel yatırım oluştur.</div>
+          <div class="manual-lead">Bayi adına elle yatırım kaydı açılır; işlem listeye "MANUEL" etiketiyle düşer.</div>
+        </div>
+
+        <div class="manual-body">
+          <v-autocomplete
+            v-model="manualForm.merchant_id"
+            :items="merchants"
+            item-title="name"
+            item-value="id"
+            label="Firma"
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-store"
+            :loading="manualOptionsLoading"
+            no-data-text="Firma bulunamadı"
+            hide-details="auto"
+            class="mb-3"
+          />
+          <v-text-field
+            :model-value="formatAmountInput(manualForm.amount)"
+            @update:model-value="v => { manualForm.amount = parseAmountInput(v) }"
+            label="Tutar"
+            type="text"
+            inputmode="numeric"
+            variant="outlined"
+            density="comfortable"
+            suffix="TRY"
+            prepend-inner-icon="mdi-cash"
+            hide-details="auto"
+            class="mb-3"
+          />
+          <v-autocomplete
+            v-model="manualForm.bank_account_id"
+            :items="bankAccounts"
+            :item-title="bankAccountLabel"
+            item-value="id"
+            label="Hedef Hesap (isteğe bağlı)"
+            variant="outlined"
+            density="comfortable"
+            clearable
+            prepend-inner-icon="mdi-bank"
+            no-data-text="Hesap bulunamadı"
+            hide-details="auto"
+            class="mb-3"
+          />
+          <v-textarea
+            v-model="manualForm.notes"
+            label="Not"
+            variant="outlined"
+            density="comfortable"
+            rows="2"
+            auto-grow
+            prepend-inner-icon="mdi-note-text-outline"
+            hide-details="auto"
+            class="mb-3"
+          />
+          <v-textarea
+            v-model="manualForm.internal_note"
+            label="İç Not"
+            hint="Yalnızca destek ve üstü görür"
+            persistent-hint
+            variant="outlined"
+            density="comfortable"
+            rows="2"
+            auto-grow
+            prepend-inner-icon="mdi-shield-lock-outline"
+          />
+
+          <v-alert v-if="manualError" type="error" density="compact" variant="tonal" class="mt-2">{{ manualError }}</v-alert>
+        </div>
+
+        <v-card-actions class="manual-actions">
+          <v-btn variant="text" size="large" class="flex-grow-1" :disabled="manualSaving" @click="manualDialog = false">Vazgeç</v-btn>
+          <v-btn color="primary" variant="flat" size="large" class="flex-grow-1" :loading="manualSaving" prepend-icon="mdi-check-bold" @click="submitManual">
+            Kaydet
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -848,38 +964,116 @@ const sandboxOptions = [
   { text: 'Tümü', value: 'all' },
 ]
 
+// Site (bayi) sutunu 2026-09 panel revizyonunda kalkti: listede bayi adi
+// yerine islemin hangi grup/taserona ait oldugu okunuyor. Bayi suzgeci
+// "Daha Fazla" panelinde duruyor.
 const allHeaders = [
   { title: 'ID', key: 'internal_id', width: '80px' },
-  { title: 'Site', key: 'merchant', value: (item) => item.merchant?.name || '—', sortable: false },
-  { title: 'Grup', key: 'sub_group', sortable: false, width: '120px' },
-  { title: 'İsim', key: 'customer', sortable: false },
-  { title: 'Hedef Banka', key: 'bank_account', sortable: false },
-  { title: 'Tutar', key: 'requested_amount' },
-  { title: 'Durum', key: 'status' },
-  { title: 'Tarih', key: 'created_at', sortable: false, width: '130px' },
-  { title: 'Ortam', key: 'environment', sortable: false },
-  { title: 'İşlem', key: 'actions', sortable: false, align: 'end' },
+  { title: 'GRUP (TAŞERON)', key: 'sub_group', sortable: false, width: '150px' },
+  { title: 'İSİM', key: 'customer', sortable: false },
+  { title: 'HEDEF BANKA', key: 'bank_account', sortable: false },
+  { title: 'TUTAR', key: 'requested_amount' },
+  { title: 'DURUM', key: 'status' },
+  { title: 'TARİH', key: 'created_at', sortable: false, width: '130px' },
+  { title: 'İŞLEM', key: 'actions', sortable: false, align: 'end' },
+  { title: 'ORTAM', key: 'environment', sortable: false },
 ]
 
 /*
  * Sutun gorunurlugu izne bagli, role degil.
  *
- * Onceden tek bir isSuperAdmin kontrolu vardi; destek ekibi firma adini
- * gormesi gerektigi halde Site sutununu goremiyordu. Artik her sutun
- * kendi iznine bakiyor:
- *   Site  -> scope.merchant_identity (destekte var)
- *   Grup  -> scope.all_groups (tek grupluya gostermenin anlami yok)
- *   Ortam -> sandbox ayrimini yalnizca yonetim gorur
+ * GRUP (TASERON) herkese acik: tek gruplu kullanici icin de hesabin
+ * sahibi ve kilidi tutan kisi bilgisi bu hucrede duruyor, dolayisiyla
+ * eski "all_groups yoksa gizle" kurali kaldirildi. Grup SUZGECI hala
+ * yalnizca butun gruplari gorene acik (seesAllGroups).
+ *   Ortam -> sandbox ayrimini yalnizca yonetim gorur, en sonda
  *
- * Onaylayan artik ayri bir sutun degil, durum rozetinin altinda yaziyor.
+ * Onaylayan ayri bir sutun degil, durum rozetinin altinda yaziyor.
  */
 const visibleHeaders = computed(() => {
   const gizli = []
-  if (!seesFinancials.value) gizli.push('merchant')
-  if (!seesAllGroups.value) gizli.push('sub_group')
   if (!auth.isSuperAdmin) gizli.push('environment')
   return allHeaders.filter(h => !gizli.includes(h.key))
 })
+
+// --- Manuel yatirim ---
+// Izin: transactions.create_manual. Super admin her seyi gorur.
+const canCreateManual = computed(() =>
+  auth.isSuperAdmin || auth.can('transactions.create_manual')
+)
+
+const manualDialog = ref(false)
+const manualSaving = ref(false)
+const manualError = ref('')
+const manualOptionsLoading = ref(false)
+const manualForm = reactive({
+  merchant_id: null,
+  amount: null,
+  bank_account_id: null,
+  notes: '',
+  internal_note: '',
+})
+
+async function openManual() {
+  manualError.value = ''
+  manualForm.merchant_id = null
+  manualForm.amount = null
+  manualForm.bank_account_id = null
+  manualForm.notes = ''
+  manualForm.internal_note = ''
+  manualDialog.value = true
+  // Bayi listesi filtre acilisinda yalnizca seesFinancials icin cekiliyor;
+  // manuel kayit yetkisi olan biri o listeyi henuz almamis olabilir.
+  if (!merchants.value.length || !bankAccounts.value.length) {
+    manualOptionsLoading.value = true
+    try {
+      if (!merchants.value.length) {
+        const { data } = await api.get('/portal/merchants')
+        merchants.value = data
+      }
+      if (!bankAccounts.value.length) {
+        const { data: ba } = await api.get('/portal/bank-accounts')
+        bankAccounts.value = ba
+      }
+    } catch (e) {
+      manualError.value = e?.uiMessage || 'Firma veya hesap listesi alınamadı.'
+    } finally {
+      manualOptionsLoading.value = false
+    }
+  }
+}
+
+async function submitManual() {
+  manualError.value = ''
+  if (!manualForm.merchant_id) { manualError.value = 'Firma seçin.'; return }
+  const amount = Number(manualForm.amount)
+  if (!amount || amount <= 0) { manualError.value = 'Geçerli bir tutar girin.'; return }
+
+  const body = { merchant_id: manualForm.merchant_id, type: 'deposit', amount }
+  if (manualForm.bank_account_id) body.bank_account_id = manualForm.bank_account_id
+  if (manualForm.notes?.trim()) body.notes = manualForm.notes.trim()
+  if (manualForm.internal_note?.trim()) body.internal_note = manualForm.internal_note.trim()
+
+  manualSaving.value = true
+  try {
+    const { data } = await api.post('/portal/transactions/manual', body)
+    manualDialog.value = false
+    const kayitNo = data?.internal_id ? ` #${data.internal_id}` : ''
+    notifications.addNotification({
+      type: 'success',
+      title: 'Manuel yatırım oluşturuldu',
+      message: `${formatCurrency(amount)} TRY tutarlı kayıt${kayitNo} listeye eklendi.`,
+      icon: 'mdi-plus-box-outline',
+      color: 'success',
+    })
+    page.value = 1
+    loadData()
+  } catch (e) {
+    manualError.value = e?.uiMessage || e?.response?.data?.message || 'Manuel yatırım kaydedilemedi.'
+  } finally {
+    manualSaving.value = false
+  }
+}
 
 function statusColor(status) {
   const colors = { pending: 'amber-darken-2', assigned: 'light-blue-darken-1', payment_seen: 'secondary', processing: 'warning', admin_review: 'purple-darken-2', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
@@ -1255,6 +1449,71 @@ onUnmounted(() => {
   letter-spacing: 0.2px;
   white-space: nowrap;
 }
+
+/* Ic not — onaylayanin altinda, tek satira kirpilmis; tamami title'da. */
+.internal-note-line {
+  font-size: 11px; font-weight: 600;
+  color: var(--sp-accent-orange);
+  max-width: 220px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* MANUEL etiketi — ID altinda kucuk mono, sessiz kontur. */
+.manual-tag {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--sp-accent-purple);
+  border: 1px solid rgba(168,182,255,0.45);
+  line-height: 1.4;
+}
+
+/* GRUP (TASERON) hucresi — grup rozeti, altinda hesap sahibi ve kilit. */
+.group-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; line-height: 1.2; }
+.group-sub {
+  display: inline-flex; align-items: center;
+  font-size: 10.5px; font-weight: 600;
+  color: var(--sp-text-muted);
+  white-space: nowrap;
+}
+.group-sub--locker { color: var(--sp-accent-orange); }
+
+/* Manuel yatirim dugmesi ve dialogu */
+.manual-btn { font-weight: 700 !important; letter-spacing: 0.3px; }
+.manual-card {
+  border-radius: 0;
+  overflow: hidden;
+  border: 1px solid rgba(102,241,189, 0.25) !important;
+  box-shadow: 0 12px 48px rgba(102,241,189, 0.14), 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+.manual-head {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--sp-border);
+  background: linear-gradient(180deg, rgba(102,241,189,0.06), transparent);
+}
+.manual-kicker {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--sp-accent-success);
+  margin-bottom: 6px;
+}
+.manual-title {
+  font-size: 20px; font-weight: 800;
+  color: var(--sp-text);
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+}
+.manual-lead {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--sp-text-muted);
+  line-height: 1.4;
+}
+.manual-body { padding: 20px 24px 8px; }
+.manual-actions { padding: 12px 20px 20px !important; gap: 10px; }
 
 /* Saat cell — two-row stack (created + approved/resolved). */
 .time-cell { display: flex; flex-direction: column; gap: 2px; line-height: 1.1; }

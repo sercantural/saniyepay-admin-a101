@@ -128,32 +128,21 @@
             <span class="iban-text">{{ formatIban(item.iban) }}</span>
           </template>
 
-          <!-- LİMİT: gunluk hacim + adet, altinda tek islem araligi.
-               Bugunku kullanim (hacim/adet) bilerek kaldirildi; burasi
-               ayarlanan limiti gosteriyor, gunluk raporu degil. -->
+          <!-- LİMİT: iki satir. Ustte tek islem araligi (min - max), altta
+               bugunku kullanim / gunluk adet limiti. Gunluk hacim, "bugun"
+               ibaresi ve hareket bilgisi bilerek yok; sistem admini yalnizca
+               bu iki sayiyi istedi. -->
           <template v-slot:item.limits="{ item }">
             <div class="limit-cell">
               <div class="limit-row">
-                <span class="limit-tag">GÜN</span>
-                <span v-if="item.daily_limit" class="limit-value">{{ formatCurrency(item.daily_limit) }}</span>
-                <span v-else class="limit-none">Limitsiz</span>
-                <span v-if="item.daily_deposit_count_limit" class="limit-sub">· {{ item.daily_deposit_count_limit }} işlem</span>
+                <span class="limit-tag">LİMİT</span>
+                <span class="limit-value">{{ formatLimitRange(item.min_deposit_amount, item.max_deposit_amount) }}</span>
               </div>
-              <div v-if="item.min_deposit_amount || item.max_deposit_amount" class="limit-row">
+              <div class="limit-row">
                 <span class="limit-tag tag-alt">İŞLEM</span>
-                <span class="limit-value">
-                  {{ item.min_deposit_amount ? formatCurrency(item.min_deposit_amount) : '—' }}
-                  –
-                  {{ item.max_deposit_amount ? formatCurrency(item.max_deposit_amount) : '—' }}
-                </span>
+                <span class="limit-value">{{ formatUsage(item.daily_used, item.daily_deposit_count_limit) }}</span>
               </div>
             </div>
-          </template>
-
-          <!-- KOMİSYON: yalnizca scope.commissions izni olana. -->
-          <template v-slot:item.commission="{ item }">
-            <span v-if="item.stats" class="commission-value">{{ formatCurrency(item.stats.total_commission || 0) }}</span>
-            <span v-else class="empty-dash">—</span>
           </template>
 
           <!-- DURUM -->
@@ -456,22 +445,12 @@
       </v-card>
     </v-dialog>
 
-    <!-- Silme onayi. Kayit yumusak siliniyor: listelerden kalkiyor ama
-         gecmis islemler ve operator kasasi bozulmuyor. -->
-    <v-dialog v-model="deleteDialog" max-width="460">
+    <!-- Silme onayi. Tek cumle; uzun aciklama (listeden kalkar, gecmis
+         korunur vb.) istek uzerine kaldirildi. -->
+    <v-dialog v-model="deleteDialog" max-width="420">
       <v-card>
-        <v-card-title class="pa-4">Hesabı sil</v-card-title>
-        <v-card-text>
-          <div v-if="deleteTarget" class="mb-3">
-            <strong>{{ deleteTarget.account_holder }}</strong><br>
-            <span class="text-medium-emphasis">{{ deleteTarget.bank_name }} · {{ deleteTarget.iban }}</span>
-          </div>
-          <v-alert type="warning" variant="tonal" density="compact">
-            Hesap listelerden kaldırılacak ve bu hesaba yeni işlem yönlendirilmeyecek.
-            Geçmiş işlemler ve operatör kasa kayıtları korunur; kayıt
-            “Silinmiş Hesaplar” bölümünde saklanır. Bu işlem geri alınamaz.
-          </v-alert>
-        </v-card-text>
+        <v-card-title class="pa-4">Hesabı Sil</v-card-title>
+        <v-card-text>Hesap silinecektir. Onaylıyor musunuz?</v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn variant="text" @click="deleteDialog = false">Vazgeç</v-btn>
@@ -616,24 +595,18 @@ const filteredAccounts = computed(() => {
 
 /*
  * Sistem admininin istedigi duzen: GRUP | İSİM | İBAN | LİMİT | DURUM.
- * Bugunku hacim, teslim ve hareket sutunlari kaldirildi. Komisyon
- * yalnizca scope.commissions izni olana aciliyor; para verisi bu ekranin
- * asil isi degil.
+ * Komisyon sutunu da kaldirildi; para verisi bu ekranin isi degil.
+ * Basliklar dogrudan buyuk harf yaziliyor: CSS text-transform "i" harfini
+ * noktasiz "I" yapiyor, "İSİM" ancak boyle dogru cikiyor.
  */
-const visibleHeaders = computed(() => {
-  const headers = [
-    { title: 'Grup', key: 'sub_group.name', minWidth: '150px' },
-    { title: 'İsim', key: 'account_holder', minWidth: '190px' },
-    { title: 'IBAN', key: 'iban', minWidth: '210px' },
-    { title: 'Limit', key: 'limits', minWidth: '190px', sortable: false },
-  ]
-  if (auth.can('scope.commissions') || auth.isSuperAdmin) {
-    headers.push({ title: 'Komisyon', key: 'commission', minWidth: '110px', sortable: false, align: 'end' })
-  }
-  headers.push({ title: 'Durum', key: 'is_active', minWidth: '90px', align: 'center' })
-  headers.push({ title: '', key: 'actions', minWidth: '110px', sortable: false, align: 'end' })
-  return headers
-})
+const visibleHeaders = [
+  { title: 'GRUP', key: 'sub_group.name', minWidth: '150px' },
+  { title: 'İSİM', key: 'account_holder', minWidth: '190px' },
+  { title: 'İBAN', key: 'iban', minWidth: '210px' },
+  { title: 'LİMİT', key: 'limits', minWidth: '170px', sortable: false },
+  { title: 'DURUM', key: 'is_active', minWidth: '90px', align: 'center' },
+  { title: '', key: 'actions', minWidth: '110px', sortable: false, align: 'end' },
+]
 
 const deletedHeaders = [
   { title: 'Grup', key: 'sub_group', minWidth: '140px' },
@@ -646,6 +619,27 @@ const deletedHeaders = [
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2 }).format(amount)
+}
+
+// Tablo LİMİT hucresi: ondaliksiz, tr-TR binlik ayracli. Bos taraf "—".
+const limitFormatter = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 })
+
+function formatLimitAmount(value) {
+  const num = Number(value)
+  if (value === null || value === undefined || value === '' || Number.isNaN(num) || num <= 0) return '—'
+  return limitFormatter.format(num)
+}
+
+function formatLimitRange(min, max) {
+  return `${formatLimitAmount(min)} - ${formatLimitAmount(max)}`
+}
+
+// "1/999": bugun kullanilan adet / gunluk adet limiti. Limit yoksa sonsuz.
+function formatUsage(used, limit) {
+  const usedNum = Number(used) || 0
+  const limitNum = Number(limit)
+  const limitText = limit && !Number.isNaN(limitNum) && limitNum > 0 ? limitFormatter.format(limitNum) : '∞'
+  return `${usedNum}/${limitText}`
 }
 
 // Display helpers for amount inputs — show "100.000" while the form
@@ -728,7 +722,17 @@ async function saveAccount() {
     dialog.value = false
     await loadAccounts()
   } catch (e) {
-    showSnack(e.response?.data?.message || 'İşlem başarısız', 'error')
+    /*
+     * Ayni IBAN ayni gruba/kullaniciya ikinci kez eklenince sunucu 422 ve
+     * errors.iban donduruyor. Bu hata alanin altinda gorunmeli, yalnizca
+     * snackbar'da kaybolmamali; uiMessage zaten alan hatalarini birlestirip
+     * okunur tek cumle yapiyor.
+     */
+    if (e.response?.status === 422 && e.response?.data?.errors?.iban) {
+      ibanError.value = e.uiMessage || e.response.data.errors.iban[0]
+      return
+    }
+    showSnack(e.uiMessage || e.response?.data?.message || 'İşlem başarısız', 'error')
   } finally { saving.value = false }
 }
 
@@ -1069,10 +1073,14 @@ onMounted(async () => {
   border: 1px solid rgba(112,169,255,0.24);
 }
 
+/* LİMİT hucresi: etiket + mono deger, iki satir. Etiket sabit genislikte
+   ki iki satirdaki degerler alt alta hizalansin. */
 .limit-cell { display: flex; flex-direction: column; gap: 3px; line-height: 1.15; }
 .limit-row { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
 .limit-tag {
   display: inline-block;
+  min-width: 44px;
+  text-align: center;
   font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
   padding: 1px 6px; border-radius: 0;
   background: rgba(102,241,189,0.15);
@@ -1084,14 +1092,11 @@ onMounted(async () => {
   color: var(--sp-accent-amber);
   border-color: rgba(255,190,91,0.22);
 }
-.limit-value { font-size: 11.5px; font-weight: 600; color: var(--sp-text); }
-.limit-sub   { font-size: 10px; color: var(--sp-text-hint); }
-.limit-none  { font-size: 11px; color: var(--sp-text-dim); }
-
-.commission-value {
-  font-size: 11.5px; font-weight: 700;
-  color: var(--sp-accent-purple);
-  font-variant-numeric: tabular-nums;
+.limit-value {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11.5px; font-weight: 600;
+  color: var(--sp-text);
+  letter-spacing: 0.2px;
 }
 
 .status-pill {

@@ -5,12 +5,25 @@
         <v-icon start color="primary">mdi-account-group</v-icon>
         Kullanıcılar
         <v-spacer />
+        <!-- Rol filtresi istemci tarafinda: liste zaten tek istekte
+             geliyor, secenekler de listedeki rollerden turetiliyor. -->
+        <v-select
+          v-model="rolFiltresi"
+          :items="rolFiltreSecenekleri"
+          item-title="text"
+          item-value="value"
+          label="Rol"
+          variant="outlined"
+          density="compact"
+          hide-details
+          class="rol-filtre mr-3"
+        />
         <v-btn color="primary" @click="openCreateDialog" v-if="auth.can('users.create') || auth.isSuperAdmin">
           <v-icon start>mdi-plus</v-icon> Kullanıcı Ekle
         </v-btn>
       </v-card-title>
 
-      <v-data-table :headers="headers" :items="users" :loading="loading" density="compact" no-data-text="Kullanıcı bulunamadı" loading-text="Yükleniyor...">
+      <v-data-table :headers="headers" :items="filtrelenmisKullanicilar" :loading="loading" density="compact" no-data-text="Kullanıcı bulunamadı" loading-text="Yükleniyor...">
         <template v-slot:item.roles="{ item }">
           <v-chip v-for="role in item.roles" :key="role.id" size="small" class="mr-1">
             {{ role.display_name || role.name }}
@@ -112,6 +125,26 @@
           />
           <v-switch v-if="editing" v-model="form.is_active" label="Aktif" color="success" />
 
+          <!-- Kaydet/Iptal dugmeleri izin listesinin USTUNDE duruyor:
+               liste uzun, dugmeler en altta kalinca kullanici sayfayi
+               sonuna kadar kaydirmadan formu tamamlayamiyordu. Hata
+               kutusu da ayni yerde ki duzeltilecek alan gorunur olsun. -->
+          <v-alert
+            v-if="formHatasi"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mt-2 mb-3"
+          >
+            {{ formHatasi }}
+          </v-alert>
+          <div class="d-flex justify-end ga-2 mb-2">
+            <v-btn variant="text" @click="dialog = false">İptal</v-btn>
+            <v-btn color="primary" variant="elevated" @click="saveUser" :loading="saving">
+              {{ editing ? 'Güncelle' : 'Oluştur' }}
+            </v-btn>
+          </div>
+
           <!-- Yetkiler -->
           <v-divider class="my-3" />
           <div class="text-subtitle-2 font-weight-bold mb-2">
@@ -158,28 +191,7 @@
               </span>
             </label>
           </div>
-
-          <!-- Hata formun icinde duruyor, ekranin kosesinde degil:
-               kullanici hangi alani duzeltecegini gormeden Kaydet'e
-               tekrar basiyordu. -->
-          <v-alert
-            v-if="formHatasi"
-            type="error"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
-          >
-            {{ formHatasi }}
-          </v-alert>
-
         </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn @click="dialog = false">İptal</v-btn>
-          <v-btn color="primary" variant="elevated" @click="saveUser" :loading="saving">
-            {{ editing ? 'Güncelle' : 'Oluştur' }}
-          </v-btn>
-        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -233,6 +245,26 @@ const selectedRoleHint = computed(() => {
 })
 
 const form = reactive({ name: '', email: '', password: '', role: '', sub_group_id: null, is_active: true, direct_permissions: [], managed_sub_group_ids: [] })
+
+// Rol filtresi: secenekler listedeki kullanicilarin rollerinden turetiliyor,
+// boylece panelden eklenen yeni roller de kendiliginden cikar.
+const rolFiltresi = ref('')
+const rolFiltreSecenekleri = computed(() => {
+  const gorulen = new Map()
+  for (const u of users.value) {
+    for (const r of u.roles || []) {
+      if (r?.name && !gorulen.has(r.name)) gorulen.set(r.name, r.display_name || r.name)
+    }
+  }
+  const secenekler = [...gorulen.entries()]
+    .map(([value, text]) => ({ text, value }))
+    .sort((a, b) => a.text.localeCompare(b.text, 'tr'))
+  return [{ text: 'Tümü', value: '' }, ...secenekler]
+})
+const filtrelenmisKullanicilar = computed(() => {
+  if (!rolFiltresi.value) return users.value
+  return users.value.filter(u => (u.roles || []).some(r => r.name === rolFiltresi.value))
+})
 
 // Izin katalogu — rol ekraniyla ayni kaynak.
 const permissionGroups = ref([])
@@ -293,6 +325,7 @@ const headers = [
 ]
 
 function openCreateDialog() {
+  formHatasi.value = ''
   editing.value = false
   Object.assign(form, { name: '', email: '', password: '', role: '', sub_group_id: null, is_active: true, direct_permissions: [], managed_sub_group_ids: [] })
   dialog.value = true
@@ -348,6 +381,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Baslik satirindaki rol filtresi: basligi ezmesin diye sabit genislik. */
+.rol-filtre { max-width: 220px; flex: 0 0 220px; }
+
 /* ── Izin katalogu ── */
 .perm-group { margin-bottom: 10px; }
 .perm-group-head {

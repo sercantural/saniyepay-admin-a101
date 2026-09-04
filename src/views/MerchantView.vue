@@ -11,6 +11,13 @@
       </v-card-title>
 
       <v-data-table :headers="headers" :items="merchants" :loading="loading" density="compact" no-data-text="Bayi bulunamadı" loading-text="Yükleniyor...">
+        <template v-slot:item.name="{ item }">
+          <div>{{ item.name }}</div>
+          <!-- Eksi limiti yalnizca tanimliysa gosteriliyor; 0 olan bayide rozet yok. -->
+          <v-chip v-if="Number(item.overdraft_limit) > 0" size="x-small" variant="tonal" color="warning" class="mt-1">
+            <v-icon start size="11">mdi-cash-minus</v-icon> Eksi limiti: {{ fmtLimit(item.overdraft_limit) }}
+          </v-chip>
+        </template>
         <template v-slot:item.total_deposits="{ item }">
           <span class="mc-deposit" style="font-weight: 600;">{{ fmtAmount(item.total_deposits) }}</span>
         </template>
@@ -138,6 +145,22 @@
                 <v-col cols="6"><v-text-field v-model.number="form.min_withdrawal_amount" label="Min Çekim" type="number" step="0.01" min="0" variant="outlined" density="compact" placeholder="Limitsiz" clearable /></v-col>
                 <v-col cols="6"><v-text-field v-model.number="form.max_withdrawal_amount" label="Max Çekim" type="number" step="0.01" min="0" variant="outlined" density="compact" placeholder="Limitsiz" clearable /></v-col>
               </v-row>
+
+              <!-- Eksi limiti: bayi bakiyesinin sifirin altina inebilecegi
+                   ust sinir. 0 = eksiye dusemez (varsayilan). -->
+              <div class="section-label mt-4"><v-icon size="14" class="mr-1">mdi-bank-minus</v-icon> Eksi Limiti</div>
+              <v-text-field
+                v-model.number="form.overdraft_limit"
+                label="Eksi Limiti (TRY)"
+                type="number"
+                step="0.01"
+                min="0"
+                variant="outlined"
+                density="compact"
+                hint="Bayi bu tutara kadar eksiye düşebilir. 0 = eksiye düşemez."
+                persistent-hint
+                @blur="normalizeOverdraft"
+              />
 
               <div class="section-label mt-4"><v-icon size="14" class="mr-1">mdi-speedometer</v-icon> Hız Limitleri</div>
               <div class="limit-grid">
@@ -487,11 +510,22 @@ const form = reactive({
   currency: 'TRY', deposit_fee_percent: 0, withdrawal_fee_percent: 0, settlement_fee_percent: 0,
   min_deposit_amount: null, max_deposit_amount: null,
   min_withdrawal_amount: null, max_withdrawal_amount: null,
+  overdraft_limit: 0,
   api_access: 'sandbox_only', is_active: true, sandbox_mode: false, require_request_signature: false, allow_direct_api: false,
   player_rate_limit: 5, player_rate_window: 10, max_concurrent_deposits: 50, max_concurrent_withdrawals: 50, creation_rate_limit: 200, deposit_expiry_minutes: 60, withdrawal_expiry_minutes: 1440,
   allowed_ips: [],
   owner_name: '', owner_email: '', owner_password: '',
 })
+
+// Eksi limiti negatif veya bos gonderilmesin: alan temizlenince 0'a doner.
+function normalizeOverdraft() {
+  const v = Number(form.overdraft_limit)
+  form.overdraft_limit = Number.isFinite(v) && v > 0 ? v : 0
+}
+// Rozet icin tam sayi bicimi (50.000); kurus gerekirse gosterilir.
+function fmtLimit(val) {
+  return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(val) || 0)
+}
 
 // IP whitelist UI state
 const newIpInput = ref('')
@@ -583,6 +617,7 @@ function openCreate() {
     currency: 'TRY', deposit_fee_percent: 0, withdrawal_fee_percent: 0, settlement_fee_percent: 0,
     min_deposit_amount: null, max_deposit_amount: null,
     min_withdrawal_amount: null, max_withdrawal_amount: null,
+    overdraft_limit: 0,
     api_access: 'sandbox_only', is_active: true, sandbox_mode: false, require_request_signature: false, allow_direct_api: false,
   player_rate_limit: 5, player_rate_window: 10, max_concurrent_deposits: 50, max_concurrent_withdrawals: 50, creation_rate_limit: 200, deposit_expiry_minutes: 60, withdrawal_expiry_minutes: 1440,
     allowed_ips: [],
@@ -610,6 +645,7 @@ function editMerchant(m) {
     max_deposit_amount: m.max_deposit_amount || null,
     min_withdrawal_amount: m.min_withdrawal_amount || null,
     max_withdrawal_amount: m.max_withdrawal_amount || null,
+    overdraft_limit: Number(m.overdraft_limit) > 0 ? Number(m.overdraft_limit) : 0,
     api_access: m.api_access, is_active: m.is_active, sandbox_mode: m.sandbox_mode, require_request_signature: m.require_request_signature || false, allow_direct_api: m.allow_direct_api || false,
     player_rate_limit: m.player_rate_limit ?? 5, player_rate_window: m.player_rate_window ?? 10,
     max_concurrent_deposits: m.max_concurrent_deposits ?? 50, max_concurrent_withdrawals: m.max_concurrent_withdrawals ?? 50,
