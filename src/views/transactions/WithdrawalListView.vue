@@ -390,6 +390,19 @@
             >
               İşleme Al
             </v-btn>
+            <!-- Gruba Ata dugme olarak da burada: menude aramak gerekmiyor.
+                 Atama sonrasi satir "Islemde"ye gecer ve Isleme Al kalkar. -->
+            <v-btn
+              v-if="canAssignInline(item)"
+              size="small"
+              variant="tonal"
+              color="info"
+              class="ml-1"
+              prepend-icon="mdi-account-group"
+              @click.stop="openAssign(item)"
+            >
+              Gruba Ata
+            </v-btn>
 
             <!-- Stage 2: kilitli / ustune alinmis cekim icin tek yigin.
                  1. satir Onayla | Reddet, 2. satir Kismi Odeme (tam
@@ -1637,15 +1650,15 @@ const visibleHeaders = computed(() => {
 // for the operator (both = "do something"). Only "processing" (locked by
 // an operator) shows as Kontrolde.
 function statusColor(status) {
-  const colors = { pending: 'amber-darken-2', assigned: 'amber-darken-2', payment_seen: 'secondary', processing: 'warning', admin_review: 'purple-darken-2', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
+  const colors = { pending: 'amber-darken-2', assigned: 'light-blue-darken-1', payment_seen: 'secondary', processing: 'warning', admin_review: 'purple-darken-2', approved: 'success', rejected: 'error', expired: 'grey-darken-1', cancelled: 'grey-darken-2' }
   return colors[status] || 'grey'
 }
 function statusText(status) {
-  const texts = { pending: 'Yeni', assigned: 'Yeni', payment_seen: 'Ödeme Görüldü', processing: 'Kontrolde', admin_review: 'Yönetici Onayı', approved: 'Onaylandı', rejected: 'Reddedildi', expired: 'Süresi Doldu', cancelled: 'İptal Edildi' }
+  const texts = { pending: 'Yeni', assigned: 'İşlemde', payment_seen: 'Ödeme Görüldü', processing: 'Kontrolde', admin_review: 'Yönetici Onayı', approved: 'Onaylandı', rejected: 'Reddedildi', expired: 'Süresi Doldu', cancelled: 'İptal Edildi' }
   return texts[status] || status
 }
 function statusIcon(status) {
-  const icons = { pending: 'mdi-bell-ring', assigned: 'mdi-bell-ring', payment_seen: 'mdi-cash-check', processing: 'mdi-progress-clock', admin_review: 'mdi-shield-account', approved: 'mdi-check-circle', rejected: 'mdi-close-circle', expired: 'mdi-timer-off-outline', cancelled: 'mdi-cancel' }
+  const icons = { pending: 'mdi-bell-ring', assigned: 'mdi-account-arrow-right', payment_seen: 'mdi-cash-check', processing: 'mdi-progress-clock', admin_review: 'mdi-shield-account', approved: 'mdi-check-circle', rejected: 'mdi-close-circle', expired: 'mdi-timer-off-outline', cancelled: 'mdi-cancel' }
   return icons[status] || 'mdi-help-circle-outline'
 }
 
@@ -1740,7 +1753,23 @@ function counterClass(item) {
 function canLock(item) {
   if (item.locked_by) return false
   if (!['pending', 'assigned'].includes(item.status)) return false
-  return auth.isSuperAdmin || auth.can('transactions.lock')
+  if (!(auth.isSuperAdmin || auth.can('transactions.lock'))) return false
+  /*
+   * Gruba atanmis cekim artik o grubun isi.
+   *
+   * Sistem admini: "gruba atama yaptigimizda isleme al kismi kalksin".
+   * Butun gruplari goren biri (destek, admin, super admin) baska bir
+   * gruba atanmis satirda Isleme Al gormuyor; o grubun taseronu goruyor.
+   * Sahipsiz (grubu olmayan) cekimde herkes gorur.
+   */
+  const butunGruplar = auth.isSuperAdmin || auth.can('scope.all_groups')
+  if (item.sub_group_id && butunGruplar && item.sub_group_id !== auth.user?.sub_group_id) return false
+  return true
+}
+
+// Isleme Al'in yanindaki "Gruba Ata" dugmesi: islem yapilmamis, kilitsiz cekim.
+function canAssignInline(item) {
+  return canAssign.value && !item.locked_by && ['pending', 'assigned'].includes(item.status)
 }
 function canActOnLocked(item) {
   if (!['processing', 'payment_seen'].includes(item.status)) return false
