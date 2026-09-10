@@ -170,6 +170,61 @@
           </v-card-text>
         </v-card>
       </v-col>
+
+      <!-- Telegram: sohbeti panel hesabina baglama ve bildirim anahtari.
+           Bag tek kullanimlik kodla kuruluyor; kod burada uretilir,
+           Telegram'da tuketilir. -->
+      <v-col cols="12" md="6">
+        <v-card>
+          <v-card-title>
+            <v-icon start>mdi-send</v-icon> Telegram
+          </v-card-title>
+          <v-card-text>
+            <v-alert v-if="tg.loaded && !tg.enabled" type="info" variant="tonal" density="compact">
+              Telegram botu henüz kurulmadı. Kurulunca bu alandan hesabınızı bağlayabileceksiniz.
+            </v-alert>
+
+            <template v-else-if="tg.loaded">
+              <div v-if="tg.linked" class="d-flex align-center ga-2 mb-3">
+                <v-icon color="success" size="20">mdi-check-circle</v-icon>
+                <div>
+                  <div class="font-weight-bold">Bağlı<span v-if="tg.telegram_username"> — @{{ tg.telegram_username }}</span></div>
+                  <div class="text-caption text-medium-emphasis">Yeni yatırım ve çekim bildirimleri Telegram'a gidiyor; yatırımı oradan onaylayıp reddedebilirsiniz.</div>
+                </div>
+              </div>
+              <div v-else class="text-body-2 mb-3">
+                Telegram bağlı değil. Bağlayınca yeni yatırım ve çekimler anında telefonunuza düşer.
+              </div>
+
+              <div v-if="tg.linkUrl" class="tg-link-box mb-3">
+                <div class="text-caption text-medium-emphasis mb-1">Telegram'da botu açıp Başlat'a basın (bağlantı 10 dakika geçerli):</div>
+                <a :href="tg.linkUrl" target="_blank" rel="noopener" class="tg-link">{{ tg.linkUrl }}</a>
+              </div>
+
+              <div class="d-flex ga-2 flex-wrap">
+                <v-btn v-if="!tg.linked" color="primary" variant="flat" :loading="tg.busy" prepend-icon="mdi-link-variant" @click="telegramBagla">
+                  Telegram'ı bağla
+                </v-btn>
+                <v-btn v-else color="error" variant="outlined" :loading="tg.busy" prepend-icon="mdi-link-variant-off" @click="telegramKopar">
+                  Bağlantıyı kes
+                </v-btn>
+              </div>
+
+              <v-switch
+                v-if="tg.linked"
+                v-model="notificationPrefs.telegram"
+                color="primary"
+                density="compact"
+                hide-details
+                class="mt-3"
+                :disabled="notificationLoading"
+                label="Telegram bildirimi"
+                @update:model-value="saveNotificationPrefs"
+              />
+            </template>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-row>
 
     <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
@@ -218,6 +273,7 @@ async function saveNotificationPrefs() {
   const payload = {
     sound: !!notificationPrefs.value.sound,
     toast: !!notificationPrefs.value.toast,
+    telegram: notificationPrefs.value.telegram !== false,
   }
   const previous = { ...auth.notificationPreferences }
   notificationLoading.value = true
@@ -232,6 +288,53 @@ async function saveNotificationPrefs() {
     showSnack(e.response?.data?.message || 'Bildirim tercihleri kaydedilemedi', 'error')
   } finally {
     notificationLoading.value = false
+  }
+}
+
+// Telegram baglantisi
+const tg = ref({ loaded: false, enabled: false, linked: false, telegram_username: null, linkUrl: null, busy: false })
+
+async function telegramDurum() {
+  try {
+    const { data } = await api.get('/portal/profile/telegram')
+    tg.value = { ...tg.value, ...data, loaded: true }
+  } catch {
+    tg.value.loaded = true
+  }
+}
+
+async function telegramBagla() {
+  tg.value.busy = true
+  try {
+    const { data } = await api.post('/portal/profile/telegram/link-code')
+    tg.value.linkUrl = data.url
+    // Kullanici Telegram'da Baslat'a basinca bag kurulur; birkac saniyede
+    // bir durumu yoklayip baglaninca baglantiyi kaldiriyoruz.
+    const basla = Date.now()
+    const yokla = async () => {
+      await telegramDurum()
+      if (tg.value.linked) { tg.value.linkUrl = null; showSnack('Telegram bağlandı'); return }
+      if (Date.now() - basla < 10 * 60 * 1000) setTimeout(yokla, 4000)
+    }
+    setTimeout(yokla, 4000)
+  } catch (e) {
+    showSnack(e.uiMessage || 'Bağlantı kodu alınamadı', 'error')
+  } finally {
+    tg.value.busy = false
+  }
+}
+
+async function telegramKopar() {
+  tg.value.busy = true
+  try {
+    await api.delete('/portal/profile/telegram')
+    tg.value.linked = false
+    tg.value.telegram_username = null
+    showSnack('Telegram bağlantısı kaldırıldı')
+  } catch (e) {
+    showSnack(e.uiMessage || 'Bağlantı kaldırılamadı', 'error')
+  } finally {
+    tg.value.busy = false
   }
 }
 
@@ -311,5 +414,10 @@ function finishSetup() {
   auth.fetchMe()
 }
 
-onMounted(() => loadTwoFactorStatus())
+onMounted(() => { loadTwoFactorStatus(); telegramDurum() })
 </script>
+
+<style scoped>
+.tg-link-box { padding: 10px 12px; border: 1px solid var(--sp-card-border); background: var(--sp-surface); }
+.tg-link { font-family: 'JetBrains Mono', monospace; font-size: 12px; word-break: break-all; color: var(--sp-primary); }
+</style>
