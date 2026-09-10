@@ -51,8 +51,8 @@
           </v-chip>
         </template>
         <template v-slot:item.api_access="{ item }">
-          <v-chip :color="item.api_access === 'live_enabled' ? 'success' : 'warning'" size="small">
-            {{ item.api_access === 'live_enabled' ? 'Canlı' : 'Sadece Sandbox' }}
+          <v-chip :color="accessChip(item.api_access).color" size="small">
+            {{ accessChip(item.api_access).text }}
           </v-chip>
         </template>
         <template v-slot:item.users_count="{ item }">
@@ -573,7 +573,18 @@ function fmtAmount(val) { return new Intl.NumberFormat('tr-TR', { minimumFractio
 const accessOptions = [
   { text: 'Sadece Sandbox', value: 'sandbox_only' },
   { text: 'Canlı Erişim Açık', value: 'live_enabled' },
+  { text: 'Kapalı (API erişimi yok)', value: 'disabled' },
 ]
+
+// api_access uc degerli: live_enabled (canli + sandbox), sandbox_only,
+// disabled (sandbox dahil hicbir uc calismaz, API 403 api_access_disabled doner).
+function accessChip(access) {
+  return {
+    live_enabled: { text: 'Canlı', color: 'success' },
+    sandbox_only: { text: 'Sadece Sandbox', color: 'warning' },
+    disabled: { text: 'Kapalı', color: 'error' },
+  }[access] || { text: access || '—', color: 'grey' }
+}
 
 const merchantRoleOptions = [
   { text: 'Sahip', value: 'owner' },
